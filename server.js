@@ -27,6 +27,10 @@ app.get('/', async (req, res) => {
   let data = await getData();
   res.json(data)
 })
+app.get('/createUser', async (req, res) => {
+  let data = await getData();
+  res.json(data)
+})
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
