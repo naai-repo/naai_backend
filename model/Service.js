@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 // Schema for Service
 const ServiceSchema = new mongoose.Schema({
-    category:{
+    category: {
         type: String,
         required: true
     },
@@ -14,13 +14,13 @@ const ServiceSchema = new mongoose.Schema({
     description: {
         type: String,
     },
-    targetGender :{
+    targetGender: {
         type: String,
         required: true
     },
-    salonIds:[
+    salonIds: [
         {
-            type : mongoose.Schema.ObjectId,
+            type: mongoose.Schema.ObjectId,
             required: true
         },
     ],
@@ -32,7 +32,7 @@ const ServiceSchema = new mongoose.Schema({
         type: Number,
         required: true
     }
-},{
+}, {
     timestamps: true
 });
 

@@ -2,11 +2,11 @@ const mongoose = require('mongoose');
 
 // Schema for Artists
 const ReviewSchema = new mongoose.Schema({
-    title :{
+    title: {
         type: String,
         required: true
     },
-    description :{
+    description: {
         type: String,
     },
     rating: {
@@ -25,7 +25,7 @@ const ReviewSchema = new mongoose.Schema({
         type: mongoose.Schema.ObjectId,
         required: true
     }
-},{
+}, {
     timestamps: true
 });
 
