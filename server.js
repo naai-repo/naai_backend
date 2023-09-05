@@ -3,6 +3,7 @@ const mongoose = require('mongoose')
 const {MongoClient} = require('mongodb');
  const Review = require('./model/Review')
 // const url = 'mongodb://localhost:27017?directConnection=true';
+// const url = "mongodb+srv://naaiadmn:naaiadmn@cluster0.rg1ncj1.mongodb.net/naai";
 const url = 'mongodb://0.0.0.0:27017/?directConnection=true';
 const dbName = 'Naai'
 const client = new MongoClient(url);
