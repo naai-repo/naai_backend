@@ -25,8 +25,8 @@ router.get("/", async (req, res) => {
 router.post('/add', async (req, res) => {
     const newReview = new Review(req.body);
     try{
-        const todo = await newReview.save();
-        res.status(200).json(todo);
+        const review = await newReview.save();
+        res.status(200).json(review);
     }catch(err){
         res.status(500).json(err);
     }

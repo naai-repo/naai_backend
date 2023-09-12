@@ -7,6 +7,10 @@ const url = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster
 
 // Requiring routers
 const ReviewRouter = require('./routes/reviewRouter');
+const SalonRouter = require('./routes/salonRouter');
+const ServiceRouter = require('./routes/serviceRouter');
+const ArtistRouter = require('./routes/artistRouter');
+const BookingRouter = require('./routes/bookingRouter');
 
 //connecting to database
 
@@ -25,6 +29,10 @@ app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 
 app.use("/review", ReviewRouter);
+app.use("/salon", SalonRouter);
+app.use("/service", ServiceRouter);
+app.use("/artist", ArtistRouter);
+app.use("/booking", BookingRouter);
 
 
 app.get('/', async (req, res) => {
