@@ -4,11 +4,13 @@ const mongoose = require('mongoose');
 const SalonSchema = new mongoose.Schema({
     address:{
         type: String,
-        required: true
+        required: true,
+        unique: true
     },
     location: {
         type: Object,
-        required: true
+        required: true,
+        unique: true
     },
     name :{
         type: String,
@@ -19,8 +21,14 @@ const SalonSchema = new mongoose.Schema({
         required: true
     },
     timing : {
-        type: Object,
-        required: true
+        opening : {
+            type: String,
+            required: true
+        },
+        closing: {
+            type: String,
+            required: true
+        },
     },
     rating: {
         type: Number,
@@ -33,6 +41,7 @@ const SalonSchema = new mongoose.Schema({
     phoneNumber : {
         type: Number,
         required: true,
+        unique: true,
         validate: {
             validator: function(val) {
                 return val.toString().length === 10

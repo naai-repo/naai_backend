@@ -27,6 +27,7 @@ const ArtistSchema = new mongoose.Schema({
     phoneNumber : {
         type: Number,
         required: true,
+        unique: true,
         validate: {
             validator: function(val) {
                 return val.toString().length === 10
