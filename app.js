@@ -12,6 +12,7 @@ const ServiceRouter = require('./routes/serviceRouter');
 const ArtistRouter = require('./routes/artistRouter');
 const BookingRouter = require('./routes/bookingRouter');
 const PartnerRouter = require('./routes/partnerRouter')
+const OtpRouter = require('./routes/otpRouter');
 
 //connecting to database
 
@@ -35,6 +36,8 @@ app.use("/service", ServiceRouter);
 app.use("/artist", ArtistRouter);
 app.use("/booking", BookingRouter);
 app.use("/partner", PartnerRouter);
+app.use("/partner/otp", OtpRouter);
+
 
 
 app.get('/', async (req, res) => {

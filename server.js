@@ -1,21 +1,31 @@
 const fast2sms = require("fast-two-sms");
 const otplib = require('otplib');
 const secret = otplib.authenticator.generateSecret();
+const axios = require('axios');
 
 // Generate an OTP
+otplib.authenticator.options = {digits: 6};
 const token = otplib.authenticator.generate(secret);
-var options = {
-  authorization : "OVG2Xfy9eM5WxaokSuZ4Fs6cTNdqhUKwptCljvrLm1gQP7JBi3y3rk1V29GOPtfQEwl5TKjxX0ivqzUD", //fill this with your api
-  message: `your OTP verification code is ${token}`,
-  numbers: ['8178049784'],
-};
-//send this message
-fast2sms
-  .sendMessage(options)
-  .then((response) => {
-    console.log("otp sent successfully");
-    console.log("Response", response);
-  })
-  .catch((error) => {
-    console.log(error);
+const auth_key = "1MeSOZiA3SFkdABiFMYd";
+const auth_token = "7adiAdJn0BopIkR5EyseBwvTudAX8FEXbfPA78MO";
+const url = `https://restapi.smscountry.com/v0.1/Accounts/${auth_key}/SMSes/`
+const number = "8860579871";
+const senderId = "SMSCOU";
+async function sendOtp(){
+  const body = {
+    Text: `User Admin login OTP is ${token} - SMSCOU`,
+    Number: number,
+    SenderId: senderId,
+    DRNotifyUrl: "https://www.domainname.com/notifyurl",
+    DRNotifyHttpMethod: "POST",
+    Tool: "API"
+  }
+  let data = await axios.post(url,body, {
+    auth: {
+      username: auth_key,
+      password: auth_token
+    }
   });
+  console.log("DATA: ", data);
+}
+sendOtp();
