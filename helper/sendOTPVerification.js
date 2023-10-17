@@ -41,7 +41,7 @@ const sendOTPVerification = async ({_id, phoneNumber}, res) => {
 
         res.json({
             status: "pending",
-            message: "Verification otp message sent",
+            message: "OTP message sent",
             data: {
                 userId: _id,
                 phoneNumber,
