@@ -39,7 +39,6 @@ app.use("/partner", PartnerRouter);
 app.use("/partner/otp", OtpRouter);
 
 
-
 app.get('/', async (req, res) => {
   res.send("Welcome to backend");
 })
