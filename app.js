@@ -3,7 +3,8 @@ const mongoose = require('mongoose')
 require('dotenv').config();
 const app = express();
 const PORT = 8800;
-const url = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.rg1ncj1.mongodb.net/${process.env.DB_NAME}`;
+// const url = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.rg1ncj1.mongodb.net/${process.env.DB_NAME}`;
+const url = `mongodb+srv://naaiadmn:naaiadmn@cluster0.rg1ncj1.mongodb.net/naai`;
 
 // Requiring routers
 const ReviewRouter = require('./routes/reviewRouter');
