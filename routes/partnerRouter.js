@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 const Partner = require('../model/Partner');
 const wrapperMessage = require('../helper/wrapperMessage');
@@ -113,15 +114,24 @@ router.post('/login', (req, res) => {
         )
     }else{
         let criteria = isNaN(Number(user)) ? {email : user} : {phoneNumber: user};
-        console.log(criteria);
         Partner.find(criteria).then(data => {
             if(data.length){
                 // User Exists
-                console.log("Data: ", data);
                 const hashedPassword = data[0].password;
                 bcrypt.compare(password, hashedPassword).then(result => {
                     if(result){
-                        res.json(wrapperMessage("success", "", data));
+                        let user = {
+                            id: data[0]._id,
+                            name: data[0].name,
+                            email: data[0].email,
+                            phoneNumber: data[0].phoneNumber,
+                            admin: data[0].admin,
+                            verified: data[0].verified
+                        };
+                        const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET);
+                        
+                        user = {...user, accessToken};
+                        res.json(wrapperMessage("success", "", [user]));
                     }else{
                         res.json(
                             wrapperMessage(
