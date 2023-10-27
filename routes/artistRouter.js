@@ -6,38 +6,6 @@ const Artist = require('../model/Artist');
 // saloon ID : 64f786e3b23d28509e6791e1
 // Artist ID : 64f786e3b23d28509e6791e2
 
-/* 
-    Dummy Artists: 
-    {
-        "name" : "Boho",
-        "salonId" : "650066505e403c6686f0077c",
-        "services" : [
-            {
-                "serviceId" : "6500696f54fcc02c38794862",
-                "price" : 600
-            },
-            {
-                "serviceId" : "6500698554fcc02c38794866",
-                "price" : 600
-            },
-            {
-                "serviceId" : "6500699954fcc02c38794868",
-                "price" : 600
-            }
-        ],
-        "phoneNumber" : 9999999999,
-        "availability" : {
-            "monday" : [20000, 30000],
-            "tuesday" : [20000, 30000],
-            "wednesday" : [20000, 30000],
-            "thursday" : [20000, 30000],
-            "friday" : [20000, 30000],
-            "saturday" : [20000, 30000],
-            "sunday" : [20000, 30000]
-        }
-    }
-*/
-
 // Getting all the Artists
 router.get("/", async (req, res) => {
     try{
