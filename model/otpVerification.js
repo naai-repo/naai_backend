@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 // Schema for Partners
-const PartnerOTPVerificationSchema = new mongoose.Schema({
+const OTPVerificationSchema = new mongoose.Schema({
     userId: {
         type: String,
         required: true
@@ -18,4 +18,4 @@ const PartnerOTPVerificationSchema = new mongoose.Schema({
     }
 });
 
-module.exports = new mongoose.model("PartnerOTPVerification", PartnerOTPVerificationSchema);
+module.exports = new mongoose.model("OTPVerification", OTPVerificationSchema);

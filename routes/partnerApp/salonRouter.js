@@ -1,30 +1,11 @@
 const router = require('express').Router();
 const mongoose = require('mongoose');
-const Salon = require('../model/Salon');
+const Salon = require('../../model/partnerApp/Salon');
 
 // User ID : 64f786e3b23d28509e6791e0
 // saloon ID : 64f786e3b23d28509e6791e1
 // Artist ID : 64f786e3b23d28509e6791e2
 
-/* 
-    Dummy Salon: 
-    {
-        address: "This is a address",
-        location: {
-            type: "Point",
-            coordinates: [200, 300]
-        },
-        name: "The Vanity Salon",
-        salonType: "Unisex",
-        timing: {
-            opening: "122000",
-            closing: "123300"
-        },
-        closedOn: "Tuesday",
-        phoneNumber: 9999999999
-    }
-
-*/
 // Getting all the Salons
 router.get("/", async (req, res) => {
     try{
