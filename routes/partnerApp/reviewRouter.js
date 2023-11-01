@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const mongoose = require('mongoose');
-const Review = require('../model/Review');
+const Review = require('../../model/partnerApp/Review');
 
 // User ID : 64f786e3b23d28509e6791e0
 // saloon ID : 64f786e3b23d28509e6791e1
@@ -18,6 +18,27 @@ router.get("/", async (req, res) => {
         res.status(200).json({data, hits: data.length});
     }catch(err){
         res.status(500).json(err);
+    }
+})
+
+// Getting particular Review
+router.get('/:id', async (req, res) => {
+    try{
+        
+        const data = await Review.find({_id: req.params.id});
+        if(!data.length){
+            res.status(404);
+            throw new Error("No such Review exists!");
+            
+        }
+        res.status(200).json({data, hits: data.length});
+    }catch(err){
+        console.log(err);
+        res.json({
+            status: 'failed',
+            message: err.message,
+            data: []
+        });
     }
 })
 
