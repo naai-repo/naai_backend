@@ -6,13 +6,18 @@ const PORT = 8800;
 const url = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.rg1ncj1.mongodb.net/${process.env.DB_NAME}`;
 
 // Requiring routers
-const ReviewRouter = require('./routes/reviewRouter');
-const SalonRouter = require('./routes/salonRouter');
-const ServiceRouter = require('./routes/serviceRouter');
-const ArtistRouter = require('./routes/artistRouter');
-const BookingRouter = require('./routes/bookingRouter');
-const PartnerRouter = require('./routes/partnerRouter')
-const OtpRouter = require('./routes/otpRouter');
+// Partner App
+const ReviewRouter = require('./routes/partnerApp/reviewRouter');
+const SalonRouter = require('./routes/partnerApp/salonRouter');
+const ServiceRouter = require('./routes/partnerApp/serviceRouter');
+const ArtistRouter = require('./routes/partnerApp/artistRouter');
+const BookingRouter = require('./routes/partnerApp/bookingRouter');
+const PartnerRouter = require('./routes/partnerApp/partnerRouter')
+const OtpRouter = require('./routes/partnerApp/otpRouter');
+
+// Customer App
+const UserRouter = require('./routes/customerApp/userRouter');
+const UserOtpRouter = require('./routes/customerApp/otpRouter');
 
 //connecting to database
 
@@ -30,14 +35,19 @@ mongoose.connect(url, {
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 
-app.use("/review", ReviewRouter);
-app.use("/salon", SalonRouter);
-app.use("/service", ServiceRouter);
-app.use("/artist", ArtistRouter);
-app.use("/booking", BookingRouter);
-app.use("/partner", PartnerRouter);
+// Partner App Routes
+app.use("/partner/review", ReviewRouter);
+app.use("/partner/salon", SalonRouter);
+app.use("/partner/service", ServiceRouter);
+app.use("/partner/artist", ArtistRouter);
+app.use("/partner/booking", BookingRouter);
+app.use("/partner/partner", PartnerRouter);
 app.use("/partner/otp", OtpRouter);
 
+
+// Customer App Routes
+app.use("/customer/user", UserRouter);
+app.use("/customer/otp", UserOtpRouter);
 
 app.get('/', async (req, res) => {
   res.send("Welcome to backend");
