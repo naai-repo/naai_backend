@@ -30,17 +30,17 @@ const sendOTPVerification = async ({ _id, phoneNumber }, res) => {
       Tool: "API",
     };
 
-    // Sends SMS OTP to user.
-    // const data = await await axios.post(
-    //   `https://restapi.smscountry.com/v0.1/Accounts/${process.env.AUTH_KEY}/SMSes/`,
-    //   body,
-    //   {
-    //     auth: {
-    //       username: process.env.AUTH_KEY,
-    //       password: process.env.AUTH_TOKEN,
-    //     },
-    //   }
-    // );
+    Sends SMS OTP to user.
+    const data = await await axios.post(
+      `https://restapi.smscountry.com/v0.1/Accounts/${process.env.AUTH_KEY}/SMSes/`,
+      body,
+      {
+        auth: {
+          username: process.env.AUTH_KEY,
+          password: process.env.AUTH_TOKEN,
+        },
+      }
+    );
 
     res.json({
       status: "pending",
