@@ -8,9 +8,15 @@ const SalonSchema = new mongoose.Schema({
         unique: true
     },
     location: {
-        type: Object,
-        required: true,
-        unique: true
+        type: {
+            type: String,
+            enum: ['Point'],
+            default: "Point"
+        },
+        coordinates: {
+            type: [Number],
+            default: [0, 0]
+        }
     },
     name :{
         type: String,
@@ -52,5 +58,7 @@ const SalonSchema = new mongoose.Schema({
 },{
     timestamps: true
 });
+
+SalonSchema.index({ location: "2dsphere" });
 
 module.exports = new mongoose.model("Salon", SalonSchema);

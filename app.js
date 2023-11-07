@@ -18,6 +18,7 @@ const OtpRouter = require('./routes/partnerApp/otpRouter');
 // Customer App
 const UserRouter = require('./routes/customerApp/userRouter');
 const UserOtpRouter = require('./routes/customerApp/otpRouter');
+const LocationRouter = require('./routes/customerApp/locationRouter');
 
 //connecting to database
 
@@ -48,6 +49,7 @@ app.use("/partner/otp", OtpRouter);
 // Customer App Routes
 app.use("/customer/user", UserRouter);
 app.use("/customer/otp", UserOtpRouter);
+app.use("/customer/user/location", LocationRouter);
 
 app.get('/', async (req, res) => {
   res.send("Welcome to backend");
