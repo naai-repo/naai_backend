@@ -16,8 +16,8 @@ const UserSchema = new mongoose.Schema({
     },
     gender : {
         type: String,
-        enum: ['male', 'female'],
-        default: 'male'
+        enum: ['male', 'female', 'not specified'],
+        default: 'not specified'
     },
     phoneNumber : {
         type: Number,
@@ -30,6 +30,17 @@ const UserSchema = new mongoose.Schema({
             message: val => `${val.value} has to be 10 digits`
         }
     },
+    location: {
+        type: {
+            type: String,
+            enum: ['Point'],
+            default: "Point"
+        },
+        coordinates: {
+            type: [Number],
+            default: [0, 0]
+        }
+    },
     verified: {
         type: Boolean,
         default: false
@@ -37,5 +48,7 @@ const UserSchema = new mongoose.Schema({
 },{
     timestamps: true
 });
+
+UserSchema.index({location: "2dsphere" });
 
 module.exports = new mongoose.model("User", UserSchema);
