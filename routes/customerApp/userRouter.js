@@ -12,16 +12,6 @@ const sendOTPVerification = require("../../helper/sendOTPVerification");
 
 // User Signup
 
-// router.get('/test', (req, res) => {
-//   try{
-//     let data = User.schema.path('gender').enumValues;
-//     console.log(data);
-//     res.json(data);
-//   }catch(err){
-//     console.log(err);
-//     res.json(err.message);
-//   }
-// })
 
 router.post("/signup", (req, res) => {
   let { name, password, phoneNumber } = req.body;
