@@ -30,7 +30,7 @@ const sendOTPVerification = async ({ _id, phoneNumber }, res) => {
       Tool: "API",
     };
 
-    Sends SMS OTP to user.
+    // Sends SMS OTP to user.
     const data = await await axios.post(
       `https://restapi.smscountry.com/v0.1/Accounts/${process.env.AUTH_KEY}/SMSes/`,
       body,
