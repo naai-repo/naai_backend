@@ -24,6 +24,9 @@ const SalonSchema = new mongoose.Schema({
     },
     salonType : {
         type: String,
+        enum: ["unisex", "men", "women", "not specified"],
+        default: "not specified",
+        lowercase: true,
         required: true
     },
     timing : {
@@ -54,6 +57,18 @@ const SalonSchema = new mongoose.Schema({
             },
             message: val => `${val.value} has to be 10 digits`
         }
+    },
+    owner: {
+        type: String,
+        required: true
+    },
+    gst: {
+        type: String,
+        default: "XX-XXXXXXXXX-XX"
+    },
+    pan: {
+        type: String,
+        default: "XX-XXXXXXXXX-XX"
     }
 },{
     timestamps: true
