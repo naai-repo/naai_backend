@@ -42,7 +42,7 @@ app.use("/partner/salon", SalonRouter);
 app.use("/partner/service", ServiceRouter);
 app.use("/partner/artist", ArtistRouter);
 app.use("/partner/booking", BookingRouter);
-app.use("/partner/partner", PartnerRouter);
+app.use("/partner/user", PartnerRouter);
 app.use("/partner/otp", OtpRouter);
 
 
