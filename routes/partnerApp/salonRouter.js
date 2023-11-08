@@ -38,4 +38,14 @@ router.post('/add', async (req, res) => {
     }
 })
 
+router.post('/:id/update', async (req, res) => {
+    try{
+        let data = await Salon.updateOne({_id: req.params.id}, req.body);
+        res.json(wrapperMessage('success', "", data));
+    }catch(err){
+        console.log(err);
+        res.json(wrapperMessage("failed", err.message));
+    }
+})
+
 module.exports = router;

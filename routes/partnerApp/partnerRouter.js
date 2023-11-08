@@ -171,4 +171,24 @@ router.post("/forgotPassword", async (req, res) => {
   }
 });
 
+router.post("/:id/admin" , async (req,res) => {
+  try{
+    let {admin} = req.body;
+    // admin = admin.toLowerCase();
+    // if(!admin){
+    //   throw new Error("The admin field cannot be empty");
+    // }
+
+    let data = await Partner.updateOne({_id: req.params.id}, {admin});
+    if(admin){
+      res.json(wrapperMessage("success", "The user is a Manager now!"));
+    }else {
+      res.json(wrapperMessage("success", "The user is not a Manager now!"));
+    }
+  }catch(err){
+    console.log(err);
+    res.json(wrapperMessage("failed",err.message));
+  }
+})
+
 module.exports = router;
