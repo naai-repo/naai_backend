@@ -1,14 +1,13 @@
 const router = require("express").Router();
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const passport = require("passport");
 
 const Partner = require("../../model/partnerApp/Partner");
 const wrapperMessage = require("../../helper/wrapperMessage");
 const sendOTPVerification = require("../../helper/sendOTPVerification");
-
-// User ID : 64f786e3b23d28509e6791e0
-// saloon ID : 64f786e3b23d28509e6791e1
-// Artist ID : 64f786e3b23d28509e6791e2
+const { isLoggedIn } = require("../../helper/isLoggedIn");
+require('../../helper/googleOAuth');
 
 // Partner Signup
 router.post("/signup", (req, res) => {
@@ -174,10 +173,6 @@ router.post("/forgotPassword", async (req, res) => {
 router.post("/:id/admin" , async (req,res) => {
   try{
     let {admin} = req.body;
-    // admin = admin.toLowerCase();
-    // if(!admin){
-    //   throw new Error("The admin field cannot be empty");
-    // }
 
     let data = await Partner.updateOne({_id: req.params.id}, {admin});
     if(admin){
@@ -189,6 +184,32 @@ router.post("/:id/admin" , async (req,res) => {
     console.log(err);
     res.json(wrapperMessage("failed",err.message));
   }
+})
+
+// Google OAuth
+
+router.get('/auth/google',
+  passport.authenticate('google', { scope:
+      [ 'email', 'profile' ] }
+));
+
+router.get( '/auth/google/callback',
+    passport.authenticate( 'google', {
+        successRedirect: '/partner/user/auth/google/success',
+        failureRedirect: '/partner/user/auth/google/failure'
+}));
+
+router.get("/auth/google/failed", (req, res) => {
+  res.send("Failed")
+})
+router.get("/auth/google/success",isLoggedIn, (req, res) => {
+  res.json(wrapperMessage("success", "", [req.user]));
+})
+
+router.get('/logout', (req, res) => {
+  req.session = null;
+  req.logout();
+  res.json(wrapperMessage("success", "Logged out succesfully!"));
 })
 
 module.exports = router;
