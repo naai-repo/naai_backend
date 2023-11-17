@@ -69,6 +69,10 @@ const SalonSchema = new mongoose.Schema({
     pan: {
         type: String,
         default: "XX-XXXXXXXXX-XX"
+    },
+    live: {
+        type: Boolean,
+        default: false
     }
 },{
     timestamps: true
