@@ -8,14 +8,20 @@ const wrapperMessage = require("../../helper/wrapperMessage");
 // saloon ID : 64f786e3b23d28509e6791e1
 // Artist ID : 64f786e3b23d28509e6791e2
 
-// Getting all the Artists
+// Getting and searching the Artists
+
 router.get("/", async (req, res) => {
   try {
+    let name = req.query.name;
     let page = Number(req.query.page) || 1;
     let limit = Number(req.query.limit) || 3;
     let skip = (page - 1) * limit;
-
-    const data = await Artist.find().skip(skip).limit(limit);
+    let queryObject = {};
+    if(name){
+        queryObject.name = {$regex : name, $options: 'i'};
+    }
+    
+    const data = await Artist.find(queryObject).skip(skip).limit(limit);
     res.status(200).json({ data, hits: data.length });
   } catch (err) {
     res.status(500).json(err);
@@ -23,6 +29,7 @@ router.get("/", async (req, res) => {
 });
 
 // Adding new Artists, use the above mentioned userId, saloonId and artist Id
+
 router.post("/add", async (req, res) => {
   let newArtist = req.body;
   try {
@@ -39,6 +46,7 @@ router.post("/add", async (req, res) => {
 });
 
 // Updating existing artist
+
 router.post("/:id/update", async (req, res) => {
   try{
     let data = await Artist.updateOne({_id: req.params.id}, req.body);
