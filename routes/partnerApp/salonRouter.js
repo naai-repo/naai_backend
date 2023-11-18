@@ -7,17 +7,22 @@ const wrapperMessage = require('../../helper/wrapperMessage');
 // saloon ID : 64f786e3b23d28509e6791e1
 // Artist ID : 64f786e3b23d28509e6791e2
 
-// Getting all the Salons
+// Getting the Salons and searching salons
 router.get("/", async (req, res) => {
     try{
-
+        let name = req.query.name;
         let page = Number(req.query.page) || 1;
         let limit = Number(req.query.limit) || 3;
         let skip = (page-1)*limit;
-    
-        const data = await Salon.find().skip(skip).limit(limit);
-        res.status(200).json({data, hits: data.length});
+        let queryObject = {};
+        if(name){
+            queryObject.name = {$regex : name, $options: 'i'};
+        }
+
+        const salons = await Salon.find(queryObject).skip(skip).limit(limit);
+        res.status(200).json({salons, hits: salons.length});
     }catch(err){
+        console.log(err);
         res.status(500).json(err);
     }
 })
