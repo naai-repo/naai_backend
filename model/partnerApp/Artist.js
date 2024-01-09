@@ -27,6 +27,13 @@ const ArtistSchema = new mongoose.Schema(
         },
       },
     ],
+    targetGender: {
+      type: String,
+      enum: ["unisex", "men", "women", "not specified"],
+      default: "not specified",
+      lowercase: true,
+      required: true
+    },
     location: {
       type: {
         type: String,
@@ -49,42 +56,23 @@ const ArtistSchema = new mongoose.Schema(
         message: (val) => `${val.value} has to be 10 digits`,
       },
     },
+    timing: {
+      start: {
+        type: String,
+        required: true,
+      },
+      end: {
+        type: String,
+        required: true
+      }
+    },
+    offDay: [ {
+      type: String,
+      required: true
+    } ],
     availability: {
-      monday: [
-        {
-          type: Number,
-        },
-      ],
-      tuesday: [
-        {
-          type: Number,
-        },
-      ],
-      wednesday: [
-        {
-          type: Number,
-        },
-      ],
-      thursday: [
-        {
-          type: Number,
-        },
-      ],
-      friday: [
-        {
-          type: Number,
-        },
-      ],
-      saturday: [
-        {
-          type: Number,
-        },
-      ],
-      sunday: [
-        {
-          type: Number,
-        },
-      ],
+      type: Boolean,
+      default: true
     },
     live: {
       type: Boolean,
