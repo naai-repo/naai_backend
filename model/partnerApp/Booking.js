@@ -19,11 +19,11 @@ const bookingSchema = new mongoose.Schema({
     },
     timeSlot: { 
         start: {
-            type: Number, 
+            type: String, 
             required: true, 
         },
         end: {
-            type: Number, 
+            type: String, 
             required: true
         }
     },    //Change it as per requirements
@@ -43,11 +43,11 @@ const bookingSchema = new mongoose.Schema({
             },
             timeSlot: { 
                 start: {
-                    type: Number, 
+                    type: String, 
                     required: true, 
                 },
                 end: {
-                    type: Number, 
+                    type: String, 
                     required: true
                 } 
             } //Change it as per requirements

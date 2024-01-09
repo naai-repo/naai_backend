@@ -24,6 +24,9 @@ const UserRouter = require('./routes/customerApp/userRouter');
 const UserOtpRouter = require('./routes/customerApp/otpRouter');
 const LocationRouter = require('./routes/customerApp/locationRouter');
 
+// Booking Appointment
+const SchedulingRouter = require('./routes/bookingRoutes/schedulingRoutes');
+
 //connecting to database
 
 mongoose.connect(url, {
@@ -65,6 +68,9 @@ app.use("/partner/otp", OtpRouter);
 app.use("/customer/user", UserRouter);
 app.use("/customer/otp", UserOtpRouter);
 app.use("/customer/user/location", LocationRouter);
+
+// Scheduling Appointments
+app.use("/appointments", SchedulingRouter);
 
 app.get('/', async (req, res) => {
   res.sendFile(__dirname + '/index.html')

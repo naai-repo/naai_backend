@@ -26,12 +26,13 @@ const ServiceSchema = new mongoose.Schema({
     ],
     avgTime: {
         type: Number,
-        required: true
+        required: true,
+        default: 1
     },
     basePrice: {
         type: Number,
         required: true
-    }
+    },
 }, {
     timestamps: true
 });
