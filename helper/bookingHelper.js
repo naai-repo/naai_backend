@@ -4,6 +4,7 @@ const Service = require("../model/partnerApp/Service");
 const Artist = require("../model/partnerApp/Artist")
 
 const permutations = (arr) => {
+  arr = arr.filter((element) => element.artist !== "000000000000000000000000");
   if (arr.length <= 2) return arr.length === 2 ? [arr, [arr[1], arr[0]]] : arr;
   return arr.reduce(
     (acc, item, i) =>
@@ -47,7 +48,9 @@ const getWindowSize = (requests, salonId) => {
             let size = 0;
             let servicePromiseArr = [];
             requests.forEach((request) => {
-                servicePromiseArr.push(Service.findOne({_id : request.service}));
+                if(request.artist !== "000000000000000000000000"){
+                    servicePromiseArr.push(Service.findOne({_id : request.service}));
+                }
             })
             let serviceArr = await Promise.all(servicePromiseArr);
             serviceArr.forEach(service => {
@@ -63,6 +66,7 @@ const getWindowSize = (requests, salonId) => {
                 let index = requests.findIndex( ele => ele.service === service._id.toString());
                 requests[index].service = service;
             });
+
             resolve({request: requests, windowSize: size});
         }catch(err){
             reject(err);
@@ -76,8 +80,10 @@ const getArtistsFreeSlots = (artistBookings, salonSlotsLength , salonOpening, sa
             let artistsFreeSlots = {};
             let artistsPromiseArr = [];
             Object.keys(artistBookings).forEach((artist) => {
-                artistsFreeSlots[artist] = Array(salonSlotsLength).fill(0);
-                artistsPromiseArr.push(Artist.find({_id: artist}));
+                if(artist !== "000000000000000000000000"){
+                    artistsFreeSlots[artist] = Array(salonSlotsLength).fill(0);
+                    artistsPromiseArr.push(Artist.find({_id: artist}));
+                }
             })
             let artistsDataArr = await Promise.all(artistsPromiseArr);
             artistsDataArr.forEach(artistData => {
@@ -132,7 +138,6 @@ const getArtistsFreeSlots = (artistBookings, salonSlotsLength , salonOpening, sa
                         })
                     })
                 }
-                
             })
             resolve(artistsFreeSlots);
         }catch(err){
@@ -161,7 +166,6 @@ const getTimeSlotsOfArtists = (requests, salonSlotsLength, salonId, date) => {
             for(let i=0; i<data.length; i++){
                 artistBookings[requests[i].artist] = [...artistBookings[requests[i].artist], ...data[i]];
             }
-            
             let artistsFreeSlots = await getArtistsFreeSlots(artistBookings, salonSlotsLength, salonOpenTime, salonCloseTime);
             resolve({artistsTimeSlots: artistsFreeSlots, salonOpenTime, salonCloseTime});
 

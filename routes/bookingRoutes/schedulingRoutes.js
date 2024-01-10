@@ -1,9 +1,9 @@
 const router = require('express').Router();
 const mongoose = require('mongoose');
 const wrapperMessage = require('../../helper/wrapperMessage');
-const Salon = require('../../model/partnerApp/Salon');
 const { getSalonSlots, getWindowSize, getTimeSlotsOfArtists, permutations, bookingHelper, getSalonTimings } = require('../../helper/bookingHelper');
 const Booking = require('../../model/partnerApp/Booking');
+const Artist = require('../../model/partnerApp/Artist');
 
 /* 
     BODY FOR SCHEDULING WILL CONTAIN
@@ -13,6 +13,54 @@ const Booking = require('../../model/partnerApp/Booking');
     date in MM-DD-YYYY format
 
 */
+router.post('/singleArtist/list', async (req,res) => {
+    try{
+        const set = new Set();
+        let {salonId, services} = req.body;
+        let artistPromiseArr = [];
+        services.forEach(service => {
+            artistPromiseArr.push(Artist.find({salonId: salonId, services: {$elemMatch: {serviceId: service}}}));
+        })
+        let artistLists = await Promise.all(artistPromiseArr);
+        artistLists = artistLists.reduce((prev, next) => prev.concat(next));
+        let artistsProvidingServices = artistLists.filter(element => {
+        if (set.has(element._id.toString())) return false;
+        set.add(element._id.toString());
+        return true;
+        });
+        artistsProvidingServices = artistsProvidingServices.map(ele => { return {artistId: ele._id, artist: ele.name, serviceList: ele.services}})
+        res.json({artistsProvidingServices , services});
+    }catch(err){
+        console.log(err);
+        res.json(wrapperMessage("failed", err.message))
+    }
+})
+
+router.post('/singleArtist/request', (req,res) => {
+    try{
+        let {services, artist} = req.body;
+        let requests = [];
+        services.forEach(service => {
+            let val = artist.serviceList.filter(ele => ele.serviceId === service);
+            if(!val.length){
+                requests.push({
+                    service: service,
+                    artist: "000000000000000000000000"
+                })
+            }else{
+                requests.push({
+                    service: service,
+                    artist: artist.artistId
+                })
+            }
+        })
+        res.json({requests})
+    }catch(err){
+        console.log(err);
+        res.json(wrapperMessage("failed", err.message));
+    }
+})
+
 router.post('/schedule', async (req, res) => {
     try{
         let {salonId, requests, date} = req.body;
@@ -20,6 +68,7 @@ router.post('/schedule', async (req, res) => {
         let {request, windowSize} = await getWindowSize(requests, salonId, res);
         let {artistsTimeSlots, salonOpenTime} = await getTimeSlotsOfArtists(requests, salonSlotsLength, salonId, new Date(date));
         let perms = permutations(request);
+        let randomArtistService = requests.filter(element => element.artist === "000000000000000000000000");
         let timeSlots = [];
 
         perms.forEach((item, index) => {
@@ -56,9 +105,10 @@ router.post('/schedule', async (req, res) => {
                     }
                     timeSlot[itr].slot = [startTime, endTime];
                 }
-                timeSlots.push({key: index+1, timeSlot, order: item})
+                item = item.concat(randomArtistService);
+                timeSlots.push({key: index+1, possible: true, timeSlot, order: item})
             }else{
-                timeSlots.push("NotPossible");
+                timeSlots.push({key: index+1, possible: false});
             }
         })
         res.json({salonId, timeSlots, artistsTimeSlots});
@@ -71,12 +121,12 @@ router.post('/schedule', async (req, res) => {
 
 router.post('/book', async (req,res) => {
     try{
-        let {timeSlots, salonId, bookingDate, key, timeSlot, userId, paymentStatus, paymentId} = req.body;
+        let {timeSlots, salonId, bookingDate, key, timeSlot} = req.body;
         let data = {
             salonId: salonId,
-            userId: userId,
-            paymentId: paymentId,
-            paymentStatus: paymentStatus,
+            userId: "12345",
+            paymentId: "12345",
+            paymentStatus: "pending",
             timeSlot: {
                 start: timeSlot[0],
                 end: timeSlot[1]
@@ -92,6 +142,19 @@ router.post('/book', async (req,res) => {
         timeSlotOrder = timeSlotOrder[0].order;
         let lastTime = timeSlot[0];
         timeSlotOrder.forEach(object => {
+            if(object.artist === "000000000000000000000000"){
+                let obj = {
+                    serviceId: object.service,
+                    artistId: object.artist,
+                    timeSlot: {
+                        start: "00:00",
+                        end: "00:00"
+                    }
+                }
+                artistServiceMap.push(obj);
+                return;
+            }
+          
             let obj ={
                 serviceId: object.service._id,
                 artistId: object.artist
