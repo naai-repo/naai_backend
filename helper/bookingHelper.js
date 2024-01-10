@@ -176,7 +176,7 @@ const getTimeSlotsOfArtists = (requests, salonSlotsLength, salonId, date) => {
     })
 }
 
-const bookingHelper = (perm, ws, freeTime, salonSlotsLength) => {
+const bookingHelper = (perm, ws, freeTime, salonSlotsLength, key) => {
   let left = 0, right = ws - 1;
   let ans = [];
   while (right < salonSlotsLength) {
@@ -195,6 +195,7 @@ const bookingHelper = (perm, ws, freeTime, salonSlotsLength) => {
     if (flag) {
       let obj = {
         slot: [left, right],
+        key
       };
       ans.push(obj);
     }

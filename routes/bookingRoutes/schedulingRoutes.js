@@ -70,9 +70,10 @@ router.post('/schedule', async (req, res) => {
         let perms = permutations(request);
         let randomArtistService = requests.filter(element => element.artist === "000000000000000000000000");
         let timeSlots = [];
+        const set = new Set();
 
         perms.forEach((item, index) => {
-            let timeSlot = bookingHelper(item, windowSize, artistsTimeSlots, salonSlotsLength);
+            let timeSlot = bookingHelper(item, windowSize, artistsTimeSlots, salonSlotsLength, index+1);
             
             if(timeSlot.length){
                 for(let itr = 0; itr < timeSlot.length; itr++){
@@ -104,6 +105,7 @@ router.post('/schedule', async (req, res) => {
                         }
                     }
                     timeSlot[itr].slot = [startTime, endTime];
+                    set.add(timeSlot[itr].slot.toString());
                 }
                 item = item.concat(randomArtistService);
                 timeSlots.push({key: index+1, possible: true, timeSlot, order: item})
@@ -111,7 +113,9 @@ router.post('/schedule', async (req, res) => {
                 timeSlots.push({key: index+1, possible: false});
             }
         })
-        res.json({salonId, timeSlots, artistsTimeSlots});
+        let timeSlotsVisible = Array.from(set);
+        timeSlotsVisible = Array.from(timeSlotsVisible.map(ele => ele.split(',')));
+        res.json({salonId, timeSlots, artistsTimeSlots, timeSlotsVisible});
 
     }catch(err) {
         console.log(err);
