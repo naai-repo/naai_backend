@@ -166,7 +166,6 @@ const getTimeSlotsOfArtists = (requests, salonSlotsLength, salonId, date) => {
             for(let i=0; i<data.length; i++){
                 artistBookings[requests[i].artist] = [...artistBookings[requests[i].artist], ...data[i]];
             }
-
             let artistsFreeSlots = await getArtistsFreeSlots(artistBookings, salonSlotsLength, salonOpenTime, salonCloseTime);
             resolve({artistsTimeSlots: artistsFreeSlots, salonOpenTime, salonCloseTime});
 
