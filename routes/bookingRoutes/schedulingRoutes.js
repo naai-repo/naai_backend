@@ -154,7 +154,7 @@ router.post('/book', async (req,res) => {
                 artistServiceMap.push(obj);
                 return;
             }
-            
+          
             let obj ={
                 serviceId: object.service._id,
                 artistId: object.artist
