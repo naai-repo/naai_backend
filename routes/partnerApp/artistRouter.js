@@ -33,15 +33,30 @@ router.get("/", async (req, res) => {
 router.post("/add", async (req, res) => {
   let newArtist = req.body;
   try {
-    let salonData = await Salon.find({_id: newArtist.salonId});
-    newArtist = new Artist({
-      ...newArtist,
-      location : salonData[0].location
-    })
-    const artist = await newArtist.save();
-    res.status(200).json(artist);
+    if(newArtist.salonId !== "000000000000000000000000"){
+      let salonData = await Salon.find({_id: newArtist.salonId});
+      if(!salonData.length){
+        throw new Error ("No such Salon exists!");
+      }
+      newArtist = new Artist({
+        ...newArtist,
+        location : salonData[0].location
+      })
+      const artist = await newArtist.save();
+      res.status(200).json(artist);
+    }else{
+      newArtist = new Artist({
+        ...newArtist,
+        location : {
+          type: "Point",
+          coordinates: [0,0]
+        }
+      })
+      const artist = await newArtist.save();
+      res.status(200).json(artist);
+    }
   } catch (err) {
-    res.status(500).json(err);
+    res.status(500).json(err.message);
   }
 });
 

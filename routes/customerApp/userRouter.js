@@ -14,7 +14,7 @@ const sendOTPVerification = require("../../helper/sendOTPVerification");
 
 
 router.post("/signup", (req, res) => {
-  let { name, password, phoneNumber } = req.body;
+  let { name, password, phoneNumber, gender, email} = req.body;
   name = name.trim();
   password = password.trim();
 
@@ -24,6 +24,8 @@ router.post("/signup", (req, res) => {
     res.json(wrapperMessage("failed", "Invalid name entered"));
   } else if (password.length < 8) {
     res.json(wrapperMessage("failed", "Password is too short!"));
+  } else if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    res.json(wrapperMessage("failed", "Email entered is invalid!"))
   } else {
     // checking if user already exists
 
@@ -47,6 +49,8 @@ router.post("/signup", (req, res) => {
                 name,
                 password: hashedPassword,
                 phoneNumber,
+                gender,
+                email
               });
 
               newUser
