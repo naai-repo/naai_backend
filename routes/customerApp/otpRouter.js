@@ -4,7 +4,7 @@ const OTPVerification = require("../../model/otpVerification");
 const bcrypt = require("bcrypt");
 const sendOTPVerification = require("../../helper/sendOTPVerification");
 const wrapperMessage = require("../../helper/wrapperMessage");
-
+const jwt = require("jsonwebtoken");
 // Verify OTP
 
 router.post("/verify", async (req, res) => {
@@ -36,14 +36,26 @@ router.post("/verify", async (req, res) => {
           if (!validOTP) {
             throw new Error("Invalid code passed. Please enter valid OTP.");
           } else {
-            
             let data = await User.updateOne({ _id: userId }, { verified: true });
+            let userData = await User.find({_id: userId});
+            if(!userData.length){
+              throw new Error("No such user Exists!");
+            }
             await OTPVerification.deleteMany({ userId });
-            res.json({
-              status: "VERIFIED",
-              message: "User phone number successfully verified.",
-              data: []
-            });
+            let user = {
+              id: userData[0]._id,
+              name: userData[0].name,
+              email: userData[0].email,
+              phoneNumber: userData[0].phoneNumber,
+              verified: userData[0].verified,
+            };
+            const accessToken = jwt.sign(
+              user,
+              process.env.ACCESS_TOKEN_SECRET
+            );
+      
+            user = { ...user, accessToken };
+            res.json(wrapperMessage("success", "", user));
           }
         }
       }
