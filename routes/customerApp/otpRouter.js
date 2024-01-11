@@ -53,8 +53,12 @@ router.post("/verify", async (req, res) => {
               user,
               process.env.ACCESS_TOKEN_SECRET
             );
-      
             user = { ...user, accessToken };
+            if(user.name === ''){
+              user = {...user, newUser: true}
+            }else{
+              user = {...user, newUser: false}
+            }
             res.json(wrapperMessage("success", "", user));
           }
         }

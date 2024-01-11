@@ -92,7 +92,7 @@ router.post('/update', async (req,res) => {
       throw new Error("No such user exits!");
     }
     let result = await User.updateOne({_id: userId}, data);
-    res.json(wrapperMessage("success", result))
+    res.json(wrapperMessage("success", "User Updated successfully", result))
   }catch(err){
     console.log(err);
     res.json(wrapperMessage("failed", err.message));
