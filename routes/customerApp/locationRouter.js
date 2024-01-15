@@ -2,7 +2,7 @@ const router = require("express").Router();
 const User = require("../../model/customerApp/User");
 const Salon = require("../../model/partnerApp/Salon");
 const wrapperMessage = require("../../helper/wrapperMessage");
-
+const jwtVerify = require("../../middleware/jwtVerification");
 
 // User ID : 64f786e3b23d28509e6791e0
 // saloon ID : 64f786e3b23d28509e6791e1
@@ -11,49 +11,52 @@ const wrapperMessage = require("../../helper/wrapperMessage");
 // Setting user's Location
 
 router.post("/set", async (req, res) => {
-  try{
-    let {userId, coords} = req.body;
-    if(!userId){
+  try {
+    let { userId, coords } = req.body;
+    if (!userId) {
       throw new Error("User Id cannot be empty");
     }
-    if(!coords.length){
+    if (!coords.length) {
       throw new Error("Coordinated cannot be empty");
     }
-    let data = await User.updateOne({_id: userId}, {
-      location: {
-        type: "Point",
-        coordinates: coords
+    let data = await User.updateOne(
+      { _id: userId },
+      {
+        location: {
+          type: "Point",
+          coordinates: coords,
+        },
       }
-    });
+    );
     res.json(wrapperMessage("success", "User location updated successfully!"));
-  }catch(err){
+  } catch (err) {
     console.log(err);
     res.json(wrapperMessage("failed", err.message));
   }
-})
+});
 
 // Getting a particular user's Location
 
 router.get("/:id", async (req, res) => {
-  try{
-    let data = await User.find({_id: req.params.id});
-    if(!data.length){
+  try {
+    let data = await User.find({ _id: req.params.id });
+    if (!data.length) {
       throw new Error("An error occured while Getting user's Location!");
     }
     res.json(wrapperMessage("success", "", [data[0].location]));
-  }catch(err){
+  } catch (err) {
     console.log(err);
     res.json(wrapperMessage("failed", err.message));
   }
-})
+});
 
 // Getting closest Salons to User
 
 router.get("/:id/salons", async (req, res) => {
-  try{
+  try {
     let dist = Number(req.query.distance);
-    let data = await User.find({_id: req.params.id});
-    if(!data.length){
+    let data = await User.find({ _id: req.params.id });
+    if (!data.length) {
       throw new Error("An error occured while Getting user's Location!");
     }
     data = data[0];
@@ -62,17 +65,19 @@ router.get("/:id/salons", async (req, res) => {
         $near: {
           $geometry: data.location,
           $maxDistance: dist * 1000,
-        }
-      }
-    })
-    if(!salonData){
+        },
+      },
+    });
+    if (!salonData) {
       throw new Error("An error occured while finding the closest Salons!");
     }
-    res.json(wrapperMessage("success", "", [{salonData, hits: salonData.length}]));
-  }catch(err){
+    res.json(
+      wrapperMessage("success", "", [{ salonData, hits: salonData.length }])
+    );
+  } catch (err) {
     console.log(err);
     res.json(wrapperMessage("failed", err.message));
   }
-})
+});
 
 module.exports = router;

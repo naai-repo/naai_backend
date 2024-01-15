@@ -73,6 +73,18 @@ const SalonSchema = new mongoose.Schema({
     live: {
         type: Boolean,
         default: false
+    },
+    paid: {
+        type: Boolean,
+        default: false
+    },
+    bookings: {
+        type: Number,
+        default: 0
+    },
+    discount: {
+        type: Number,
+        default: 0
     }
 },{
     timestamps: true
