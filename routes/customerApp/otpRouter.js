@@ -48,6 +48,7 @@ router.post("/verify", async (req, res) => {
               email: userData[0].email,
               phoneNumber: userData[0].phoneNumber,
               verified: userData[0].verified,
+              location: userData[0].location
             };
             const accessToken = jwt.sign(
               user,

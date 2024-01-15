@@ -77,6 +77,14 @@ const ArtistSchema = new mongoose.Schema(
     live: {
       type: Boolean,
       default: false,
+    },
+    paid: {
+      type: Boolean,
+      default: false
+    },
+    bookings: {
+      type: Number,
+      default: 0
     }
   },
   {
