@@ -5,6 +5,7 @@ const bcrypt = require("bcrypt");
 const User = require("../../model/customerApp/User");
 const wrapperMessage = require("../../helper/wrapperMessage");
 const sendOTPVerification = require("../../helper/sendOTPVerification");
+const jwtVerify = require("../../middleware/jwtVerification");
 
 // User ID : 64f786e3b23d28509e6791e0
 // saloon ID : 64f786e3b23d28509e6791e1
@@ -96,6 +97,17 @@ router.post('/update', async (req,res) => {
   }catch(err){
     console.log(err);
     res.json(wrapperMessage("failed", err.message));
+  }
+})
+
+router.get('/delete', jwtVerify, async (req, res) => {
+  try{
+    let userId = req.user.id;
+    let data = await User.updateOne({_id: userId}, {status: "deactivated"})
+    res.status(200).json(wrapperMessage("success", "user successfully deactivated!"))
+  }catch(err){
+    console.log(err);
+    res.status(err.code || 500).json(wrapperMessage("failed", err.message));
   }
 })
 
