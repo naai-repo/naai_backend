@@ -85,6 +85,12 @@ const ArtistSchema = new mongoose.Schema(
     bookings: {
       type: Number,
       default: 0
+    }, 
+    links: {
+      instagram: {
+          type: String,
+          default: ''
+      }
     }
   },
   {

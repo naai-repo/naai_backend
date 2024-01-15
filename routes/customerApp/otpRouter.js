@@ -36,7 +36,7 @@ router.post("/verify", async (req, res) => {
           if (!validOTP) {
             throw new Error("Invalid code passed. Please enter valid OTP.");
           } else {
-            let data = await User.updateOne({ _id: userId }, { verified: true });
+            let data = await User.updateOne({ _id: userId }, { verified: true, status: "active" });
             let userData = await User.find({_id: userId});
             if(!userData.length){
               throw new Error("No such user Exists!");

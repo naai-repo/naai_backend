@@ -85,6 +85,12 @@ const SalonSchema = new mongoose.Schema({
     discount: {
         type: Number,
         default: 0
+    },
+    links: {
+        instagram: {
+            type: String,
+            default: ''
+        }
     }
 },{
     timestamps: true
