@@ -1,7 +1,9 @@
 const router = require('express').Router();
 const mongoose = require('mongoose');
 const Salon = require('../../model/partnerApp/Salon');
+const Booking = require('../../model/partnerApp/Booking');
 const wrapperMessage = require('../../helper/wrapperMessage');
+const jwtVerify = require('../../middleware/jwtVerification');
 
 // User ID : 64f786e3b23d28509e6791e0
 // saloon ID : 64f786e3b23d28509e6791e1
@@ -50,6 +52,53 @@ router.post('/:id/update', async (req, res) => {
     }catch(err){
         console.log(err);
         res.json(wrapperMessage("failed", err.message));
+    }
+})
+
+router.get('/topSalons', jwtVerify, async (req,res) => {
+    try{
+        let location = req.user.location;
+        let page = Number(req.query.page) || 1;
+        let limit = Number(req.query.limit) || 3;
+        let skip = (page-1)*limit;
+        let data = await Salon.aggregate([
+            {
+                "$geoNear": {
+                    "near": location,
+                    "distanceField": "distance",
+                    "distanceMultiplier": 0.001
+                }
+            },
+            {
+                $sort: {
+                    bookings: -1
+                }
+            },
+            {
+                $sort: {
+                    rating: -1
+                }
+            },
+            {
+                $sort: {
+                    discount: -1
+                }
+            },
+            {
+                $sort: {
+                    paid: -1
+                }
+            },
+            // {
+            //     $sort: {
+            //         distance: 1
+            //     }
+            // },
+        ]).skip(skip).limit(limit);
+        res.status(200).json(data);
+    }catch(err){
+        console.log(err);
+        res.status(500).json(wrapperMessage("failed", err.message));
     }
 })
 
