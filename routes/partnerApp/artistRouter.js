@@ -112,7 +112,7 @@ router.post('/topArtists', async (req,res) => {
                 + ((bookings / avgBookings)*0.2);
         
         if(artist.paid){
-          score += score*0.4
+          score += 0.2
         }
 
         artists[itr]["score"] = score;
