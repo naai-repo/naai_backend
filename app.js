@@ -27,18 +27,6 @@ const LocationRouter = require('./routes/customerApp/locationRouter');
 // Booking Appointment
 const SchedulingRouter = require('./routes/bookingRoutes/schedulingRoutes');
 
-//connecting to database
-
-mongoose.connect(url, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-})
-.then(()=>{
-    console.log("Connected to Database!");
-}).catch((err)=> {
-    console.log(err);
-})
-
 // MiddleWares
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
@@ -77,6 +65,16 @@ app.get('/', async (req, res) => {
   // res.send("Welcome to backend");
 })
 
-app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}`)
+app.listen(PORT, async () => {
+  try{
+    //connecting to database
+    let db = await mongoose.connect(url, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    });
+    console.log('Connected to Database!');
+    console.log(`App listening on port ${PORT}`)
+  }catch(err){
+    console.log(err);
+  }
 })

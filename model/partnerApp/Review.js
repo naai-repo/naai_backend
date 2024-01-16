@@ -4,27 +4,32 @@ const mongoose = require('mongoose');
 const ReviewSchema = new mongoose.Schema({
     title: {
         type: String,
-        required: true
+        default: '',
     },
     description: {
         type: String,
+        default: ''
     },
     rating: {
         type: Number,
-        default: 0
+        transform: v => v == null ? '' : v,
+        min: 0
     },
     userId: {
         type: mongoose.Schema.ObjectId,
         required: true
     },
-    saloonId: {
+    salonId: {
         type: mongoose.Schema.ObjectId,
-        required: true
+        transform: v => v == null ? '' : v
     },
     artistId: {
         type: mongoose.Schema.ObjectId,
-        required: true
-    }
+        transform: v => v == null ? '' : v
+    },
+    replies: [{
+        type: mongoose.Schema.ObjectId
+    }]
 }, {
     timestamps: true
 });
