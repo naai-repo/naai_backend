@@ -96,7 +96,7 @@ router.post('/topSalons', async (req,res) => {
                     + ((bookings / avgBookings)*0.03);
             
             if(salon.paid){
-            score += score*0.4
+                score += 0.2
             }
 
             salons[itr]["score"] = score;
