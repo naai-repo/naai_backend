@@ -56,6 +56,16 @@ router.post('/:id/update', async (req, res) => {
     }
 })
 
+router.get('/single/:id', async (req, res) => {
+    try{
+        let data = await Salon.findOne({_id: req.params.id});
+        res.json(wrapperMessage('success', "", data));
+    }catch(err){
+        console.log(err);
+        res.json(wrapperMessage("failed", err.message));
+    }
+})
+
 router.post('/topSalons', async (req,res) => {
     try{
         let location = req.body.location;

@@ -111,4 +111,23 @@ router.get('/delete', jwtVerify, async (req, res) => {
   }
 })
 
+router.get("/:id", async (req,res) => {
+  try{
+    if(!req.params.id){
+      let err = new Error("User ID is required!");
+      err.code = 400;
+      throw err; 
+    }
+    let user = await User.findOne({_id: req.params.id});  
+    if(!user){
+      let err = new Error("User does not exist!");
+      err.code = 404;
+      throw err;
+    }
+    res.json(wrapperMessage("success","", user));
+  }catch(err){
+
+  }
+})
+
 module.exports = router;
