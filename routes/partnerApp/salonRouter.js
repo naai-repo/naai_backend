@@ -5,6 +5,7 @@ const Booking = require('../../model/partnerApp/Booking');
 const Artist = require('../../model/partnerApp/Artist');
 const wrapperMessage = require('../../helper/wrapperMessage');
 const jwtVerify = require('../../middleware/jwtVerification');
+const Service = require('../../model/partnerApp/Service');
 
 // User ID : 64f786e3b23d28509e6791e0
 // saloon ID : 64f786e3b23d28509e6791e1
@@ -59,7 +60,9 @@ router.post('/:id/update', async (req, res) => {
 router.get('/single/:id', async (req, res) => {
     try{
         let data = await Salon.findOne({_id: req.params.id});
-        res.json(wrapperMessage('success', "", data));
+        let artistData = await Artist.find({salonId: req.params.id});
+        let serviceData = await Service.find({salonIds: {$elemMatch: {$eq: req.params.id}}});
+        res.json(wrapperMessage('success', "", {data, artists: artistData, services: serviceData}));
     }catch(err){
         console.log(err);
         res.json(wrapperMessage("failed", err.message));
