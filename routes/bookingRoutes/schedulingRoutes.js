@@ -1,9 +1,10 @@
 const router = require('express').Router();
 const mongoose = require('mongoose');
 const wrapperMessage = require('../../helper/wrapperMessage');
-const { getSalonSlots, getWindowSize, getTimeSlotsOfArtists, permutations, bookingHelper, getSalonTimings } = require('../../helper/bookingHelper');
+const { getSalonSlots, getWindowSize, getTimeSlotsOfArtists, permutations, bookingHelper, getSalonTimings, updateBookingData } = require('../../helper/bookingHelper');
 const Booking = require('../../model/partnerApp/Booking');
 const Artist = require('../../model/partnerApp/Artist');
+const jwtVerify = require('../../middleware/jwtVerification');
 
 /* 
     BODY FOR SCHEDULING WILL CONTAIN
@@ -61,9 +62,14 @@ router.post('/singleArtist/request', (req,res) => {
     }
 })
 
-router.post('/schedule', async (req, res) => {
+router.post('/schedule', jwtVerify, async (req, res) => {
     try{
         let {salonId, requests, date} = req.body;
+        if(new Date(new Date(date).toDateString()) < new Date(new Date().toDateString())){
+            let err = new Error("Select a Valid Date!");
+            err.code = 400;
+            throw err;
+        }
         let salonSlotsLength = await getSalonSlots(salonId, res);
         let {request, windowSize} = await getWindowSize(requests, salonId, res);
         let {artistsTimeSlots, salonOpenTime} = await getTimeSlotsOfArtists(requests, salonSlotsLength, salonId, new Date(date));
@@ -119,16 +125,17 @@ router.post('/schedule', async (req, res) => {
 
     }catch(err) {
         console.log(err);
-        res.json(wrapperMessage("failed", err.message));
+        res.status(err.code || 500).json(wrapperMessage("failed", err.message));
     }
 })
 
-router.post('/book', async (req,res) => {
+router.post('/book', jwtVerify, async (req,res) => {
     try{
+        let userId = req.user.id;
         let {timeSlots, salonId, bookingDate, key, timeSlot} = req.body;
         let data = {
             salonId: salonId,
-            userId: "12345",
+            userId: userId,
             paymentId: "12345",
             paymentStatus: "pending",
             timeSlot: {
@@ -195,11 +202,82 @@ router.post('/book', async (req,res) => {
         }
         let newBooking = new Booking(data);
         const booking = await newBooking.save();
-        res.status(200).json(booking);
+        let artistArr = new Set(artistServiceMap.map(ele => ele.artistId));
+        artistArr = Array.from(artistArr);
+        await updateBookingData(salonId, artistArr);
+        res.status(200).json({booking, artistArr, salonId});
 
     }catch(err){
         console.log(err);
         res.json(wrapperMessage("failed", err.message));
+    }
+})
+
+router.post("/delete", jwtVerify, async (req,res) => {
+    try{
+        let userId = req.user.id;
+        let bookingId = req.body.bookingId;
+        if(!bookingId){
+            let err = new Error("Booking Id is required!");
+            err.code = 400;
+            throw err;
+        }
+        let booking = await Booking.findOne({_id: bookingId});
+        let artistArr = new Set(booking.artistServiceMap.map(ele => ele.artistId));
+        let salonId = booking.salonId;
+        artistArr = Array.from(artistArr);
+        if(!booking){
+            let err = new Error("No such Booking found!");
+            err.code = 404;
+            throw err; 
+        }
+        if(booking.userId.toString() !== userId.toString()){
+            let err = new Error("You are not authorized to delete this booking!");
+            err.code = 403;
+            throw err;
+        }
+
+        let data = await Booking.deleteOne({_id: bookingId});
+        await updateBookingData(salonId, artistArr);
+        res.status(200).json(wrapperMessage("success", "", data))
+
+    }catch(err){
+        console.log(err);
+        res.status(err.code || 500).json(wrapperMessage("failed", err.message));
+    }
+})
+
+router.post("/bookAgain", jwtVerify, async (req, res) => {
+    try{
+        let userId = req.user.id;
+        let bookingId = req.body.bookingId;
+        if(!bookingId){
+            let err = new Error("Booking Id is required!");
+            err.code = 400;
+            throw err;
+        }
+        let booking = await Booking.findOne({_id: bookingId});
+        if(!booking){
+            let err = new Error("No such Booking found!");
+            err.code = 404;
+            throw err;
+        }
+        if(userId.toString() !== booking.userId.toString()){
+            let err = new Error("You are not authorized to book this booking again!");
+            err.code = 403;
+            throw err;
+        }
+        let requests = [];
+        booking.artistServiceMap.forEach(element => {
+            requests.push({
+                service: element.serviceId,
+                artist: element.artistId
+            });
+        })
+        res.status(200).json(wrapperMessage("success", "", {salonId: booking.salonId, requests}))
+    }catch(err){
+        console.log(err);
+        res.status(err.code || 500).json(wrapperMessage("failed", err.message));
     }
 })
 
