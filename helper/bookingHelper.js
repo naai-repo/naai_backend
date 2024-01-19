@@ -223,4 +223,38 @@ const getSalonTimings = (salonId) =>{
     })
 }
 
-module.exports = {getSalonSlots, getWindowSize, getTimeSlotsOfArtists, permutations, bookingHelper, getSalonTimings};
+const updateBookingData = (salonId, artistArr) => {
+    return new Promise(async (resolve, reject) => {
+        try{
+            let salonBookings = await Booking.find({salonId: salonId}).count();
+            let salonData = await Salon.updateOne({_id: salonId}, {bookings: salonBookings});
+            let artistPromiseArr = [];
+            artistArr.forEach(artist => {
+                artistPromiseArr.push(Booking.find({artistServiceMap: {$elemMatch : {artistId: artist}}}));
+            })
+            artistPromiseArr = await Promise.all(artistPromiseArr);
+            for(let itr = 0; itr < artistArr.length; itr++){
+                let artist = artistArr[itr];
+                if(artist.toString() === "000000000000000000000000"){
+                    continue;
+                }
+                let artistBookings = artistPromiseArr[itr].length;
+                let artistData = await Artist.updateOne({_id: artist}, {bookings: artistBookings});
+            }
+            resolve();
+        }catch(err){
+            console.log(err);
+            reject(err);
+        }
+    })
+}
+
+module.exports = {
+  getSalonSlots,
+  getWindowSize,
+  getTimeSlotsOfArtists,
+  permutations,
+  bookingHelper,
+  getSalonTimings,
+  updateBookingData
+};

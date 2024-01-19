@@ -74,6 +74,16 @@ router.post("/:id/update", async (req, res) => {
   }
 });
 
+router.get('/single/:id', async (req, res) => {
+  try{
+      let data = await Artist.findOne({_id: req.params.id});
+      res.json(wrapperMessage('success', "", data));
+  }catch(err){
+      console.log(err);
+      res.json(wrapperMessage("failed", err.message));
+  }
+})
+
 router.post('/topArtists', async (req,res) => {
   try{
       let location = req.body.location; 
