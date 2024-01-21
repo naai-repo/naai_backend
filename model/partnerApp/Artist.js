@@ -29,7 +29,7 @@ const ArtistSchema = new mongoose.Schema(
     ],
     targetGender: {
       type: String,
-      enum: ["unisex", "men", "women", "not specified"],
+      enum: ["unisex", "male", "female", "not specified"],
       default: "not specified",
       lowercase: true,
       required: true
@@ -91,6 +91,14 @@ const ArtistSchema = new mongoose.Schema(
           type: String,
           default: ''
       }
+    },
+    imageKey: {
+      type: String,
+      default: ''
+    },
+    imageUrl: {
+        type: String,
+        default: ''
     }
   },
   {

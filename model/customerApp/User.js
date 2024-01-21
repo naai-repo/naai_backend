@@ -47,6 +47,14 @@ const UserSchema = new mongoose.Schema({
         enum: ['active', 'deactivated'],
         lowercase: true,
         default: "active"
+    },
+    imageKey: {
+        type: String,
+        default: ''
+    },
+    imageUrl: {
+        type: String,
+        default: ''
     }
 },{
     timestamps: true

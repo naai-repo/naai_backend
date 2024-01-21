@@ -1,10 +1,8 @@
 const router = require('express').Router();
-const mongoose = require('mongoose');
 const Salon = require('../../model/partnerApp/Salon');
 const Booking = require('../../model/partnerApp/Booking');
 const Artist = require('../../model/partnerApp/Artist');
 const wrapperMessage = require('../../helper/wrapperMessage');
-const jwtVerify = require('../../middleware/jwtVerification');
 const Service = require('../../model/partnerApp/Service');
 
 // User ID : 64f786e3b23d28509e6791e0
