@@ -202,7 +202,6 @@ router.post("/filter", async (req,res) => {
                 if(salon.paid){
                     score += 0.2
                 }
-
                 salons[itr]["score"] = score;
             }
 
