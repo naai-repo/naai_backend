@@ -24,7 +24,7 @@ const SalonSchema = new mongoose.Schema({
     },
     salonType : {
         type: String,
-        enum: ["unisex", "men", "women", "not specified"],
+        enum: ["unisex", "male", "female", "not specified"],
         default: "not specified",
         lowercase: true,
         required: true

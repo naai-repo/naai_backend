@@ -150,7 +150,8 @@ router.post("/filter", async (req,res) => {
         let page = Number(req.query.page) || 1;
         let limit = Number(req.query.limit) || 3;
         let skip = (page-1)*limit;
-        let discountVal = Number(req.query.discount) || 0;
+        let discountMin = Number(req.query.min) || 0;
+        let discountMax = Number(req.query.max) || 100;
         let salons = await Salon.aggregate([
             {
                 "$geoNear": {
@@ -161,9 +162,18 @@ router.post("/filter", async (req,res) => {
             },
             {
                 $match: {
-                    discount: {
-                        $gte: discountVal
-                    }
+                    $and: [
+                        {
+                          discount: {
+                            $gte: discountMin
+                          }
+                        },
+                        {
+                          discount: {
+                            $lt: discountMax
+                          }
+                        }
+                    ]
                 }
             }
         ]);
