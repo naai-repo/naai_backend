@@ -29,7 +29,14 @@ router.post('/singleArtist/list', async (req,res) => {
         set.add(element._id.toString());
         return true;
         });
-        artistsProvidingServices = artistsProvidingServices.map(ele => { return {artistId: ele._id, artist: ele.name, serviceList: ele.services}})
+        artistsProvidingServices = artistsProvidingServices.map((ele) => {
+          return {
+            artistId: ele._id,
+            artist: ele.name,
+            serviceList: ele.services,
+            rating: ele.rating
+          };
+        });
         res.json({artistsProvidingServices , services});
     }catch(err){
         console.log(err);
