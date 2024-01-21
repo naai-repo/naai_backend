@@ -191,7 +191,7 @@ router.post('/salon/:id/image', upload.array("images", 6), async (req,res) => {
             imagesArr.push({key: key, url: imgUrl});
         })
         await Promise.all(s3CommandArr);
-        salon.images = imagesArr;
+        salon.images = [...salon.images, ...imagesArr];
         await salon.save();
         res.status(200).json(wrapperMessage("success", "Images uploaded successfully!"));
     }catch(err){
