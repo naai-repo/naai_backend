@@ -10,6 +10,8 @@ const url = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster
 // Requiring routers
 // Admin Routes
 const AdminRouter = require('./routes/adminRoutes/livePermissionRouter');
+// Image Routes
+const ImageRouter = require('./routes/imageRoutes/imageRouter');
 // Partner App
 const ReviewRouter = require('./routes/partnerApp/reviewRouter');
 const SalonRouter = require('./routes/partnerApp/salonRouter');
@@ -41,6 +43,9 @@ app.use(passport.session());
 
 // Admin Routes
 app.use("/admin", AdminRouter);
+
+// Image Routes
+app.use("/image", ImageRouter)
 
 // Partner App Routes
 app.use("/partner/review", ReviewRouter);

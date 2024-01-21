@@ -91,7 +91,15 @@ const SalonSchema = new mongoose.Schema({
             type: String,
             default: ''
         }
-    }
+    },
+    images: [{
+        key: {
+            type: String,
+        },
+        url: {
+            type: String,
+        }
+    }]
 },{
     timestamps: true
 });
