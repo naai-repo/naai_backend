@@ -1,10 +1,8 @@
 const router = require('express').Router();
-const mongoose = require('mongoose');
 const Salon = require('../../model/partnerApp/Salon');
 const Booking = require('../../model/partnerApp/Booking');
 const Artist = require('../../model/partnerApp/Artist');
 const wrapperMessage = require('../../helper/wrapperMessage');
-const jwtVerify = require('../../middleware/jwtVerification');
 const Service = require('../../model/partnerApp/Service');
 
 // User ID : 64f786e3b23d28509e6791e0
@@ -152,6 +150,8 @@ router.post("/filter", async (req,res) => {
         let page = Number(req.query.page) || 1;
         let limit = Number(req.query.limit) || 3;
         let skip = (page-1)*limit;
+        let discountMin = Number(req.query.min) || 0;
+        let discountMax = Number(req.query.max) || 100;
         let salons = await Salon.aggregate([
             {
                 "$geoNear": {
@@ -160,7 +160,27 @@ router.post("/filter", async (req,res) => {
                     "distanceMultiplier": 0.001
                 }
             },
+            {
+                $match: {
+                    $and: [
+                        {
+                          discount: {
+                            $gte: discountMin
+                          }
+                        },
+                        {
+                          discount: {
+                            $lt: discountMax
+                          }
+                        }
+                    ]
+                }
+            }
         ]);
+        if(!salons.length){
+            res.status(200).json(wrapperMessage("success", "No result found!", []));
+            return;
+        }
         let maxDistance = 0;
         let end = 0;
         if(salons.length < 1000){
@@ -182,7 +202,6 @@ router.post("/filter", async (req,res) => {
                 if(salon.paid){
                     score += 0.2
                 }
-    
                 salons[itr]["score"] = score;
             }
 

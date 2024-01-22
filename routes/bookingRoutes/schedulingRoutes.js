@@ -29,7 +29,14 @@ router.post('/singleArtist/list', async (req,res) => {
         set.add(element._id.toString());
         return true;
         });
-        artistsProvidingServices = artistsProvidingServices.map(ele => { return {artistId: ele._id, artist: ele.name, serviceList: ele.services}})
+        artistsProvidingServices = artistsProvidingServices.map((ele) => {
+          return {
+            artistId: ele._id,
+            artist: ele.name,
+            serviceList: ele.services,
+            rating: ele.rating
+          };
+        });
         res.json({artistsProvidingServices , services});
     }catch(err){
         console.log(err);
@@ -70,11 +77,22 @@ router.post('/schedule', jwtVerify, async (req, res) => {
             err.code = 400;
             throw err;
         }
+        let requestSet = new Set();
+        requests.forEach(request => requestSet.add(request.artist));
+        let uniqueArtists = Array.from(requestSet);
+        let newRequests = [];
+        uniqueArtists.forEach(artist => {
+            requests.forEach(request => {
+                if(artist === request.artist){
+                    newRequests.push(request);
+                }
+            })
+        })
         let salonSlotsLength = await getSalonSlots(salonId, res);
-        let {request, windowSize} = await getWindowSize(requests, salonId, res);
-        let {artistsTimeSlots, salonOpenTime} = await getTimeSlotsOfArtists(requests, salonSlotsLength, salonId, new Date(date));
+        let {request, windowSize} = await getWindowSize(newRequests, salonId, res);
+        let {artistsTimeSlots, salonOpenTime} = await getTimeSlotsOfArtists(newRequests, salonSlotsLength, salonId, new Date(date));
         let perms = permutations(request);
-        let randomArtistService = requests.filter(element => element.artist === "000000000000000000000000");
+        let randomArtistService = newRequests.filter(element => element.artist === "000000000000000000000000");
         let timeSlots = [];
         const set = new Set();
 
