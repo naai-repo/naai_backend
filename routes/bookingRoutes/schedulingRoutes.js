@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const mongoose = require('mongoose');
 const wrapperMessage = require('../../helper/wrapperMessage');
-const { getSalonSlots, getWindowSize, getTimeSlotsOfArtists, permutations, bookingHelper, getSalonTimings, updateBookingData } = require('../../helper/bookingHelper');
+const { getSalonSlots, getWindowSize, getTimeSlotsOfArtists, permutations, bookingHelper, getSalonTimings, updateBookingData, getArtistsForServices, fillRandomArtists } = require('../../helper/bookingHelper');
 const Booking = require('../../model/partnerApp/Booking');
 const Artist = require('../../model/partnerApp/Artist');
 const jwtVerify = require('../../middleware/jwtVerification');
@@ -71,6 +71,9 @@ router.post('/singleArtist/request', (req,res) => {
 
 router.post('/schedule', jwtVerify, async (req, res) => {
     try{
+        let page = Number(req.query.page) || 1;
+        let limit = Number(req.query.limit) || 10;
+        let skip = (page-1)*limit;
         let {salonId, requests, date} = req.body;
         if(new Date(new Date(date).toDateString()) < new Date(new Date().toDateString())){
             let err = new Error("Select a Valid Date!");
@@ -88,7 +91,7 @@ router.post('/schedule', jwtVerify, async (req, res) => {
                 }
             })
         })
-        let salonSlotsLength = await getSalonSlots(salonId, res);
+        let salonSlotsLength = await getSalonSlots(salonId);
         let {request, windowSize} = await getWindowSize(newRequests, salonId, res);
         let {artistsTimeSlots, salonOpenTime} = await getTimeSlotsOfArtists(newRequests, salonSlotsLength, salonId, new Date(date));
         let perms = permutations(request);
@@ -139,7 +142,15 @@ router.post('/schedule', jwtVerify, async (req, res) => {
         })
         let timeSlotsVisible = Array.from(set);
         timeSlotsVisible = Array.from(timeSlotsVisible.map(ele => ele.split(',')));
-        res.json({salonId, timeSlots, artistsTimeSlots, timeSlotsVisible});
+        timeSlots = timeSlots.filter(obj => obj.possible !== false );
+        let data = [];
+        for(let itr = skip; itr<skip+limit; itr++){
+            if(!timeSlots[itr]){
+                break;
+            }
+            data.push(timeSlots[itr]);
+        }
+        res.json({salonId, timeSlots: data, artistsTimeSlots, timeSlotsVisible});
 
     }catch(err) {
         console.log(err);
@@ -156,10 +167,6 @@ router.post('/book', jwtVerify, async (req,res) => {
             userId: userId,
             paymentId: "12345",
             paymentStatus: "pending",
-            timeSlot: {
-                start: timeSlot[0],
-                end: timeSlot[1]
-            },
             bookingDate: bookingDate
         }
         let artistServiceMap = [];
@@ -169,6 +176,22 @@ router.post('/book', jwtVerify, async (req,res) => {
             throw new Error("No such time slot exists for this order of services!");
         }
         timeSlotOrder = timeSlotOrder[0].order;
+        let randomArr = [];
+        timeSlotOrder.forEach(object => {
+            if(object.artist === "000000000000000000000000"){
+                randomArr.push(object);
+            }
+        })
+        let {artistList, artistsFreeSlots} = await getArtistsForServices(randomArr, salonId, bookingDate);
+        let testdata = await fillRandomArtists(artistList, artistsFreeSlots, salonId, timeSlot[1]);
+        for(let i=0; i<timeSlotOrder.length; i++){
+            for(let j=0; j<testdata.ans.length; j++){
+                if(timeSlotOrder[i].service === testdata.ans[j].service._id.toString()){
+                    timeSlotOrder[i].service = testdata.ans[j].service;
+                    timeSlotOrder[i].artist = testdata.ans[j].artist
+                }
+            }
+        }
         let lastTime = timeSlot[0];
         timeSlotOrder.forEach(object => {
             if(object.artist === "000000000000000000000000"){
@@ -216,6 +239,10 @@ router.post('/book', jwtVerify, async (req,res) => {
         })
         data = {
             ...data,
+            timeSlot: {
+                start: timeSlot[0],
+                end: lastTime
+            },
             artistServiceMap
         }
         let newBooking = new Booking(data);
@@ -223,7 +250,7 @@ router.post('/book', jwtVerify, async (req,res) => {
         let artistArr = new Set(artistServiceMap.map(ele => ele.artistId));
         artistArr = Array.from(artistArr);
         await updateBookingData(salonId, artistArr);
-        res.status(200).json({booking, artistArr, salonId});
+        res.status(200).json(newBooking);
 
     }catch(err){
         console.log(err);
