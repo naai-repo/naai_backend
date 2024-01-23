@@ -18,7 +18,7 @@ const permutations = (arr) => {
   );
 };
 
-const getSalonSlots = (salonId, res) => {
+const getSalonSlots = (salonId) => {
     return new Promise(async function(resolve, reject) {
         try{
             let {salonOpeningTime, salonClosingTime} = await getSalonTimings(salonId);
@@ -249,6 +249,115 @@ const updateBookingData = (salonId, artistArr) => {
     })
 }
 
+const getArtistsForServices = (randomArr, salonId, date) => {
+    return new Promise(async (resolve, reject) => {
+        try{
+            let artistPromiseArr = [];
+            randomArr.forEach(element => {
+                artistPromiseArr.push(Artist.find({salonId: salonId, services: {$elemMatch: {serviceId: element.service}}}));
+            })
+            let artistArr = await Promise.all(artistPromiseArr);
+            let uniqueArtistArr = new Set();
+            for(let i=0 ; i<artistArr.length; i++){
+                artistArr[i] = {
+                    service: randomArr[i].service,
+                    artists: artistArr[i].map(ele => ele._id)
+                }
+                artistArr[i].artists.forEach(ele => uniqueArtistArr.add(ele.toString()));
+            }
+            uniqueArtistArr = Array.from(uniqueArtistArr);
+            let bookingsPromiseArr = [];
+            uniqueArtistArr.forEach(artist => {
+                bookingsPromiseArr.push(Booking.find({salonId: salonId, bookingDate: date ,artistServiceMap: {$elemMatch: {artistId: artist}}}));
+            })
+            let data = await Promise.all(bookingsPromiseArr);
+            let artistBookings = {};
+            uniqueArtistArr.forEach(artist => {
+                artistBookings[artist] = [];
+            })
+            for(let i=0; i<data.length; i++){
+                artistBookings[uniqueArtistArr[i]] = [...artistBookings[uniqueArtistArr[i]], ...data[i]];
+            }
+            let {salonOpeningTime, salonClosingTime} = await getSalonTimings(salonId);
+            let salonOpenTime = salonOpeningTime.split(":");
+            let salonCloseTime = salonClosingTime.split(":");
+            let salonSlotsLength = await getSalonSlots(salonId);
+            let artistsFreeSlots = await getArtistsFreeSlots(artistBookings, salonSlotsLength, salonOpenTime, salonCloseTime);
+            resolve({artistList: artistArr, artistsFreeSlots});
+        }catch(err){
+            reject(err);
+        }
+    })
+}
+
+const fillRandomArtists = (artistList, artistsFreeSlots, salonId, endingTime) => {
+    return new Promise(async (resolve, reject) => {
+        try{
+            let {salonOpeningTime, salonClosingTime} = await getSalonTimings(salonId);
+            let salonOpenTime = salonOpeningTime.split(":");
+            let salonCloseTime = salonClosingTime.split(":");
+            endingTime = endingTime.split(":");
+            let checkSlot = 0;
+            if(salonOpenTime[1] === endingTime[1]){
+                checkSlot = (Number(endingTime[0]) - Number(salonOpenTime[0]))*2;
+            }else{
+                checkSlot = (Number(endingTime[0]) - Number(salonOpenTime[0]))*2;
+                if(endingTime[1] === "30"){
+                    checkSlot+=1;
+                }else if(endingTime[1] === "00"){
+                    checkSlot -= 1;
+                }
+            }
+            let servicePromiseArr = [];
+            artistList.forEach(object => {
+                servicePromiseArr.push(Service.findOne({_id: object.service}));
+            })
+            let serviceArr = await Promise.all(servicePromiseArr);
+            let newArtistList = [];
+            let ans = [];
+            while(artistList.length !== newArtistList.length){
+                newArtistList = artistList;
+                artistList = [];
+                for(let i=0; i<newArtistList.length; i++){
+                    let slot = checkSlot;
+                    let artistFound = false;
+                    let artistArr = newArtistList[i].artists;
+                    for(let j=0; j<artistArr.length; j++){
+                        let artist = artistArr[j];
+                        let time = serviceArr[i].avgTime;
+                        let hasFreeTime = true;
+                        while(time){
+                            if(!artistsFreeSlots[artist][slot]){
+                                hasFreeTime = false;
+                                break;
+                            }
+                            time--;
+                            slot++;
+                        }  
+                        if(hasFreeTime){
+                            artistFound = true;
+                            ans.push({
+                                service: serviceArr[i],
+                                artist: artist,
+                                checkSlot: checkSlot
+                            })
+                            break;
+                        }
+                    }
+                    if(!artistFound){
+                        artistList.push(newArtistList[i]);
+                    }else{
+                        checkSlot += serviceArr[i].avgTime;
+                    }
+                }
+            }
+            resolve({artistList, ans});
+        }catch(err){
+            reject(err);
+        }
+    })
+}
+
 module.exports = {
   getSalonSlots,
   getWindowSize,
@@ -256,5 +365,7 @@ module.exports = {
   permutations,
   bookingHelper,
   getSalonTimings,
-  updateBookingData
+  updateBookingData,
+  getArtistsForServices,
+  fillRandomArtists
 };
