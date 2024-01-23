@@ -5,7 +5,7 @@ const Artist = require("../model/partnerApp/Artist")
 
 const permutations = (arr) => {
   arr = arr.filter((element) => element.artist !== "000000000000000000000000");
-  if (arr.length <= 2) return arr.length === 2 ? [arr, [arr[1], arr[0]]] : arr;
+  if (arr.length <= 2) return arr.length === 2 ? [arr, [arr[1], arr[0]]] : [arr];
   return arr.reduce(
     (acc, item, i) =>
       acc.concat(
@@ -74,7 +74,7 @@ const getWindowSize = (requests, salonId) => {
     })
 }
 
-const getArtistsFreeSlots = (artistBookings, salonSlotsLength , salonOpening, salonClosing) => {
+const   getArtistsFreeSlots = (artistBookings, salonSlotsLength , salonOpening, salonClosing) => {
     return new Promise(async (resolve, reject) => {
         try{
             let artistsFreeSlots = {};
