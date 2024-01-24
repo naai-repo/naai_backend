@@ -326,4 +326,40 @@ router.post("/bookAgain", jwtVerify, async (req, res) => {
     }
 })
 
+router.get("/user/bookings", jwtVerify, async (req,res) => {
+    try{
+        let userId = req.user.id;
+        let page = Number(req.query.page) || 1;
+        let limit = Number(req.query.limit) || 3;
+        let skip = (page-1)*limit;
+        let date = new Date();
+        let dd = String(date.getDate()).padStart(2, '0');;
+        let mm = String(date.getMonth()+1).padStart(2, '0');;
+        let yyyy = date.getFullYear();
+        date = new Date(`${mm}-${dd}-${yyyy}`)
+        let current_bookings = await Booking.find({userId: userId, bookingDate: date});
+        let previous_bookings = await Booking.find({userId: userId, bookingDate: {$lt: date}}).sort({bookingDate: -1});
+        let upcoming_bookings = await Booking.find({userId: userId, bookingDate: {$gt: date}}).sort({bookingDate: 1});
+        let prev_booking = [];
+        for(let itr = skip; itr<skip+limit; itr++){
+            if(!previous_bookings[itr]){
+                break;
+            }
+            prev_booking.push(previous_bookings[itr]);
+        }
+        let coming_bookings = [];
+        for(let itr = skip; itr<skip+limit; itr++){
+            if(!upcoming_bookings[itr]){
+                break;
+            }
+            coming_bookings.push(upcoming_bookings[itr]);
+        }
+        res.status(200).json({userId, current_bookings, prev_booking, coming_bookings});
+        
+    }catch(err){
+        console.log(err);
+        res.status(err.code || 500).json(wrapperMessage("failed", err.message));
+    }
+})
+
 module.exports = router;
