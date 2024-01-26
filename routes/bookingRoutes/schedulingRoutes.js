@@ -177,6 +177,12 @@ router.post('/book', jwtVerify, async (req,res) => {
         }
         timeSlotOrder = timeSlotOrder[0].order;
         let randomArr = [];
+        let artistSet = new Set();
+        timeSlotOrder.forEach(object => {
+            if(object.artist !== "000000000000000000000000"){
+                artistSet.add(object.artist.toString());
+            }
+        })
         timeSlotOrder.forEach(object => {
             if(object.artist === "000000000000000000000000"){
                 randomArr.push(object);
@@ -193,11 +199,13 @@ router.post('/book', jwtVerify, async (req,res) => {
             }
         }
         let lastTime = timeSlot[0];
+        let randomServices = randomArr.map(obj => obj.service?._id?.toString());
         timeSlotOrder.forEach(object => {
             if(object.artist === "000000000000000000000000"){
                 let obj = {
                     serviceId: object.service,
                     artistId: object.artist,
+                    chosenBy: "algo",
                     timeSlot: {
                         start: "00:00",
                         end: "00:00"
@@ -209,8 +217,13 @@ router.post('/book', jwtVerify, async (req,res) => {
           
             let obj ={
                 serviceId: object.service._id,
-                artistId: object.artist
+                artistId: object.artist,
             };
+            if(randomServices.includes(obj.serviceId.toString())){
+                obj.chosenBy = "algo";
+            }else{
+                obj.chosenBy = "user";
+            }
             let service = object.service;
             let startTime = lastTime.split(":");
             let endTime = ""
@@ -243,6 +256,7 @@ router.post('/book', jwtVerify, async (req,res) => {
                 start: timeSlot[0],
                 end: lastTime
             },
+            bookingType: Array.from(artistSet).length === 1 ? "single" : "multiple",
             artistServiceMap
         }
         let newBooking = new Booking(data);

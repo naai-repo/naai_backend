@@ -5,6 +5,10 @@ const bookingSchema = new mongoose.Schema({
         type: String, 
         required: true, 
     },
+    bookingType: {
+        type: String,
+        required: true,
+    },
     salonId: { 
         type: mongoose.Schema.ObjectId, 
         required: true, 
@@ -50,7 +54,11 @@ const bookingSchema = new mongoose.Schema({
                     type: String, 
                     required: true
                 } 
-            } //Change it as per requirements
+            },
+            chosenBy: {
+                type: String, 
+                required: true
+            }
         }
     ]
 }, {

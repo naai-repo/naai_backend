@@ -48,6 +48,14 @@ const UserSchema = new mongoose.Schema({
         lowercase: true,
         default: "active"
     },
+    favourite: {
+        salons: [{
+            type: mongoose.Schema.ObjectId
+        }],
+        artists: [{
+            type: mongoose.Schema.ObjectId
+        }]
+    },
     imageKey: {
         type: String,
         default: ''

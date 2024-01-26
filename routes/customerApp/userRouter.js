@@ -124,9 +124,63 @@ router.get("/:id", async (req,res) => {
       err.code = 404;
       throw err;
     }
-    res.json(wrapperMessage("success","", user));
+    res.status(200).json(wrapperMessage("success","", user));
   }catch(err){
+    console.log(err);
+    res.status(err.code || 500).json(wrapperMessage("failed", err.message));
+  }
+})
 
+router.get("/favourite/get", jwtVerify, async (req,res) => {
+  try{
+    let userId = req.user.id;
+    let user = await User.findOne({_id: userId}); 
+    if(!user){
+      let err = new Error("User does not exist!");
+      err.code = 404;
+      throw err;
+    }
+    res.status(200).json(wrapperMessage("success","", user.favourite));
+  }catch(err){
+    console.log(err);
+    res.status(err.code || 500).json(wrapperMessage("failed", err.message));
+  }
+})
+
+router.post("/favourite/add", jwtVerify, async (req,res) => {
+  try{
+    let userId = req.user.id;
+    let user = await User.findOne({_id: userId});  
+    if(!user){
+      let err = new Error("User does not exist!");
+      err.code = 404;
+      throw err;
+    }
+    let salonArr = user.favourite.salons.map(obj => obj.toString());
+    let artistArr = user.favourite.artists.map(obj => obj.toString());
+    let added = true;
+    if(req.body.salon){
+      if(salonArr.includes(req.body.salon)){
+        user.favourite.salons = salonArr.filter(val => val !== req.body.salon)
+        added = false;
+      }else{
+        user.favourite.salons.push(req.body.salon);
+      }
+    }
+    if(req.body.artist){
+      if(artistArr.includes(req.body.artist)){
+        user.favourite.artists = artistArr.filter(val => val !== req.body.artist);
+        added = false;
+      }else{
+        user.favourite.artists.push(req.body.artist);
+      }
+    }
+    await user.save();
+    let message = added ? "Added to Favourites" : "Removed from favourites";
+    res.status(200).json(wrapperMessage("success", message, user));
+  }catch(err){
+    console.log(err);
+    res.status(err.code || 500).json(wrapperMessage("failed", err.message));
   }
 })
 
