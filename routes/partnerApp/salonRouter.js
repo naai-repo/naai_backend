@@ -54,9 +54,6 @@ router.get("/", async (req, res) => {
             return {...obj.toObject(), ...extraData }
         })
 
-
-
-
         res.status(200).json({data:salonsData, hits: salons.length});
     }catch(err){
         console.log(err);
