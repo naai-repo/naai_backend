@@ -22,7 +22,39 @@ router.get("/", async (req, res) => {
         }
 
         const salons = await Salon.find(queryObject).skip(skip).limit(limit);
-        res.status(200).json({salons, hits: salons.length});
+        let salonIdsToFilter = salons.map(salon => salon._id);
+        const aggregation = [
+    {
+      $match: {
+        salonIds: { $in: salonIdsToFilter } // Filter services based on the specified salonIds
+      }
+    },
+    {
+      $unwind: "$salonIds"
+    },
+    {
+        $match: {
+          salonIds: { $in: salonIdsToFilter } // Filter services based on the specified salonIds
+        }
+      },
+    {
+        $group: {
+          _id: "$salonIds",
+          totalServices: { $sum: 1 }, // Count services for each salon
+          totalBasePrice: { $sum: "$basePrice" },
+          avgBasePrice: { $avg: "$basePrice" } // Sum base prices for each salon
+        }
+      }
+             ];
+        let salonAvgServicePrice = await Service.aggregate(aggregation);;
+        let salonsData = salons.map(obj => {
+            let salonId = obj._id;
+            let extraData = salonAvgServicePrice.find(item =>salonId.equals(item._id));
+            let ob =Object.assign(obj.toObject());
+            return {...obj.toObject(), ...extraData }
+        })
+
+        res.status(200).json({data:salonsData, hits: salons.length});
     }catch(err){
         console.log(err);
         res.status(500).json(err);
@@ -241,5 +273,7 @@ router.post("/filter", async (req,res) => {
         res.status(err.code || 500).json(wrapperMessage("failed", err.message));
     }
 })
+
+
 
 module.exports = router;
