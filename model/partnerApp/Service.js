@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 // Schema for Service
 const ServiceSchema = new mongoose.Schema({
+    salonId: mongoose.Schema.ObjectId,
     category: {
         type: String,
         required: true
@@ -9,7 +10,6 @@ const ServiceSchema = new mongoose.Schema({
     serviceTitle: {
         type: String,
         required: true,
-        unique: true
     },
     description: {
         type: String,
@@ -18,21 +18,12 @@ const ServiceSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    salonIds: [
-        {
-            type: mongoose.Schema.ObjectId,
-            required: true
-        },
-    ],
     avgTime: {
         type: Number,
         required: true,
         default: 1
     },
-    basePrice: {
-        type: Number,
-        required: true
-    },
+    basePrice: Number
 }, {
     timestamps: true
 });

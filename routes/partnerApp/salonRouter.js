@@ -22,7 +22,39 @@ router.get("/", async (req, res) => {
         }
 
         const salons = await Salon.find(queryObject).skip(skip).limit(limit);
-        res.status(200).json({salons, hits: salons.length});
+        let salonIdsToFilter = salons.map(salon => salon._id);
+        const aggregation = [
+    {
+      $match: {
+        salonIds: { $in: salonIdsToFilter } // Filter services based on the specified salonIds
+      }
+    },
+    {
+      $unwind: "$salonIds"
+    },
+    {
+        $match: {
+          salonIds: { $in: salonIdsToFilter } // Filter services based on the specified salonIds
+        }
+      },
+    {
+        $group: {
+          _id: "$salonIds",
+          totalServices: { $sum: 1 }, // Count services for each salon
+          totalBasePrice: { $sum: "$basePrice" },
+          avgBasePrice: { $avg: "$basePrice" } // Sum base prices for each salon
+        }
+      }
+             ];
+        let salonAvgServicePrice = await Service.aggregate(aggregation);;
+        let salonsData = salons.map(obj => {
+            let salonId = obj._id;
+            let extraData = salonAvgServicePrice.find(item =>salonId.equals(item._id));
+            let ob =Object.assign(obj.toObject());
+            return {...obj.toObject(), ...extraData }
+        })
+
+        res.status(200).json({data:salonsData, hits: salons.length});
     }catch(err){
         console.log(err);
         res.status(500).json(err);
@@ -45,6 +77,36 @@ router.post('/add', async (req, res) => {
     }
 })
 
+router.post('/add/:id/services/', async(req,res) => {
+    try{
+        let services = req.body.services;
+        if(!services){
+            let err = new Error("No services selected!");
+            err.code = 400;
+            throw err;
+        }
+        let salonData = await Salon.findOne({_id: req.params.id});
+        if(!salonData){
+            let err = new Error("No such salon exists!");
+            err.code = 404;
+            throw err;
+        }
+        let servicePromiseArr = [];
+        services.forEach(service => {
+            let newService = new Service({
+                ...service,
+                salonId: req.params.id,
+            })
+            servicePromiseArr.push(newService.save());
+        });
+        let serviceData =  await Promise.all(servicePromiseArr);
+        res.status(200).json(wrapperMessage("success", "Services added to the salon", serviceData))
+    }catch(err){
+        console.log(err);
+        res.status(err.code || 500).json(wrapperMessage("failed", err.message));
+    }
+})
+
 router.post('/:id/update', async (req, res) => {
     try{
         let data = await Salon.updateOne({_id: req.params.id}, req.body);
@@ -59,7 +121,7 @@ router.get('/single/:id', async (req, res) => {
     try{
         let data = await Salon.findOne({_id: req.params.id});
         let artistData = await Artist.find({salonId: req.params.id});
-        let serviceData = await Service.find({salonIds: {$elemMatch: {$eq: req.params.id}}});
+        let serviceData = await Service.find({salonId: req.params.id});
         res.json(wrapperMessage('success', "", {data, artists: artistData, services: serviceData}));
     }catch(err){
         console.log(err);
@@ -241,5 +303,7 @@ router.post("/filter", async (req,res) => {
         res.status(err.code || 500).json(wrapperMessage("failed", err.message));
     }
 })
+
+
 
 module.exports = router;
