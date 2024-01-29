@@ -32,7 +32,7 @@ router.post('/add', async (req, res) => {
 })
 
 // Getting different service categories
-router.get("/all", async (req,res) => {
+router.get("/category/all", async (req,res) => {
     try{
         let serviceData = await Service.aggregate([
             {
@@ -67,6 +67,21 @@ router.get('/single/:id', async (req,res) => {
     }
 })
 
+router.post('/:id/update', async(req,res) => {
+    try{
+        let data = await Service.updateOne({_id: req.params.id}, req.body);
+        if(!data.modifiedCount){
+            let err = new Error("Some Error occured please try again!");
+            err.code = 500;
+            throw err;
+        }
+        res.json(wrapperMessage('success', "", data));
+    }catch(err){
+        console.log(err);
+        res.status(err.code || 500).json(wrapperMessage("failed", err.message))
+    }
+})
+
 // Salon Filter based on Category
 router.post("/search", async(req,res) => {
     try{
@@ -76,10 +91,10 @@ router.post("/search", async(req,res) => {
             queryObject.push({serviceTitle: {$regex : name, $options: 'i'}}); 
             queryObject.push({category: {$regex : name, $options: 'i'}});
         }
-        
-        let serviceArr = await Service.find({$or: queryObject});
+            
+        let serviceArr = await Service.find({$or: queryObject, $nor: [{salonId : null}]});
         let set = new Set();
-        let salonArr = serviceArr.map(ele => ele.salonIds.map(ele => set.add(ele.toString())));
+        let salonArr = serviceArr.map(ele => set.add(ele.salonId.toString()));
         salonArr = Array.from(set);
         salonArr = salonArr.map(ele => new ObjectId(ele));
 

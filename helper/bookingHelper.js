@@ -57,10 +57,8 @@ const getWindowSize = (requests, salonId) => {
                 if(!service){
                     throw new Error('Service not found! Please check all services.');
                 }
-                let data = service.salonIds.filter(ele => {
-                    return ele.toString() === salonId
-                })
-                if(!data.length)
+                let data = service.salonId.toString() === salonId;
+                if(!data)
                     throw new Error('Service is not Supported by the selected Salon!');
                 size += service.avgTime;
                 let index = requests.findIndex( ele => ele.service === service._id.toString());
