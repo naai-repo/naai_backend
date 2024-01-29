@@ -5,6 +5,7 @@ const Salon = require("../../model/partnerApp/Salon");
 const Booking = require("../../model/partnerApp/Booking");
 const wrapperMessage = require("../../helper/wrapperMessage");
 const jwtVerify = require("../../middleware/jwtVerification");
+const Service = require("../../model/partnerApp/Service");
 
 // User ID : 64f786e3b23d28509e6791e0
 // saloon ID : 64f786e3b23d28509e6791e1
@@ -62,8 +63,78 @@ router.post("/add", async (req, res) => {
   }
 });
 
-// Updating existing artist
+// adding services to the artists
+router.post("/add/:artistId/services", async(req, res) => {
+  try {
+    let services = req.body.services;
+    let artist = await Artist.findOne({_id: req.params.artistId});
+    if(!artist){
+      let err = new Error("No such artist found!");
+      err.code = 404;
+      throw err;
+    }
+    let newServices = [];
+    if(artist.services.length){
+      services.forEach(service => {
+        if(!artist.services.some(obj => obj.serviceId.toString() === service.serviceId)){
+          newServices.push(service);
+        }
+      })
+    }else{
+      newServices = services;
+    }
+    
+    let isSalonService = true;
+    let servicePromiseArr = []; 
+    newServices.forEach(service => {
+      servicePromiseArr.push(Service.findOne({_id: service.serviceId}));
+    })
+    let serviceArr = await Promise.all(servicePromiseArr);
+    for(let service of serviceArr) {
+      if(!service){
+        let err = new Error(`No such service (${newServices[serviceArr.indexOf(service)].serviceId})  exists!`)
+        err.code = 404;
+        throw err;
+      }
+      if(service.salonId.toString() !== artist.salonId.toString()){
+        isSalonService = false;
+        break;
+      }
+    }
+    if(!isSalonService){
+      let err = new Error("This service is not listed at the artist's salon!");
+      err.code = 400;
+      throw err;
+    }
+    let data = [...artist.services, ...newServices];
+    artist.services = data;
+    await artist.save();
+    res.status(200).json(wrapperMessage("success", "", artist));
+  } catch (err) {
+    console.log(err);
+    res.status(err.code || 500).json(wrapperMessage("failed", err.message));
+  }
+})
 
+router.post("/remove/:serviceId/services", async(req, res) => {
+  try {
+    let artistId = req.body.artistId;
+    let artist = await Artist.findOne({_id: artistId});
+    if(!artist){
+      let err = new Error("No such artist found!");
+      err.code = 404;
+      throw err;
+    }
+    let serviceArr = artist.services.filter(ele => ele.serviceId.toString() !== req.params.serviceId);
+    artist.services = serviceArr;
+    await artist.save();
+    res.json(wrapperMessage("success", "Service deleted successfully", artist));
+  } catch (err) {
+    console.log(err);
+    res.status(err.code || 500).json(wrapperMessage("failed", err.message));
+  }
+})
+// Updating existing artist
 router.post("/:id/update", async (req, res) => {
   try{
     let data = await Artist.updateOne({_id: req.params.id}, req.body);

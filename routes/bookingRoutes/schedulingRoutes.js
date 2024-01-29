@@ -37,10 +37,10 @@ router.post('/singleArtist/list', async (req,res) => {
             rating: ele.rating
           };
         });
-        res.json({artistsProvidingServices , services});
+        res.status(200).json({artistsProvidingServices , services});
     }catch(err){
         console.log(err);
-        res.json(wrapperMessage("failed", err.message))
+        res.status(err.code || 500).json(wrapperMessage("failed", err.message))
     }
 })
 
@@ -62,10 +62,10 @@ router.post('/singleArtist/request', (req,res) => {
                 })
             }
         })
-        res.json({requests})
+        res.status(200).json({requests})
     }catch(err){
         console.log(err);
-        res.json(wrapperMessage("failed", err.message));
+        res.status(err.code || 500).json(wrapperMessage("failed", err.message));
     }
 })
 
