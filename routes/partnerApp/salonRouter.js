@@ -43,7 +43,6 @@ router.get("/", async (req, res) => {
             let salonId = obj._id;
             let extraData = salonAvgServicePrice.find(item => salonId.equals(item._id));
             let ob =Object.assign(obj.toObject());
-
             return {...obj.toObject(), ...extraData }
         })
         res.status(200).json({data:salonsData, hits: salons.length});
