@@ -181,10 +181,7 @@ router.post('/book', jwtVerify, async (req,res) => {
         timeSlotOrder.forEach(object => {
             if(object.artist !== "000000000000000000000000"){
                 artistSet.add(object.artist.toString());
-            }
-        })
-        timeSlotOrder.forEach(object => {
-            if(object.artist === "000000000000000000000000"){
+            }else if(object.artist === "000000000000000000000000"){
                 randomArr.push(object);
             }
         })

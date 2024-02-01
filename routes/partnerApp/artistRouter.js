@@ -134,6 +134,7 @@ router.post("/remove/:serviceId/services", async(req, res) => {
     res.status(err.code || 500).json(wrapperMessage("failed", err.message));
   }
 })
+
 // Updating existing artist
 router.post("/:id/update", async (req, res) => {
   try{

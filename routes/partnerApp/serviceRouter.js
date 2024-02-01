@@ -25,7 +25,7 @@ router.post('/add', async (req, res) => {
     const newService = new Service(req.body);
     try{
         const service = await newService.save();
-        res.status(200).json(service);
+        res.status(200).json(newService);
     }catch(err){
         res.status(500).json(err);
     }
@@ -189,4 +189,6 @@ router.get("/title/search", async(req,res) => {
         res.status(err.code || 500).json(wrapperMessage("failed", err.message))
     }
 })
+
+
 module.exports = router;
