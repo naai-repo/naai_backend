@@ -90,11 +90,11 @@ router.get("/user/:id/image/delete", async (req, res) => {
             Bucket: bucketName,
             Key: user.imageKey,
         }
-        const command = new DeleteObjectCommand(params);
-        await s3.send(command);
         user.imageKey = '';
         user.imageUrl = '';
         await user.save();
+        const command = new DeleteObjectCommand(params);
+        await s3.send(command);
         res.status(200).json(wrapperMessage("success", "Image deleted Successfully!"));
     }catch(err){
         console.log(err);
@@ -159,7 +159,7 @@ router.get("/artist/:id/image/delete", async (req, res) => {
 })
 
 // Upload Salons images
-router.post('/salon/:id/image', upload.array("images", 6), async (req,res) => {
+router.post('/salon/:id/image', upload.array("images", 10), async (req,res) => {
     try{
         let salon = await Salon.findOne({_id: req.params.id});
         if(!salon){
