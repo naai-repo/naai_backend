@@ -5,7 +5,12 @@ const ServiceSchema = new mongoose.Schema({
     salonId: mongoose.Schema.ObjectId,
     category: {
         type: String,
+        lowercase: true,
         required: true
+    },
+    sub_category: {
+        type: String,
+        lowercase: true,
     },
     serviceTitle: {
         type: String,

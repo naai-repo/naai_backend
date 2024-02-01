@@ -114,4 +114,67 @@ router.post("/:id/reply", jwtVerify, async (req,res) => {
     }
 })
 
+router.get("/artist/:id", jwtVerify, async (req,res) => {
+    try{
+        const userId = req.user.id;
+        const reviews = await Review.find({artistId: req.params.id});
+        if(!reviews.length){
+            let err = new Error("No Artist Reviews Found!");
+            err.code = 404;
+            throw err;
+        }
+        let data = [];
+        for(let review of reviews){
+            let obj = {
+                review: review,
+            }
+            let replies = [];
+            if(review.replies.length){
+                for(reply of review.replies){
+                    replies.push(Review.findOne({_id: reply}));
+                }
+                replies = await Promise.all(replies);
+            }
+            obj["replies"] = replies;
+            data.push(obj);
+        }
+        res.status(200).json(wrapperMessage("success", "", data));
+    }catch(err){
+        console.log(err);
+        res.status(err.code || 500).json(wrapperMessage("failed", err.message))
+    }
+})
+
+router.get("/salon/:id", jwtVerify, async (req,res) => {
+    try{
+        const userId = req.user.id;
+        const reviews = await Review.find({salonId: req.params.id});
+        if(!reviews.length){
+            let err = new Error("No Salon Reviews Found!");
+            err.code = 404;
+            throw err;
+        }
+        let data = [];
+        for(let review of reviews){
+            let obj = {
+                review: review,
+            }
+            let replies = [];
+            if(review.replies.length){
+                for(reply of review.replies){
+                    replies.push(Review.findOne({_id: reply}));
+                }
+                replies = await Promise.all(replies);
+            }
+            obj["replies"] = replies;
+            data.push(obj);
+        }
+        res.status(200).json(wrapperMessage("success", "", data));
+    }catch(err){
+        console.log(err);
+        res.status(err.code || 500).json(wrapperMessage("failed", err.message))
+    }
+})
+
+
 module.exports = router;

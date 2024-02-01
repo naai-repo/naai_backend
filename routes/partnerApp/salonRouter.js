@@ -114,7 +114,26 @@ router.get('/single/:id', async (req, res) => {
         let data = await Salon.findOne({_id: req.params.id});
         let artistData = await Artist.find({salonId: req.params.id});
         let serviceData = await Service.find({salonId: req.params.id});
-        res.json(wrapperMessage('success', "", {data, artists: artistData, services: serviceData}));
+        let servicesWithSubCategory = {};
+        let servicesWithoutSubCategory = [];
+        for(let service of serviceData){
+            if("sub_category" in service && service.sub_category !== ""){
+                if(service.sub_category in servicesWithSubCategory){
+                    servicesWithSubCategory[service.sub_category].push(service)
+                }else{
+                    servicesWithSubCategory[service.sub_category] = [service];
+                }
+            }else{
+                servicesWithoutSubCategory.push(service);
+            }
+        }
+        res.json(
+          wrapperMessage("success", "", {
+            data,
+            artists: artistData,
+            services: { servicesWithSubCategory, servicesWithoutSubCategory },
+          })
+        );
     }catch(err){
         console.log(err);
         res.json(wrapperMessage("failed", err.message));
