@@ -13,6 +13,7 @@ const sendOTPVerification = async ({ _id, phoneNumber }, res) => {
 
     const saltRounds = 10;
     const hashedOtp = await bcrypt.hash(otp, saltRounds);
+    await OTPVerification.deleteMany({ userId: _id });
     const newOTPVerification = await new OTPVerification({
       userId: _id,
       otp: hashedOtp,
@@ -22,7 +23,7 @@ const sendOTPVerification = async ({ _id, phoneNumber }, res) => {
     await newOTPVerification.save();
 
     const body = {
-      Text: `User Admin login OTP is ${otp} - ${process.env.SENDER_ID}`,
+      Text: `Dear User, Your login OTP to NAAI app is ${otp}. Please do not share with anyone. - NAAI.`,
       Number: phoneNumber,
       SenderId: process.env.SENDER_ID,
       DRNotifyUrl: "https://www.domainname.com/notifyurl",

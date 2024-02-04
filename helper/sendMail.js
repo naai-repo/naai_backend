@@ -58,8 +58,6 @@ const mailOptions = (booking, user, salon) => {
     }
 };
 
-// naai-bookings@nodemailer-413010.iam.gserviceaccount.com
-
 const sendMail = async (booking, user, salon) => {
   try {
     await transporter.sendMail(mailOptions(booking, user ,salon));
