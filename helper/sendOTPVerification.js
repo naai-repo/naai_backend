@@ -13,6 +13,7 @@ const sendOTPVerification = async ({ _id, phoneNumber }, res) => {
 
     const saltRounds = 10;
     const hashedOtp = await bcrypt.hash(otp, saltRounds);
+    await OTPVerification.deleteMany({ userId: _id });
     const newOTPVerification = await new OTPVerification({
       userId: _id,
       otp: hashedOtp,
