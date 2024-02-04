@@ -13,10 +13,14 @@ const Service = require('../../model/partnerApp/Service');
 router.get("/", async (req, res) => {
     try{
         let name = req.query.name;
+        let type = req.query.type;
         let page = Number(req.query.page) || 1;
         let limit = Number(req.query.limit) || 3;
         let skip = (page-1)*limit;
         let queryObject = {};
+        if(type){
+            queryObject = {$or: [{salonType: type}, {salonType: "unisex"}]}
+        }
         if(name){
             queryObject.name = {$regex : name, $options: 'i'};
         }
@@ -99,6 +103,38 @@ router.post('/add/:id/services/', async(req,res) => {
     }
 })
 
+router.post('/remove/:id/services/', async(req,res) => {
+    try{
+        let services = req.body.services;
+        let salonId = req.body.salonId;
+        if(salonId.toString() !== req.params.id.toString()){
+            let err = new Error("You are not authorized to remove services from this salon!");
+            err.code = 403;
+            throw err;
+        }
+        if(!services){
+            let err = new Error("No services selected!");
+            err.code = 400;
+            throw err;
+        }
+        let salonData = await Salon.findOne({_id: req.params.id});
+        if(!salonData){
+            let err = new Error("No such salon exists!");
+            err.code = 404;
+            throw err;
+        }
+        let servicePromiseArr = [];
+        services.forEach(service => {
+            servicePromiseArr.push(Service.deleteOne({_id: service}));
+        });
+        let serviceData =  await Promise.all(servicePromiseArr);
+        res.status(200).json(wrapperMessage("success", "Services removed from the salon", serviceData))
+    }catch(err){
+        console.log(err);
+        res.status(err.code || 500).json(wrapperMessage("failed", err.message));
+    }
+})
+
 router.post('/:id/update', async (req, res) => {
     try{
         let data = await Salon.updateOne({_id: req.params.id}, req.body);
@@ -154,7 +190,19 @@ router.post('/topSalons', async (req,res) => {
                     "distanceMultiplier": 0.001
                 }
             },
+            {
+                $match: {
+                    $or: [
+                        {salonType: req.query.type},
+                        {salonType: "unisex"}
+                    ]
+                }
+            }
         ]);
+        if(!salons.length){
+            res.status(200).json(wrapperMessage("success", "No result found!", []));
+            return;
+          }
         let totalBookings = await Booking.find().count("bookings");
         let totalSalons = await Salon.find().count("salons");
         let maxDistance = 0;
@@ -173,9 +221,10 @@ router.post('/topSalons', async (req,res) => {
         for(let itr = 0; itr <= end; itr++ ){
             let salon = salons[itr];
             let bookings = salon.bookings >= avgBookings ? avgBookings : salon.bookings;
+            let discount = salon.discount >= maxDiscount ? maxDiscount : salon.discount;
             let score = 0;
             score = (((maxDistance - salon.distance) / maxDistance)*0.6)
-                    + ((salon.discount / maxDiscount)*0.3)
+                    + ((discount / maxDiscount)*0.3)
                     + ((salon.rating / maxRating)*0.07)
                     + ((bookings / avgBookings)*0.03);
             
@@ -231,6 +280,14 @@ router.post("/filter", async (req,res) => {
                     "near": location,
                     "distanceField": "distance",
                     "distanceMultiplier": 0.001
+                }
+            },
+            {
+                $match: {
+                    $or: [
+                        {salonType: req.query.type},
+                        {salonType: "unisex"}
+                    ]
                 }
             },
             {

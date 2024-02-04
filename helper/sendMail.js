@@ -1,5 +1,4 @@
 const nodemailer = require("nodemailer");
-require("dotenv").config();
 
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
@@ -57,8 +56,6 @@ const mailOptions = (booking, user, salon) => {
         html: createHtml(booking, user, salon), // html body
     }
 };
-
-// naai-bookings@nodemailer-413010.iam.gserviceaccount.com
 
 const sendMail = async (booking, user, salon) => {
   try {
