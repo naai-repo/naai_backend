@@ -2,6 +2,7 @@ const router = require("express").Router();
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const passport = require("passport");
+const CommonUtils = require("../../helper/commonUtils");
 
 const Partner = require("../../model/partnerApp/Partner");
 const wrapperMessage = require("../../helper/wrapperMessage");
@@ -87,6 +88,7 @@ router.post("/signup", (req, res) => {
   }
 });
 
+
 // Partner Login
 router.post("/login", (req, res) => {
   let { password, user } = req.body;
@@ -147,6 +149,36 @@ router.post("/login", (req, res) => {
         );
       });
   }
+});
+
+// /loginViaOtp
+router.post("/loginViaOtp", (req, res) => {
+  let { userData } = req.body;
+  let mailOrPhoneNumber = null;
+
+  if (CommonUtils.isEmail(userData)) {
+    mailOrPhoneNumber = {email:userData}
+  } else if (CommonUtils.isPhoneNumber(userData)) {
+    mailOrPhoneNumber = {phoneNumber:userData}
+  } else {
+    return res.json({data:'error occured'})
+  }
+  console.log(mailOrPhoneNumber)
+  
+  Partner.find(mailOrPhoneNumber)
+  .then((result) => {
+    console.log(result);
+     sendOTPVerification(result[0], res)
+      
+    })
+  .catch(() => {
+   res.json({data:'no '})
+      
+    })
+
+
+  
+  
 });
 
 // Forget Password Routes

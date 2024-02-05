@@ -8,10 +8,11 @@ const OTPVerification = require("../model/otpVerification");
 const secret = otplib.authenticator.generateSecret();
 otplib.authenticator.options = { digits: 6 };
 const sendOTPVerification = async ({ _id, phoneNumber }, res) => {
+
   try {
     const otp = otplib.authenticator.generate(secret);
-
-    const saltRounds = 10;
+    console.log(_id, phoneNumber, otp)
+    const saltRounds = 6;
     const hashedOtp = await bcrypt.hash(otp, saltRounds);
     const newOTPVerification = await new OTPVerification({
       userId: _id,
@@ -31,7 +32,7 @@ const sendOTPVerification = async ({ _id, phoneNumber }, res) => {
     };
 
     // Sends SMS OTP to user.
-    const data = await await axios.post(
+    const data = await axios.post(
       `https://restapi.smscountry.com/v0.1/Accounts/${process.env.AUTH_KEY}/SMSes/`,
       body,
       {
@@ -52,7 +53,6 @@ const sendOTPVerification = async ({ _id, phoneNumber }, res) => {
       },
     });
   } catch (err) {
-    console.log(err);
     res.json(wrapperMessage("failed", err.message));
   }
 };
