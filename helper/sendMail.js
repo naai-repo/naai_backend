@@ -12,57 +12,22 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const createHtml = (booking, user, salon) => {
-  const dateOptions = {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  };
-  let serviceMap = booking.artistServiceMap.map((obj) => {
-    return `
-        <p>Service Id : ${obj.artistId}</p>
-        <p>Artist Id : ${obj.serviceId}</p>
-        <p>Timeslot : ${obj.timeSlot.start} - ${obj.timeSlot.end}</p>
-    `;
-  });
-  let servicesData = serviceMap.join("&ensp;");
-  return `
-    <div>
-        <h1>Booking Details</h1>
-        <p>Booking Id: ${booking._id}</p>
-        <p>Booking Type: ${booking.bookingType}</p>
-        <p>Booking Date: ${new Date(booking.bookingDate).toLocaleString(
-          "en-GB",
-          dateOptions
-        )}</p>
-        <p>Booking Time: ${booking.timeSlot.start}</p>
-        <p>Booking Payment Status: ${booking.paymentStatus}</p>
-        <p>Booking User: ${user.name}</p>
-        <p>User Id: ${user._id}</p>
-        <p>User Phonenumber: ${user.phoneNumber}</p>
-        <p>Salon Name: ${salon.name}</p>
-        <p>Salon Phonenumber: ${salon.phoneNumber}</p>
-        <h2>Services Taken: </h2>
-        &ensp;${servicesData}
-    </div>
-    `;
-};
-const mailOptions = (booking, user, salon) => {
+
+const mailOptions = (htmlData,to, text, subject) => {
     return {
         from: process.env.EMAIL_USER, // sender address
-        to: process.env.RECIEVER_EMAIL, // list of receivers
-        subject: "Booking Confirmed", // Subject line
-        text: "Booking confirmed!", // plain text body
-        html: createHtml(booking, user, salon), // html body
+        to: [to, process.env.EMAIL_USER], // list of receivers
+        subject: subject, // Subject line
+        text: text, // plain text body
+        html: htmlData, // html body
     }
 };
 
 // naai-bookings@nodemailer-413010.iam.gserviceaccount.com
 
-const sendMail = async (booking, user, salon) => {
+const sendMail = async (htmlData, to,text, subject) => {
   try {
-    await transporter.sendMail(mailOptions(booking, user ,salon));
+    await transporter.sendMail(mailOptions(htmlData, to, text, subject));
     console.log("Mail Sent to Naai!");
   } catch (err) {
     console.log(err);

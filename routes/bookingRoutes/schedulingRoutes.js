@@ -353,7 +353,44 @@ router.post("/book", jwtVerify, async (req, res) => {
       "en-GB",
       timeOptions
     )}`;
-    sendMail(booking, user, salon);
+    const createHtml = (booking, user, salon) => {
+      const dateOptions = {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      };
+      let serviceMap = booking.artistServiceMap.map((obj) => {
+        return `
+            <p>Service Id : ${obj.artistId}</p>
+            <p>Artist Id : ${obj.serviceId}</p>
+            <p>Timeslot : ${obj.timeSlot.start} - ${obj.timeSlot.end}</p>
+        `;
+      });
+      let servicesData = serviceMap.join("&ensp;");
+      return `
+        <div>
+            <h1>Booking Details</h1>
+            <p>Booking Id: ${booking._id}</p>
+            <p>Booking Type: ${booking.bookingType}</p>
+            <p>Booking Date: ${new Date(booking.bookingDate).toLocaleString(
+              "en-GB",
+              dateOptions
+            )}</p>
+            <p>Booking Time: ${booking.timeSlot.start}</p>
+            <p>Booking Payment Status: ${booking.paymentStatus}</p>
+            <p>Booking User: ${user.name}</p>
+            <p>User Id: ${user._id}</p>
+            <p>User Phonenumber: ${user.phoneNumber}</p>
+            <p>Salon Name: ${salon.name}</p>
+            <p>Salon Phonenumber: ${salon.phoneNumber}</p>
+            <h2>Services Taken: </h2>
+            &ensp;${servicesData}
+        </div>
+        `;
+    };
+
+    sendMail(createHtml(), 'naai.admn@gmail.com', "booking confirmed", "booking confirmed");
     // sendMessageToUser(user, message);
     let artistArr = new Set(artistServiceMap.map((ele) => ele.artistId));
     artistArr = Array.from(artistArr);
