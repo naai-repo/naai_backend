@@ -26,6 +26,7 @@ const mailOptions = (htmlData,to, text, subject) => {
 // naai-bookings@nodemailer-413010.iam.gserviceaccount.com
 
 const sendMail = async (htmlData, to,text, subject) => {
+
   try {
     await transporter.sendMail(mailOptions(htmlData, to, text, subject));
     console.log("Mail Sent to Naai!");

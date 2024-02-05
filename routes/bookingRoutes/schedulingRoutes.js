@@ -19,6 +19,7 @@ const jwtVerify = require("../../middleware/jwtVerification");
 const sendMail = require("../../helper/sendMail");
 const Salon = require("../../model/partnerApp/Salon");
 const sendMessageToUser = require("../../helper/sendMessageToUser");
+const Service = require("../../model/partnerApp/Service");
 
 /* 
     BODY FOR SCHEDULING WILL CONTAIN
@@ -129,6 +130,10 @@ router.post("/schedule", jwtVerify, async (req, res) => {
     let randomArtistService = newRequests.filter(
       (element) => element.artist === "000000000000000000000000"
     );
+    for(let service of randomArtistService){
+      let serviceData = await Service.findOne({_id: service.service});
+      service.service = serviceData;
+    }
     let timeSlots = [];
     const set = new Set();
 

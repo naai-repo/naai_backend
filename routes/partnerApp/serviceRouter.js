@@ -117,7 +117,19 @@ router.post("/search", async(req,res) => {
                     }
                 }
             },
+            {
+                $match: {
+                    $or: [
+                        {salonType: req.query.type},
+                        {salonType: "unisex"}
+                    ]
+                }
+            }
         ]);
+        if(!salons.length){
+            res.status(200).json(wrapperMessage("success", "No result found!", []));
+            return;
+          }
 
         let totalBookings = await Booking.find().count("bookings");
         let totalSalons = await Salon.find().count("salons");
