@@ -11,6 +11,7 @@ const {
   updateBookingData,
   getArtistsForServices,
   fillRandomArtists,
+  getBookingPrice,
 } = require("../../helper/bookingHelper");
 const Booking = require("../../model/partnerApp/Booking");
 const Artist = require("../../model/partnerApp/Artist");
@@ -130,8 +131,8 @@ router.post("/schedule", jwtVerify, async (req, res) => {
     let randomArtistService = newRequests.filter(
       (element) => element.artist === "000000000000000000000000"
     );
-    for(let service of randomArtistService){
-      let serviceData = await Service.findOne({_id: service.service});
+    for (let service of randomArtistService) {
+      let serviceData = await Service.findOne({ _id: service.service });
       service.service = serviceData;
     }
     let timeSlots = [];
@@ -255,7 +256,8 @@ router.post("/book", jwtVerify, async (req, res) => {
     for (let i = 0; i < timeSlotOrder.length; i++) {
       for (let j = 0; j < testdata.ans.length; j++) {
         if (
-          timeSlotOrder[i].service === testdata.ans[j].service._id.toString()
+          timeSlotOrder[i].service._id.toString() ===
+          testdata.ans[j].service._id.toString()
         ) {
           timeSlotOrder[i].service = testdata.ans[j].service;
           timeSlotOrder[i].artist = testdata.ans[j].artist;
@@ -331,6 +333,7 @@ router.post("/book", jwtVerify, async (req, res) => {
       bookingType: Array.from(artistSet).length === 1 ? "single" : "multiple",
       artistServiceMap,
     };
+    data = await getBookingPrice(data);
     let newBooking = new Booking(data);
     const booking = await newBooking.save();
     const user = await User.findOne({ _id: userId });
@@ -353,17 +356,17 @@ router.post("/book", jwtVerify, async (req, res) => {
     Please reach the salon on ${new Date(booking.bookingDate).toLocaleString(
       "en-GB",
       dateOptions
-    )} at 
+    )} at
     ${new Date("1970-01-01T" + booking.timeSlot.start).toLocaleString(
       "en-GB",
       timeOptions
     )}`;
     sendMail(booking, user, salon);
-    // sendMessageToUser(user, message);
+    sendMessageToUser(user, message);
     let artistArr = new Set(artistServiceMap.map((ele) => ele.artistId));
     artistArr = Array.from(artistArr);
     await updateBookingData(salonId, artistArr);
-    res.status(200).json(booking);
+    res.status(200).json(newBooking);
   } catch (err) {
     console.log(err);
     res.json(wrapperMessage("failed", err.message));

@@ -28,7 +28,8 @@ const ServiceSchema = new mongoose.Schema({
         required: true,
         default: 1
     },
-    basePrice: Number
+    basePrice: Number,
+    cutPrice: Number,
 }, {
     timestamps: true
 });
