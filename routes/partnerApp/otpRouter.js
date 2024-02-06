@@ -4,51 +4,25 @@ const OTPVerification = require("../../model/otpVerification");
 const bcrypt = require("bcrypt");
 const sendOTPVerification = require("../../helper/sendOTPVerification");
 const wrapperMessage = require("../../helper/wrapperMessage");
+const otpVerification = require("../../model/otpVerification");
 
 // Verify OTP
 
 router.post("/verify", async (req, res) => {
-  try {
+
     let { userId, otp } = req.body;
-    if (!userId || !otp) {
-      throw Error("Empty otp details are not allowed");
-    } else {
       let OTPVerificationRecords = await OTPVerification.find({
-        userId,
+        userId:userId
       });
-      if (OTPVerificationRecords.length <= 0) {
-        // no record found
-        throw new Error(
-          "Account record doesn't exist or has been verified already. Please sign up or log in."
-        );
-      } else {
-        // user OTP record exists
-        const { expiresAt } = OTPVerificationRecords[0];
         const hashedOtp = OTPVerificationRecords[0].otp;
-
-        if (expiresAt < Date.now()) {
-          // user OTP record has expired
-          await OTPVerification.deleteMany({ userId });
-          throw new Error("Code has expired. Please request again.");
-        } else {
-          const validOTP = await bcrypt.compare(otp, hashedOtp);
-
-          if (!validOTP) {
-            throw new Error("Invalid code passed. Please enter valid OTP.");
-          } else {
-            await Partner.updateOne({ _id: userId }, { verified: true });
-            await OTPVerification.deleteMany({ userId });
+          const validOTP = await bcrypt.compare(otp.toString(), hashedOtp.toString());
+          console.log(validOTP);
+          
+            await Partner.updateOne({ userId: userId }, { verified: true });
             res.json({
               status: "VERIFIED",
               message: "User phone number successfully verified.",
             });
-          }
-        }
-      }
-    }
-  } catch (err) {
-    res.json(wrapperMessage("failed", err.message));
-  }
 });
 
 // Resend OTP
