@@ -1,48 +1,45 @@
 const otplib = require("otplib");
-const axios = require("axios");
-const wrapperMessage = require("../helper/wrapperMessage");
 const bcrypt = require("bcrypt");
-
+const wrapperMessage = require("../helper/wrapperMessage");
+const CommonUtils = require("./commonUtils");
+const sendMail = require("./sendMail");
+const axios = require("axios");
 const OTPVerification = require("../model/otpVerification");
 
-const secret = otplib.authenticator.generateSecret();
 otplib.authenticator.options = { digits: 6 };
-const sendOTPVerification = async ({ _id, phoneNumber }, res) => {
+
+const generateOTP = () => {
+  const secret = otplib.authenticator.generateSecret();
+  const otp = otplib.authenticator.generate(secret);
+  return otp;
+};
+
+const hashOTP = async (otp) => {
+  const saltRounds = 6;
+  return await bcrypt.hash(otp, saltRounds);
+};
+
+const createOTPVerificationRecord = async (userId, hashedOtp) => {
+  const newOTPVerification = new OTPVerification({
+    userId,
+    otp: hashedOtp,
+    createdAt: Date.now(),
+    expiresAt: Date.now() + 600000, // 10 min deadline to enter OTP
+  });
+  return await newOTPVerification.save();
+};
+
+const sendOTPVerification = async ({ _id, phoneNumber, email=null }, res) => {
   try {
-    const otp = otplib.authenticator.generate(secret);
+    const otp = generateOTP();
+    const hashedOtp = await hashOTP(otp);
 
-    const saltRounds = 10;
-    const hashedOtp = await bcrypt.hash(otp, saltRounds);
-    await OTPVerification.deleteMany({ userId: _id });
-    const newOTPVerification = await new OTPVerification({
-      userId: _id,
-      otp: hashedOtp,
-      createdAt: Date.now(),
-      expiresAt: Date.now() + 600000, //10 min deadline to enter otp
-    });
-    await newOTPVerification.save();
-
-    const body = {
-      Text: `Dear User, Your login OTP to NAAI app is ${otp}. Please do not share with anyone. - NAAI.`,
-      Number: phoneNumber,
-      SenderId: process.env.SENDER_ID,
-      DRNotifyUrl: "https://www.domainname.com/notifyurl",
-      DRNotifyHttpMethod: "POST",
-      Tool: "API",
-    };
-
-    // Sends SMS OTP to user.
-    const data = await await axios.post(
-      `https://restapi.smscountry.com/v0.1/Accounts/${process.env.AUTH_KEY}/SMSes/`,
-      body,
-      {
-        auth: {
-          username: process.env.AUTH_KEY,
-          password: process.env.AUTH_TOKEN,
-        },
-      }
-    );
-
+    await  OTPVerification.deleteMany({userId: _id});
+    await createOTPVerificationRecord(_id, hashedOtp);
+    CommonUtils.sendOTPonNumber(phoneNumber, otp);
+    if(email && CommonUtils.isEmail(email)){
+      sendMail(otp, email, "One Time Password (OTP) for Login", "login-otp");
+    }
     res.json({
       status: "pending",
       message: "OTP message sent",
@@ -53,7 +50,6 @@ const sendOTPVerification = async ({ _id, phoneNumber }, res) => {
       },
     });
   } catch (err) {
-    console.log(err);
     res.json(wrapperMessage("failed", err.message));
   }
 };

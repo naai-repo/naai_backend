@@ -2,6 +2,7 @@ const router = require("express").Router();
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const passport = require("passport");
+const CommonUtils = require("../../helper/commonUtils");
 
 const Partner = require("../../model/partnerApp/Partner");
 const wrapperMessage = require("../../helper/wrapperMessage");
@@ -87,6 +88,7 @@ router.post("/signup", (req, res) => {
   }
 });
 
+
 // Partner Login
 router.post("/login", (req, res) => {
   let { password, user } = req.body;
@@ -149,6 +151,33 @@ router.post("/login", (req, res) => {
   }
 });
 
+// /loginViaOtp
+
+router.post("/loginViaOtp", async (req, res) => {
+  try {
+    const { userData } = req.body;
+    let mailOrPhoneNumber = null;
+
+    if (CommonUtils.isEmail(userData)) {
+      mailOrPhoneNumber = { email: userData };
+    } else if (CommonUtils.isPhoneNumber(userData)) {
+      mailOrPhoneNumber = { phoneNumber: userData };
+    } else {
+      return res.json({ data: 'error occurred' });
+    }
+
+    const result = await Partner.findOne(mailOrPhoneNumber);
+
+    if (result) {
+      sendOTPVerification(result, res);
+    } else {
+      res.json({ data: 'no user Found' });
+    }
+  } catch (error) {
+    res.json({ data: 'error occurred' });
+  }
+});
+
 // Forget Password Routes
 router.post("/forgotPassword", async (req, res) => {
   try {
@@ -170,39 +199,41 @@ router.post("/forgotPassword", async (req, res) => {
   }
 });
 
-router.post("/:id/admin" , async (req,res) => {
-  try{
-    let {admin} = req.body;
+router.post("/:id/admin", async (req, res) => {
+  try {
+    let { admin } = req.body;
 
-    let data = await Partner.updateOne({_id: req.params.id}, {admin});
-    if(admin){
+    let data = await Partner.updateOne({ _id: req.params.id }, { admin });
+    if (admin) {
       res.json(wrapperMessage("success", "The user is a Manager now!"));
-    }else {
+    } else {
       res.json(wrapperMessage("success", "The user is not a Manager now!"));
     }
-  }catch(err){
+  } catch (err) {
     console.log(err);
-    res.json(wrapperMessage("failed",err.message));
+    res.json(wrapperMessage("failed", err.message));
   }
 })
 
 // Google OAuth
 
 router.get('/auth/google',
-  passport.authenticate('google', { scope:
-      [ 'email', 'profile' ] }
-));
+  passport.authenticate('google', {
+    scope:
+      ['email', 'profile']
+  }
+  ));
 
-router.get( '/auth/google/callback',
-    passport.authenticate( 'google', {
-        successRedirect: '/partner/user/auth/google/success',
-        failureRedirect: '/partner/user/auth/google/failure'
-}));
+router.get('/auth/google/callback',
+  passport.authenticate('google', {
+    successRedirect: '/partner/user/auth/google/success',
+    failureRedirect: '/partner/user/auth/google/failure'
+  }));
 
 router.get("/auth/google/failed", (req, res) => {
   res.send("Failed")
 })
-router.get("/auth/google/success",isLoggedIn, (req, res) => {
+router.get("/auth/google/success", isLoggedIn, (req, res) => {
   res.json(wrapperMessage("success", "", [req.user]));
 })
 
