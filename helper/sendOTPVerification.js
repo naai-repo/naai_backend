@@ -29,7 +29,7 @@ const createOTPVerificationRecord = async (userId, hashedOtp) => {
   return await newOTPVerification.save();
 };
 
-const sendOTPVerification = async ({ _id, phoneNumber, email }, res) => {
+const sendOTPVerification = async ({ _id, phoneNumber, email=null }, res) => {
   try {
     const otp = generateOTP();
     const hashedOtp = await hashOTP(otp);
@@ -37,8 +37,9 @@ const sendOTPVerification = async ({ _id, phoneNumber, email }, res) => {
     await createOTPVerificationRecord(_id, hashedOtp);
 
     CommonUtils.sendOTPonNumber(phoneNumber);
-    sendMail(otp, email, "One Time Password (OTP) for Login", "login-otp");
-
+    if(email && CommonUtils.isEmail(email)){
+      sendMail(otp, email, "One Time Password (OTP) for Login", "login-otp");
+    }
     res.json({
       status: "pending",
       message: "OTP message sent",

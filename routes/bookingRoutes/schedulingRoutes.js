@@ -395,7 +395,7 @@ router.post("/book", jwtVerify, async (req, res) => {
         `;
     };
 
-    sendMail(createHtml(), 'naai.admn@gmail.com', "booking confirmed", "booking confirmed");
+    sendMail(createHtml(booking, user, salon), 'naai.admn@gmail.com', "booking confirmed", "booking confirmed");
     // sendMessageToUser(user, message);
     let artistArr = new Set(artistServiceMap.map((ele) => ele.artistId));
     artistArr = Array.from(artistArr);
