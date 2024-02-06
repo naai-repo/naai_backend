@@ -11,7 +11,7 @@ class CommonUtils {
 
   static async sendOTPonNumber(phoneNumber, otp) {
     const body = {
-      Text: `User Admin login OTP is ${otp} - ${process.env.SENDER_ID}`,
+      Text: `Dear User, Your login OTP to NAAI app is ${otp}. Please do not share with anyone. - NAAI.`,
       Number: phoneNumber,
       SenderId: process.env.SENDER_ID,
       DRNotifyUrl: "https://www.domainname.com/notifyurl",
