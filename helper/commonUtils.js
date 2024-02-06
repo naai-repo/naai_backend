@@ -9,7 +9,7 @@ class CommonUtils {
     return /^\d{10}$/.test(input); // Check if it consists of 10 digits
   }
 
-  static async sendOTPonNumber(phoneNumber) {
+  static async sendOTPonNumber(phoneNumber, otp) {
     const body = {
       Text: `User Admin login OTP is ${otp} - ${process.env.SENDER_ID}`,
       Number: phoneNumber,
