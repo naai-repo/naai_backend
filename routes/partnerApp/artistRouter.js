@@ -178,6 +178,7 @@ router.post("/topArtists", async (req, res) => {
     let page = Number(req.query.page) || 1;
     let limit = Number(req.query.limit) || 15;
     let skip = (page - 1) * limit;
+    let typePresent = req.query.type ? true : false;
     let artists = await Artist.aggregate([
       {
         $geoNear: {
@@ -188,11 +189,26 @@ router.post("/topArtists", async (req, res) => {
       },
       {
         $match: {
-          $or: [{ targetGender: req.query.type }, { targetGender: "unisex" }],
+          $or: [
+            { targetGender: req.query.type },
+            { targetGender: "unisex" },
+            {
+              $and: [
+                { randomFieldToCheck: { $exists: typePresent } },
+                {
+                  $or: [
+                    { targetGender: "male" },
+                    { targetGender: "female" },
+                    { targetGender: "unisex" },
+                  ],
+                },
+              ],
+            },
+          ],
         },
       },
     ]);
-    if(!artists.length){
+    if (!artists.length) {
       res.status(200).json(wrapperMessage("success", "No result found!", []));
       return;
     }
@@ -262,6 +278,7 @@ router.post("/filter", async (req, res) => {
     let page = Number(req.query.page) || 1;
     let limit = Number(req.query.limit) || 3;
     let skip = (page - 1) * limit;
+    let typePresent = req.query.type ? true : false;
     let artists = await Artist.aggregate([
       {
         $geoNear: {
@@ -272,7 +289,22 @@ router.post("/filter", async (req, res) => {
       },
       {
         $match: {
-          $or: [{ targetGender: req.query.type }, { targetGender: "unisex" }],
+          $or: [
+            { targetGender: req.query.type },
+            { targetGender: "unisex" },
+            {
+              $and: [
+                { randomFieldToCheck: { $exists: typePresent } },
+                {
+                  $or: [
+                    { targetGender: "male" },
+                    { targetGender: "female" },
+                    { targetGender: "unisex" },
+                  ],
+                },
+              ],
+            },
+          ],
         },
       },
       {
@@ -281,7 +313,7 @@ router.post("/filter", async (req, res) => {
         },
       },
     ]);
-    if(!artists.length){
+    if (!artists.length) {
       res.status(200).json(wrapperMessage("success", "No result found!", []));
       return;
     }

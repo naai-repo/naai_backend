@@ -13,6 +13,14 @@ const bookingSchema = new mongoose.Schema({
         type: mongoose.Schema.ObjectId, 
         required: true, 
     },
+    amount: { 
+        type: Number, 
+        required: true 
+    },
+    paymentAmount: {
+        type: Number,
+        required: true,
+    },
     paymentId: { 
         type: String, 
         required: true, 
@@ -44,6 +52,10 @@ const bookingSchema = new mongoose.Schema({
             serviceId: { 
                 type: mongoose.Schema.ObjectId, 
                 required: true, 
+            },
+            servicePrice: {
+                type: Number,
+                required: true,
             },
             timeSlot: { 
                 start: {
