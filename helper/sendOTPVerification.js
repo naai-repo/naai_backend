@@ -34,8 +34,8 @@ const sendOTPVerification = async ({ _id, phoneNumber, email=null }, res) => {
     const otp = generateOTP();
     const hashedOtp = await hashOTP(otp);
 
+    await  OTPVerification.deleteMany({userId: _id});
     await createOTPVerificationRecord(_id, hashedOtp);
-
     CommonUtils.sendOTPonNumber(phoneNumber, otp);
     if(email && CommonUtils.isEmail(email)){
       sendMail(otp, email, "One Time Password (OTP) for Login", "login-otp");
