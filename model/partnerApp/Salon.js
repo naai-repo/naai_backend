@@ -47,6 +47,7 @@ const SalonSchema = new mongoose.Schema({
     },
     closedOn: {
         type: String,
+        default: "none",
         required: true
     },
     phoneNumber : {

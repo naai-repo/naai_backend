@@ -199,7 +199,6 @@ router.post("/topSalons", async (req, res) => {
     let limit = Number(req.query.limit) || 3;
     let skip = (page - 1) * limit;
     let typePresent = req.query.type ? true : false;
-    console.log(typePresent);
     let salons = await Salon.aggregate([
       {
         $geoNear: {
@@ -257,9 +256,9 @@ router.post("/topSalons", async (req, res) => {
       let score = 0;
       score =
         ((maxDistance - salon.distance) / maxDistance) * 0.6 +
-        (discount / maxDiscount) * 0.3 +
-        (salon.rating / maxRating) * 0.07 +
-        (bookings / avgBookings) * 0.03;
+        ((discount / maxDiscount) || 0) * 0.3 +
+        ((salon.rating / maxRating) || 0) * 0.07 +
+        ((bookings / avgBookings) || 0) * 0.03;
 
       if (salon.paid) {
         score += 0.2;
@@ -374,7 +373,7 @@ router.post("/filter", async (req, res) => {
         let score = 0;
         score =
           ((maxDistance - salon.distance) / maxDistance) * 0.4 +
-          (discount / maxDiscount) * 0.4;
+          ((discount / maxDiscount) || 0) * 0.4;
 
         if (salon.paid) {
           score += 0.2;
@@ -388,7 +387,7 @@ router.post("/filter", async (req, res) => {
         let score = 0;
         score =
           ((maxDistance - salon.distance) / maxDistance) * 0.4 +
-          (salon.rating / maxRating) * 0.4;
+          ((salon.rating / maxRating) || 0) * 0.4;
 
         if (salon.paid) {
           score += 0.2;
