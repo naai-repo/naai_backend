@@ -33,7 +33,6 @@ const sendOTPVerification = async ({ _id, phoneNumber, email=null }, res) => {
   try {
     const otp = generateOTP();
     const hashedOtp = await hashOTP(otp);
-
     await  OTPVerification.deleteMany({userId: _id});
     await createOTPVerificationRecord(_id, hashedOtp);
     CommonUtils.sendOTPonNumber(phoneNumber, otp);
