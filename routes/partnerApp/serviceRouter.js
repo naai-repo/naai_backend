@@ -24,8 +24,21 @@ router.get("/", async (req, res) => {
 
 // Adding new Services, use the above mentioned userId, saloonId and artist Id
 router.post("/add", async (req, res) => {
-  const newService = new Service(req.body);
   try {
+    if(req.body.salonId){
+      let salonId = req.body.salonId;
+      let salon = await Salon.findOne({ _id: salonId });
+      if (!salon) {
+        let err = new Error("Salon not found!");
+        err.code = 404;
+        throw err;
+      }
+      let discount = salon.discount;
+      let price = req.body.basePrice - ((req.body.basePrice * discount) / 100);
+      req.body.cutPrice = req.body.basePrice;
+      req.body.basePrice = price;
+    }
+    const newService = new Service(req.body);
     const service = await newService.save();
     res.status(200).json(newService);
   } catch (err) {
@@ -209,7 +222,7 @@ router.post("/search/artist", async (req, res) => {
   try {
     let name = req.query.name;
     let artistList = [];
-    if(name){
+    if (name) {
       artistList = await getArtistsListGivingService(name);
     }
     let artistArr = artistList.map((ele) => new ObjectId(ele));
@@ -231,7 +244,7 @@ router.post("/search/artist", async (req, res) => {
           _id: {
             $in: artistArr,
           },
-        },  
+        },
       },
       {
         $match: {
@@ -324,14 +337,12 @@ router.get("/title/search", async (req, res) => {
       updatedAt: 0,
     });
 
-    res
-      .status(200)
-      .json(
-        wrapperMessage("success", "", {
-          list: serviceArr,
-          category: serviceArr[0].category,
-        })
-      );
+    res.status(200).json(
+      wrapperMessage("success", "", {
+        list: serviceArr,
+        category: serviceArr[0].category,
+      })
+    );
   } catch (err) {
     console.log(err);
     res.status(err.code || 500).json(wrapperMessage("failed", err.message));
