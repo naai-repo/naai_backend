@@ -460,10 +460,7 @@ const getBookingPrice = (booking) => {
         services[index].servicePrice = service.price;
         price += service.price;
       }
-      let salon = await Salon.findOne({ _id: booking.salonId });
-      let discount = salon.discount || 0;
       let amount = price;
-      price -= (price * discount) / 100;
       resolve({ ...booking, amount: amount, paymentAmount: price });
     } catch (err) {
       reject(err);

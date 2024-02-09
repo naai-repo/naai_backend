@@ -89,8 +89,12 @@ router.post("/add/:id/services/", async (req, res) => {
       err.code = 404;
       throw err;
     }
+    let discount = salonData.discount;
     let servicePromiseArr = [];
     services.forEach((service) => {
+      let price = service.basePrice - ((service.basePrice * discount) / 100);
+      service.cutPrice = service.basePrice;
+      service.basePrice = price;
       let newService = new Service({
         ...service,
         salonId: req.params.id,
