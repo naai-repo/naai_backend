@@ -62,13 +62,22 @@ const getWindowSize = (requests, salonId) => {
         let data = service.salonId.toString() === salonId;
         if (!data)
           throw new Error("Service is not Supported by the selected Salon!");
-        size += service.avgTime;
         let index = requests.findIndex(
           (ele) => ele.service === service._id.toString()
         );
         requests[index].service = service;
       });
-
+      for (let request of requests) {
+        if (request.artist !== "000000000000000000000000") {
+          if ("variable" in request) {
+            request.time = request.variable.variableTime;
+            size += request.variable.variableTime;
+          } else {
+            request.time = request.service.avgTime;
+            size += request.service.avgTime;
+          }
+        }
+      }
       resolve({ request: requests, windowSize: size });
     } catch (err) {
       reject(err);
@@ -216,7 +225,7 @@ const bookingHelper = (perm, ws, freeTime, salonSlotsLength, key) => {
     let flag = true;
     perm.forEach((item) => {
       let artist = item.artist;
-      let time = item.service.avgTime;
+      let time = item.time;
       while (time--) {
         if (!freeTime[artist][start++]) {
           flag = false;
@@ -308,6 +317,8 @@ const getArtistsForServices = (randomArr, salonId, date) => {
       for (let i = 0; i < artistArr.length; i++) {
         artistArr[i] = {
           service: randomArr[i].service,
+          variable: randomArr[i].variable,
+          time: randomArr[i].time,
           artists: artistArr[i].map((ele) => ele._id),
         };
         artistArr[i].artists.forEach((ele) =>
@@ -380,11 +391,6 @@ const fillRandomArtists = (
           checkSlot -= 1;
         }
       }
-      let servicePromiseArr = [];
-      artistList.forEach((object) => {
-        servicePromiseArr.push(Service.findOne({ _id: object.service }));
-      });
-      let serviceArr = await Promise.all(servicePromiseArr);
       let newArtistList = [];
       let ans = [];
       while (artistList.length !== newArtistList.length) {
@@ -396,7 +402,7 @@ const fillRandomArtists = (
           let artistArr = newArtistList[i].artists;
           for (let j = 0; j < artistArr.length; j++) {
             let artist = artistArr[j];
-            let time = serviceArr[i].avgTime;
+            let time = newArtistList[i].time;
             let hasFreeTime = true;
             while (time) {
               if (!artistsFreeSlots[artist][slot]) {
@@ -409,7 +415,7 @@ const fillRandomArtists = (
             if (hasFreeTime) {
               artistFound = true;
               ans.push({
-                service: serviceArr[i],
+                service: newArtistList[i].service,
                 artist: artist,
                 checkSlot: checkSlot,
               });
@@ -419,7 +425,7 @@ const fillRandomArtists = (
           if (!artistFound) {
             artistList.push(newArtistList[i]);
           } else {
-            checkSlot += serviceArr[i].avgTime;
+            checkSlot += newArtistList[i].time;
           }
         }
       }
@@ -457,8 +463,27 @@ const getBookingPrice = (booking) => {
           (ele) =>
             ele.serviceId.toString() === services[index].serviceId.toString()
         );
-        services[index].servicePrice = service.price;
-        price += service.price;
+        if (!service) {
+          let err = new Error("Service not found!");
+          err.code = 404;
+          throw err;
+        }
+        if ("variables" in service && service.variables.length > 0) {
+          let variable = service.variables.find(
+            (ele) =>
+              ele.variableId.toString() === services[index].variable.variableId
+          );
+          if (!variable) {
+            let err = new Error("Variable not found!");
+            err.code = 404;
+            throw err;
+          }
+          services[index].servicePrice = variable.price;
+          price += variable.price;
+        } else {
+          services[index].servicePrice = service.price;
+          price += service.price;
+        }
       }
       let amount = price;
       resolve({ ...booking, amount: amount, paymentAmount: price });

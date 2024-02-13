@@ -92,9 +92,22 @@ router.post("/add/:id/services/", async (req, res) => {
     let discount = salonData.discount;
     let servicePromiseArr = [];
     services.forEach((service) => {
-      let price = service.basePrice - ((service.basePrice * discount) / 100);
-      service.cutPrice = service.basePrice;
+      let minTime = service.variables.reduce((acc, curr) =>
+        Math.min(acc.variableTime || acc, curr.variableTime)
+      );
+      let minPrice = service.variables.reduce((acc, curr) =>
+        Math.min(acc.variablePrice || acc, curr.variablePrice)
+      );
+      service.variables.forEach((variable) => {
+        let variablePrice =
+          variable.variablePrice - (variable.variablePrice * discount) / 100;
+        variable.variableCutPrice = variable.variablePrice;
+        variable.variablePrice = variablePrice;
+      });
+      let price = minPrice - (minPrice * discount) / 100;
+      service.cutPrice = minPrice;
       service.basePrice = price;
+      service.avgTime = minTime;
       let newService = new Service({
         ...service,
         salonId: req.params.id,
@@ -170,24 +183,11 @@ router.get("/single/:id", async (req, res) => {
     let data = await Salon.findOne({ _id: req.params.id });
     let artistData = await Artist.find({ salonId: req.params.id });
     let serviceData = await Service.find({ salonId: req.params.id });
-    let servicesWithSubCategory = {};
-    let servicesWithoutSubCategory = [];
-    for (let service of serviceData) {
-      if ("sub_category" in service && service.sub_category !== "") {
-        if (service.sub_category in servicesWithSubCategory) {
-          servicesWithSubCategory[service.sub_category].push(service);
-        } else {
-          servicesWithSubCategory[service.sub_category] = [service];
-        }
-      } else {
-        servicesWithoutSubCategory.push(service);
-      }
-    }
     res.json(
       wrapperMessage("success", "", {
         data,
         artists: artistData,
-        services: { servicesWithSubCategory, servicesWithoutSubCategory },
+        services: serviceData,
       })
     );
   } catch (err) {
@@ -220,12 +220,12 @@ router.post("/topSalons", async (req, res) => {
               $and: [
                 { randomFieldToCheck: { $exists: typePresent } },
                 {
-                    $or: [
-                        { salonType: "male" },
-                        { salonType: "female" },
-                        { salonType: "unisex" },
-                    ]
-                }
+                  $or: [
+                    { salonType: "male" },
+                    { salonType: "female" },
+                    { salonType: "unisex" },
+                  ],
+                },
               ],
             },
           ],
@@ -260,9 +260,9 @@ router.post("/topSalons", async (req, res) => {
       let score = 0;
       score =
         ((maxDistance - salon.distance) / maxDistance) * 0.6 +
-        ((discount / maxDiscount) || 0) * 0.3 +
-        ((salon.rating / maxRating) || 0) * 0.07 +
-        ((bookings / avgBookings) || 0) * 0.03;
+        (discount / maxDiscount || 0) * 0.3 +
+        (salon.rating / maxRating || 0) * 0.07 +
+        (bookings / avgBookings || 0) * 0.03;
 
       if (salon.paid) {
         score += 0.2;
@@ -326,12 +326,12 @@ router.post("/filter", async (req, res) => {
               $and: [
                 { randomFieldToCheck: { $exists: typePresent } },
                 {
-                    $or: [
-                        { salonType: "male" },
-                        { salonType: "female" },
-                        { salonType: "unisex" },
-                    ]
-                }
+                  $or: [
+                    { salonType: "male" },
+                    { salonType: "female" },
+                    { salonType: "unisex" },
+                  ],
+                },
               ],
             },
           ],
@@ -373,11 +373,11 @@ router.post("/filter", async (req, res) => {
       for (let itr = 0; itr <= end; itr++) {
         let salon = salons[itr];
         let discount =
-        salon.discount >= maxDiscount ? maxDiscount : salon.discount;
+          salon.discount >= maxDiscount ? maxDiscount : salon.discount;
         let score = 0;
         score =
           ((maxDistance - salon.distance) / maxDistance) * 0.4 +
-          ((discount / maxDiscount) || 0) * 0.4;
+          (discount / maxDiscount || 0) * 0.4;
 
         if (salon.paid) {
           score += 0.2;
@@ -391,7 +391,7 @@ router.post("/filter", async (req, res) => {
         let score = 0;
         score =
           ((maxDistance - salon.distance) / maxDistance) * 0.4 +
-          ((salon.rating / maxRating) || 0) * 0.4;
+          (salon.rating / maxRating || 0) * 0.4;
 
         if (salon.paid) {
           score += 0.2;
