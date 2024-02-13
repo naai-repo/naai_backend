@@ -8,19 +8,17 @@ const ServiceSchema = new mongoose.Schema({
         lowercase: true,
         required: true
     },
-    sub_category: {
-        type: String,
-        lowercase: true,
-    },
     serviceTitle: {
         type: String,
         required: true,
+        lowercase: true
     },
     description: {
         type: String,
     },
     targetGender: {
         type: String,
+        lowercase: true,
         required: true
     },
     avgTime: {
@@ -28,6 +26,35 @@ const ServiceSchema = new mongoose.Schema({
         required: true,
         default: 1
     },
+    variables: [
+        {
+            variableType: {
+                type: String,
+                lowercase: true,
+                required: true
+            },
+            variableName: {
+                type: String,
+                lowercase: true,
+                required: true
+            },
+            variablePrice: {
+                type: Number,
+                required: true,
+                default: 0
+            },
+            variableCutPrice: {
+                type: Number,
+                required: true,
+                default: 0
+            },
+            variableTime: {
+                type: Number,
+                required: true,
+                default: 0
+            }
+        }
+    ],
     basePrice: Number,
     cutPrice: Number,
 }, {

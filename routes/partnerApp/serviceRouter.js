@@ -25,7 +25,7 @@ router.get("/", async (req, res) => {
 // Adding new Services, use the above mentioned userId, saloonId and artist Id
 router.post("/add", async (req, res) => {
   try {
-    if(req.body.salonId){
+    if (req.body.salonId) {
       let salonId = req.body.salonId;
       let salon = await Salon.findOne({ _id: salonId });
       if (!salon) {
@@ -34,9 +34,20 @@ router.post("/add", async (req, res) => {
         throw err;
       }
       let discount = salon.discount;
-      let price = req.body.basePrice - ((req.body.basePrice * discount) / 100);
+      let price = req.body.basePrice - (req.body.basePrice * discount) / 100;
       req.body.cutPrice = req.body.basePrice;
       req.body.basePrice = price;
+    }
+    if (req.body.variables) {
+      console.log(req.body.variables);
+      let minTime = req.body.variables.reduce((a, b) =>
+        Math.min(a.variableTime || a, b.variableTime)
+      );
+      let minPrice = req.body.variables.reduce((a, b) =>
+        Math.min(a.variablePrice || a, b.variablePrice)
+      );
+      req.body.avgTime = minTime;
+      req.body.basePrice = minPrice;
     }
     const newService = new Service(req.body);
     const service = await newService.save();

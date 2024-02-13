@@ -21,6 +21,14 @@ const ArtistSchema = new mongoose.Schema(
           type: String,
           required: true,
         },
+        variables: [
+          {
+            variableId: String,
+            price: {
+              type: Number,
+            }
+          }
+        ],
         price: {
           type: Number,
           required: true,
