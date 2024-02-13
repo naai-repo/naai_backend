@@ -65,24 +65,65 @@ router.post("/singleArtist/list", async (req, res) => {
   }
 });
 
-router.post("/singleArtist/request", (req, res) => {
+router.post("/singleArtist/request", async (req, res) => {
   try {
     let { services, artist } = req.body;
+    let servicePromiseArr = [];
+    services.forEach((service) => {
+      servicePromiseArr.push(Service.findOne({ _id: service.serviceId }));
+    });
+    let serviceArr = await Promise.all(servicePromiseArr);
+    for (let service of serviceArr) {
+      let index = serviceArr.indexOf(service);
+      if (!service) {
+        let err = new Error("No such service found!");
+        err.code = 404;
+        throw err;
+      }
+      if (service.variables.length) {
+        let variable = service.variables.filter(
+          (ele) => ele._id.toString() === services[index].variableId
+        );
+        if (!variable.length) {
+          let err = new Error("No such variable found!");
+          err.code = 404;
+          throw err;
+        } else {
+          services[index].variable = variable[0];
+          delete services[index].variableId;
+        }
+      }
+    }
     let requests = [];
     services.forEach((service) => {
-      let val = artist.serviceList.filter((ele) => ele.serviceId === service);
+      let val = artist.serviceList.filter(
+        (ele) => ele.serviceId === service.serviceId
+      );
       if (!val.length) {
         requests.push({
-          service: service,
+          service: service.serviceId,
+          variable: service.variable,
           artist: "000000000000000000000000",
         });
       } else {
         requests.push({
-          service: service,
+          service: service.serviceId,
+          variable: service.variable,
           artist: artist.artistId,
         });
       }
     });
+    let artistNumber = 0;
+    requests.forEach((request) => {
+      if (request.artist !== "000000000000000000000000") {
+        artistNumber++;
+      }
+    });
+    if (!artistNumber) {
+      let err = new Error("No artist available for the selected services!");
+      err.code = 404;
+      throw err;
+    }
     res.status(200).json({ requests });
   } catch (err) {
     console.log(err);
@@ -134,6 +175,11 @@ router.post("/schedule", jwtVerify, async (req, res) => {
     for (let service of randomArtistService) {
       let serviceData = await Service.findOne({ _id: service.service });
       service.service = serviceData;
+      if ("variable" in service) {
+        service.time = service.variable.variableTime;
+      } else {
+        service.time = service.service.avgTime;
+      }
     }
     let timeSlots = [];
     const set = new Set();
@@ -242,11 +288,14 @@ router.post("/book", jwtVerify, async (req, res) => {
         randomArr.push(object);
       }
     });
+
+    // Get artists for the randomly assigned services
     let { artistList, artistsFreeSlots } = await getArtistsForServices(
       randomArr,
       salonId,
       bookingDate
     );
+    // Fills the random services with appropriate artists
     let testdata = await fillRandomArtists(
       artistList,
       artistsFreeSlots,
@@ -269,8 +318,13 @@ router.post("/book", jwtVerify, async (req, res) => {
     timeSlotOrder.forEach((object) => {
       if (object.artist === "000000000000000000000000") {
         let obj = {
-          serviceId: object.service,
+          serviceId: object.service._id,
           artistId: object.artist,
+          variable: {
+            variableId: object.variable?._id || "none",
+            variableType: object.variable?.variableType || "none",
+            variableName: object.variable?.variableName || "none",
+          },
           chosenBy: "algo",
           timeSlot: {
             start: "00:00",
@@ -290,32 +344,29 @@ router.post("/book", jwtVerify, async (req, res) => {
       } else {
         obj.chosenBy = "user";
       }
-      let service = object.service;
+      let time = object.time;
       let startTime = lastTime.split(":");
       let endTime = "";
       if (startTime[1] === "00") {
-        if (service.avgTime % 2 === 0) {
-          endTime = `${
-            parseInt(service.avgTime / 2) + Number(startTime[0])
-          }:00`;
+        if (time % 2 === 0) {
+          endTime = `${parseInt(time / 2) + Number(startTime[0])}:00`;
         } else {
-          endTime = `${
-            parseInt(service.avgTime / 2) + Number(startTime[0])
-          }:30`;
+          endTime = `${parseInt(time / 2) + Number(startTime[0])}:30`;
         }
       } else {
-        if (service.avgTime % 2 === 0) {
-          endTime = `${
-            parseInt(service.avgTime / 2) + Number(startTime[0])
-          }:30`;
+        if (time % 2 === 0) {
+          endTime = `${parseInt(time / 2) + Number(startTime[0])}:30`;
         } else {
-          endTime = `${
-            parseInt(service.avgTime / 2) + Number(startTime[0]) + 1
-          }:00`;
+          endTime = `${parseInt(time / 2) + Number(startTime[0]) + 1}:00`;
         }
       }
       obj = {
         ...obj,
+        variable: {
+          variableId: object.variable?._id || "none",
+          variableType: object.variable?.variableType || "none",
+          variableName: object.variable?.variableName || "none",
+        },
         timeSlot: {
           start: lastTime,
           end: endTime,
@@ -363,44 +414,69 @@ router.post("/book", jwtVerify, async (req, res) => {
     )}`;
 
     const createHtml = (booking, user, salon) => {
-      const dateOptions = {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      };
-      let serviceMap = booking.artistServiceMap.map((obj) => {
-        return `
-            <p>Service Id : ${obj.artistId}</p>
-            <p>Artist Id : ${obj.serviceId}</p>
-            <p>Timeslot : ${obj.timeSlot.start} - ${obj.timeSlot.end}</p>
-        `;
+      return new Promise(async (resolve, reject) => {
+        try {
+          const dateOptions = {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          };
+          let artistPromiseArr = [];
+          let servicePromiseArr = [];
+          booking.artistServiceMap.forEach((ele) => {
+            artistPromiseArr.push(Artist.findOne({ _id: ele.artistId }));
+            servicePromiseArr.push(Service.findOne({ _id: ele.serviceId }));
+          });
+          let artistList = await Promise.all(artistPromiseArr);
+          let serviceList = await Promise.all(servicePromiseArr);
+          let serviceMap = booking.artistServiceMap.map((obj, index) => {
+            return `
+                <p>Service Id : ${obj.serviceId}</p>
+                <p>Service Name : ${serviceList[index].serviceTitle}</p>
+                <p>Variable Type : ${obj.variable.variableType}</p>
+                <p>Variable Name: ${obj.variable.variableName}</p>
+                <p>Artist Id : ${obj.artistId}</p>
+                <p>Artist Name : ${artistList[index].name}</p>
+                <p>Timeslot : ${obj.timeSlot.start} - ${obj.timeSlot.end}</p>
+            `;
+          });
+          let servicesData = serviceMap.join("&ensp;");
+          resolve(
+            `
+              <div>
+                  <h1>Booking Details</h1>
+                  <p>Booking Id: ${booking._id}</p>
+                  <p>Booking Type: ${booking.bookingType}</p>
+                  <p>Booking Date: ${new Date(
+                    booking.bookingDate
+                  ).toLocaleString("en-GB", dateOptions)}</p>
+                  <p>Booking Time: ${booking.timeSlot.start}</p>
+                  <p>Booking Payment Status: ${booking.paymentStatus}</p>
+                  <p>User Name: ${user.name}</p>
+                  <p>User Id: ${user._id}</p>
+                  <p>User Phonenumber: ${user.phoneNumber}</p>
+                  <p>Salon Name: ${salon.name}</p>
+                  <p>Salon Phonenumber: ${salon.phoneNumber}</p>
+                  <h2>Services Taken: </h2>
+                  &ensp;${servicesData}
+              </div>
+              `
+          );
+        } catch (err) {
+          console.log(err);
+          reject(err);
+        }
       });
-      let servicesData = serviceMap.join("&ensp;");
-      return `
-        <div>
-            <h1>Booking Details</h1>
-            <p>Booking Id: ${booking._id}</p>
-            <p>Booking Type: ${booking.bookingType}</p>
-            <p>Booking Date: ${new Date(booking.bookingDate).toLocaleString(
-              "en-GB",
-              dateOptions
-            )}</p>
-            <p>Booking Time: ${booking.timeSlot.start}</p>
-            <p>Booking Payment Status: ${booking.paymentStatus}</p>
-            <p>Booking User: ${user.name}</p>
-            <p>User Id: ${user._id}</p>
-            <p>User Phonenumber: ${user.phoneNumber}</p>
-            <p>Salon Name: ${salon.name}</p>
-            <p>Salon Phonenumber: ${salon.phoneNumber}</p>
-            <h2>Services Taken: </h2>
-            &ensp;${servicesData}
-        </div>
-        `;
     };
-
-    sendMail(createHtml(booking, user, salon), 'naai.admn@gmail.com', "booking confirmed", "booking confirmed")
-//     sendMessageToUser(user, message);
+    let htmlData = await createHtml(booking, user, salon);
+    sendMail(
+      htmlData,
+      "naai.admn@gmail.com",
+      "booking confirmed",
+      "booking confirmed"
+    );
+    //     sendMessageToUser(user, message);
     let artistArr = new Set(artistServiceMap.map((ele) => ele.artistId));
     artistArr = Array.from(artistArr);
     await updateBookingData(salonId, artistArr);
