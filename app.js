@@ -20,6 +20,7 @@ const ArtistRouter = require('./routes/partnerApp/artistRouter');
 const BookingRouter = require('./routes/partnerApp/bookingRouter');
 const PartnerRouter = require('./routes/partnerApp/partnerRouter')
 const OtpRouter = require('./routes/partnerApp/otpRouter');
+const InventoryRouter = require('./routes/partnerApp/inventoryRouter');
 
 // Customer App
 const UserRouter = require('./routes/customerApp/userRouter');
@@ -55,7 +56,7 @@ app.use("/partner/artist", ArtistRouter);
 app.use("/partner/booking", BookingRouter);
 app.use("/partner/user", PartnerRouter);
 app.use("/partner/otp", OtpRouter);
-
+app.use("/partner/inventory", InventoryRouter);
 
 // Customer App Routes
 app.use("/customer/user", UserRouter);
