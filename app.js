@@ -21,6 +21,7 @@ const BookingRouter = require('./routes/partnerApp/bookingRouter');
 const PartnerRouter = require('./routes/partnerApp/partnerRouter')
 const OtpRouter = require('./routes/partnerApp/otpRouter');
 const InventoryRouter = require('./routes/partnerApp/inventoryRouter');
+const PlanRouter = require('./routes/partnerApp/planRouter');
 
 // Customer App
 const UserRouter = require('./routes/customerApp/userRouter');
@@ -62,6 +63,7 @@ app.use("/partner/inventory", InventoryRouter);
 app.use("/customer/user", UserRouter);
 app.use("/customer/otp", UserOtpRouter);
 app.use("/customer/user/location", LocationRouter);
+app.use("/customer/plan", PlanRouter);
 
 // Scheduling Appointments
 app.use("/appointments", SchedulingRouter);

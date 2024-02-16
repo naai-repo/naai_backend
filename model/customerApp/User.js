@@ -68,6 +68,20 @@ const UserSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    subscription: {
+      plan: {
+        type: mongoose.Schema.ObjectId,
+        ref: 'Plan'
+      },
+      startDate: {
+        type: Date,
+        default: Date.now
+      },
+      expiryDate: {
+        type: Date
+      },
+    
+    },
   },
   {
     timestamps: true,
