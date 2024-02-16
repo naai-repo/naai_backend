@@ -101,6 +101,7 @@ router.post("/add/:artistId/services", async (req, res) => {
     });
     let serviceArr = await Promise.all(servicePromiseArr);
     for (let service of serviceArr) {
+      let index = serviceArr.indexOf(service);
       if (!service) {
         let err = new Error(
           `No such service (${
@@ -113,6 +114,25 @@ router.post("/add/:artistId/services", async (req, res) => {
       if (service.salonId.toString() !== artist.salonId.toString()) {
         isSalonService = false;
         break;
+      }
+      if(service.variables.length){
+        if(service.variables.length !== newServices[index].variables.length){
+          let err = new Error(
+            `Invalid number of variables for the service!`
+          );
+          err.code = 400;
+          throw err;
+        }
+        for (let variable of newServices[index].variables) {
+          if (!service.variables.some((obj) => obj._id.toString() === variable.variableId)) {
+            let err = new Error(
+              `No such variable (${variable.variableId}) exists in the service!`
+            );
+            err.code = 404;
+            throw err;
+          }
+        }
+        newServices[index].price = newServices[index].variables.reduce((a, b) => Math.min(a.price || a, b.price));
       }
     }
     if (!isSalonService) {
