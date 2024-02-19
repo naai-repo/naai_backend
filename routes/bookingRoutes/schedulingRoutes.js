@@ -432,7 +432,7 @@ router.post("/book", jwtVerify, async (req, res) => {
               let serviceList = await Promise.all(servicePromiseArr);
               let serviceMap = booking.artistServiceMap.map((obj, index) => {
                   return `
-                      <div style="margin-bottom: 20px; padding: 10px; background-color: #f9f9f9; border-radius: 5px;">
+                      <div style="margin-bottom: 20px; padding: 10px; background-color: #f9f9f9; border-radius: 5px; border: 1px solid #cccccc; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
                           <p><strong>Service:</strong> ${serviceList[index].serviceTitle}</p>
                           <p><strong>Artist:</strong> ${artistList[index].name}</p>
                           <p><strong>Timeslot:</strong> ${obj.timeSlot.start} - ${obj.timeSlot.end}</p>
@@ -444,17 +444,17 @@ router.post("/book", jwtVerify, async (req, res) => {
                   `
                   <div style="font-family: Arial, sans-serif; background-color: #ffffff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
                       <h1 style="color: #333; text-align: center; margin-bottom: 20px;">Booking Details</h1>
-                      <p><strong>Booking Id:</strong> ${booking._id}</p>
-                      <p><strong>Booking Type:</strong> ${booking.bookingType}</p>
-                      <p><strong>Booking Date:</strong> ${new Date(booking.bookingDate).toLocaleString("en-GB", dateOptions)}</p>
-                      <p><strong>Booking Time:</strong> ${booking.timeSlot.start}</p>
-                      <p><strong>Booking Payment Status:</strong> ${booking.paymentStatus}</p>
-                      <p><strong>User Name:</strong> ${user.name}</p>
-                      <p><strong>User Id:</strong> ${user._id}</p>
-                      <p><strong>User Phonenumber:</strong> ${user.phoneNumber}</p>
-                      <p><strong>Salon Name:</strong> ${salon.name}</p>
-                      <p><strong>Salon Phonenumber:</strong> ${salon.phoneNumber}</p>
-                      <h2 style="color: #333; margin-top: 30px; margin-bottom: 20px;">Services Taken:</h2>
+                      <p style="text-align: center;"><strong>Booking Id:</strong> ${booking._id}</p>
+                      <p style="text-align: center;"><strong>Booking Type:</strong> ${booking.bookingType}</p>
+                      <p style="text-align: center;"><strong>Booking Date:</strong> ${new Date(booking.bookingDate).toLocaleString("en-GB", dateOptions)}</p>
+                      <p style="text-align: center;"><strong>Booking Time:</strong> ${booking.timeSlot.start}</p>
+                      <p style="text-align: center;"><strong>Booking Payment Status:</strong> ${booking.paymentStatus}</p>
+                      <p style="text-align: center;"><strong>User Name:</strong> ${user.name}</p>
+                      <p style="text-align: center;"><strong>User Id:</strong> ${user._id}</p>
+                      <p style="text-align: center;"><strong>User Phonenumber:</strong> ${user.phoneNumber}</p>
+                      <p style="text-align: center;"><strong>Salon Name:</strong> ${salon.name}</p>
+                      <p style="text-align: center;"><strong>Salon Phonenumber:</strong> ${salon.phoneNumber}</p>
+                      <h2 style="color: #333; text-align: center; margin-top: 30px; margin-bottom: 20px;">Services Taken:</h2>
                       ${servicesData}
                   </div>
                   `
@@ -464,6 +464,7 @@ router.post("/book", jwtVerify, async (req, res) => {
           }
       });
   };
+  
   
     let htmlData = await createHtml(booking, user, salon);
     sendMail(
