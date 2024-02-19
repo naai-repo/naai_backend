@@ -415,60 +415,56 @@ router.post("/book", jwtVerify, async (req, res) => {
 
     const createHtml = (booking, user, salon) => {
       return new Promise(async (resolve, reject) => {
-        try {
-          const dateOptions = {
-            weekday: "long",
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          };
-          let artistPromiseArr = [];
-          let servicePromiseArr = [];
-          booking.artistServiceMap.forEach((ele) => {
-            artistPromiseArr.push(Artist.findOne({ _id: ele.artistId }));
-            servicePromiseArr.push(Service.findOne({ _id: ele.serviceId }));
-          });
-          let artistList = await Promise.all(artistPromiseArr);
-          let serviceList = await Promise.all(servicePromiseArr);
-          let serviceMap = booking.artistServiceMap.map((obj, index) => {
-            return `
-                <p>Service Id : ${obj.serviceId}</p>
-                <p>Service Name : ${serviceList[index].serviceTitle}</p>
-                <p>Variable Type : ${obj.variable.variableType}</p>
-                <p>Variable Name: ${obj.variable.variableName}</p>
-                <p>Artist Id : ${obj.artistId}</p>
-                <p>Artist Name : ${artistList[index].name}</p>
-                <p>Timeslot : ${obj.timeSlot.start} - ${obj.timeSlot.end}</p>
-            `;
-          });
-          let servicesData = serviceMap.join("&ensp;");
-          resolve(
-            `
-              <div>
-                  <h1>Booking Details</h1>
-                  <p>Booking Id: ${booking._id}</p>
-                  <p>Booking Type: ${booking.bookingType}</p>
-                  <p>Booking Date: ${new Date(
-                    booking.bookingDate
-                  ).toLocaleString("en-GB", dateOptions)}</p>
-                  <p>Booking Time: ${booking.timeSlot.start}</p>
-                  <p>Booking Payment Status: ${booking.paymentStatus}</p>
-                  <p>User Name: ${user.name}</p>
-                  <p>User Id: ${user._id}</p>
-                  <p>User Phonenumber: ${user.phoneNumber}</p>
-                  <p>Salon Name: ${salon.name}</p>
-                  <p>Salon Phonenumber: ${salon.phoneNumber}</p>
-                  <h2>Services Taken: </h2>
-                  &ensp;${servicesData}
-              </div>
-              `
-          );
-        } catch (err) {
-          console.log(err);
-          reject(err);
-        }
+          try {
+              const dateOptions = {
+                  weekday: "long",
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+              };
+              let artistPromiseArr = [];
+              let servicePromiseArr = [];
+              booking.artistServiceMap.forEach((ele) => {
+                  artistPromiseArr.push(Artist.findOne({ _id: ele.artistId }));
+                  servicePromiseArr.push(Service.findOne({ _id: ele.serviceId }));
+              });
+              let artistList = await Promise.all(artistPromiseArr);
+              let serviceList = await Promise.all(servicePromiseArr);
+              let serviceMap = booking.artistServiceMap.map((obj, index) => {
+                  return `
+                      <div style="margin-bottom: 20px; padding: 10px; background-color: #f9f9f9; border-radius: 5px;">
+                          <p><strong>Service:</strong> ${serviceList[index].serviceTitle}</p>
+                          <p><strong>Artist:</strong> ${artistList[index].name}</p>
+                          <p><strong>Timeslot:</strong> ${obj.timeSlot.start} - ${obj.timeSlot.end}</p>
+                      </div>
+                  `;
+              });
+              let servicesData = serviceMap.join("");
+              resolve(
+                  `
+                  <div style="font-family: Arial, sans-serif; background-color: #ffffff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+                      <h1 style="color: #333; text-align: center; margin-bottom: 20px;">Booking Details</h1>
+                      <p><strong>Booking Id:</strong> ${booking._id}</p>
+                      <p><strong>Booking Type:</strong> ${booking.bookingType}</p>
+                      <p><strong>Booking Date:</strong> ${new Date(booking.bookingDate).toLocaleString("en-GB", dateOptions)}</p>
+                      <p><strong>Booking Time:</strong> ${booking.timeSlot.start}</p>
+                      <p><strong>Booking Payment Status:</strong> ${booking.paymentStatus}</p>
+                      <p><strong>User Name:</strong> ${user.name}</p>
+                      <p><strong>User Id:</strong> ${user._id}</p>
+                      <p><strong>User Phonenumber:</strong> ${user.phoneNumber}</p>
+                      <p><strong>Salon Name:</strong> ${salon.name}</p>
+                      <p><strong>Salon Phonenumber:</strong> ${salon.phoneNumber}</p>
+                      <h2 style="color: #333; margin-top: 30px; margin-bottom: 20px;">Services Taken:</h2>
+                      ${servicesData}
+                  </div>
+                  `
+              );
+          } catch (error) {
+              reject(error);
+          }
       });
-    };
+  };
+  
     let htmlData = await createHtml(booking, user, salon);
     sendMail(
       htmlData,
