@@ -26,6 +26,10 @@ const ServiceSchema = new mongoose.Schema({
         required: true,
         default: 1
     },
+    productsUsed: [{
+        product: { type: mongoose.Schema.ObjectId, ref: 'Product' },
+        usagePerService: Number 
+    }],
     variables: [
         {
             variableType: {
@@ -59,6 +63,7 @@ const ServiceSchema = new mongoose.Schema({
     cutPrice: Number,
 }, {
     timestamps: true
-});
+},
+);
 
 module.exports = new mongoose.model("Service", ServiceSchema);

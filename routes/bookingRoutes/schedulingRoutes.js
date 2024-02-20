@@ -12,6 +12,7 @@ const {
   getArtistsForServices,
   fillRandomArtists,
   getBookingPrice,
+  addTime,
 } = require("../../helper/bookingHelper");
 const Booking = require("../../model/partnerApp/Booking");
 const Artist = require("../../model/partnerApp/Artist");
@@ -21,6 +22,7 @@ const sendMail = require("../../helper/sendMail");
 const Salon = require("../../model/partnerApp/Salon");
 const sendMessageToUser = require("../../helper/sendMessageToUser");
 const Service = require("../../model/partnerApp/Service");
+const { scheduleJobToChangeBookingStatus } = require("../../helper/scheduler");
 
 /* 
     BODY FOR SCHEDULING WILL CONTAIN
@@ -263,12 +265,21 @@ router.post("/book", jwtVerify, async (req, res) => {
   try {
     let userId = req.user.id;
     let { timeSlots, salonId, bookingDate, key, timeSlot } = req.body;
+    let date = bookingDate.split("-");
+    let time = timeSlot[0].split(":");
     let data = {
       salonId: salonId,
       userId: userId,
       paymentId: "12345",
       paymentStatus: "pending",
-      bookingDate: bookingDate,
+      bookingStatus: "pending",
+      bookingDate: new Date(
+        date[2],
+        Number(date[0]) - 1,
+        date[1],
+        time[0],
+        time[1]
+      ),
     };
     let artistServiceMap = [];
     let timeSlotOrder = timeSlots.filter((timeSlot) => timeSlot.key === key);
@@ -315,6 +326,7 @@ router.post("/book", jwtVerify, async (req, res) => {
     }
     let lastTime = timeSlot[0];
     let randomServices = randomArr.map((obj) => obj.service?._id?.toString());
+    let totalTime = 0;
     timeSlotOrder.forEach((object) => {
       if (object.artist === "000000000000000000000000") {
         let obj = {
@@ -345,6 +357,7 @@ router.post("/book", jwtVerify, async (req, res) => {
         obj.chosenBy = "user";
       }
       let time = object.time;
+      totalTime += time;
       let startTime = lastTime.split(":");
       let endTime = "";
       if (startTime[1] === "00") {
@@ -385,6 +398,18 @@ router.post("/book", jwtVerify, async (req, res) => {
       artistServiceMap,
     };
     data = await getBookingPrice(data);
+    res.status(200).json({ booking: data, totalTime: totalTime });
+  } catch (err) {
+    console.log(err);
+    res.json(wrapperMessage("failed", err.message));
+  }
+});
+
+router.post("/confirm", jwtVerify, async (req, res) => {
+  try {
+    let data = req.body.booking;
+    let totalTime = req.body.totalTime;
+    let userId = req.user.id;
     let newBooking = new Booking(data);
     const booking = await newBooking.save();
     const user = await User.findOne({ _id: userId });
@@ -477,13 +502,20 @@ router.post("/book", jwtVerify, async (req, res) => {
       "booking confirmed"
     );
     //     sendMessageToUser(user, message);
-    let artistArr = new Set(artistServiceMap.map((ele) => ele.artistId));
+    let artistArr = new Set(
+      booking.artistServiceMap.map((ele) => ele.artistId)
+    );
     artistArr = Array.from(artistArr);
-    await updateBookingData(salonId, artistArr);
-    res.status(200).json(newBooking);
+    await updateBookingData(booking.salonId, artistArr);
+    let startDate = booking.bookingDate;
+    let endDate = new Date(startDate).getTime() + addTime(totalTime);
+    endDate = new Date(endDate);
+    await scheduleJobToChangeBookingStatus(startDate, booking, "in-progress");
+    await scheduleJobToChangeBookingStatus(endDate, booking, "completed");
+    res.json(wrapperMessage("success", "Booking Confirmed!", booking));
   } catch (err) {
     console.log(err);
-    res.json(wrapperMessage("failed", err.message));
+    res.status(err.code || 500).json(wrapperMessage("failed", err.message));
   }
 });
 
@@ -544,11 +576,26 @@ router.post("/bookAgain", jwtVerify, async (req, res) => {
     }
     let requests = [];
     booking.artistServiceMap.forEach((element) => {
-      requests.push({
+      let obj = {
         service: element.serviceId,
         artist: element.artistId,
-      });
+      };
+      if (element.variable.variableId !== "none") {
+        obj.variable = element.variable.variableId;
+      }
+      requests.push(obj);
     });
+    for(let request of requests) {
+      if("variable" in request) {
+        let variable = await Service.findOne({ _id: request.service, variables: { $elemMatch: { _id: request.variable } } });
+        if(!variable) {
+          let err = new Error("No such variable found!");
+          err.code = 404;
+          throw err;
+        }
+        request.variable = variable.variables.filter((ele) => ele._id.toString() === request.variable)[0];
+      }
+    }
     res
       .status(200)
       .json(
@@ -600,6 +647,31 @@ router.get("/user/bookings", jwtVerify, async (req, res) => {
     res
       .status(200)
       .json({ userId, current_bookings, prev_booking, coming_bookings });
+  } catch (err) {
+    console.log(err);
+    res.status(err.code || 500).json(wrapperMessage("failed", err.message));
+  }
+});
+
+router.post("/status", async (req, res) => {
+  try {
+    let bookingId = req.body.bookingId;
+    if (!bookingId) {
+      let err = new Error("Booking Id is required!");
+      err.code = 400;
+      throw err;
+    }
+    let booking = await Booking.findOne({ _id: bookingId });
+    if (!booking) {
+      let err = new Error("No such Booking found!");
+      err.code = 404;
+      throw err;
+    }
+    booking.bookingStatus = req.body.status;
+    let data = await booking.save();
+    res
+      .status(200)
+      .json(wrapperMessage("success", "Booking Status Changed!", data));
   } catch (err) {
     console.log(err);
     res.status(err.code || 500).json(wrapperMessage("failed", err.message));
