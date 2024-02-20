@@ -13,7 +13,6 @@ const PartnerSchema = new mongoose.Schema({
     },
     password :{
         type: String,
-
     },
     phoneNumber : {
         type: Number,

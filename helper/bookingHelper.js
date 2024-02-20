@@ -493,6 +493,14 @@ const getBookingPrice = (booking) => {
   });
 };
 
+const addTime = (time) => {
+  if(time%2 === 0){
+      return Math.floor((time/2))*60*60*1000;
+  }else{
+      return Math.floor((time/2))*60*60*1000 + 30*60*1000;
+  }
+}
+
 module.exports = {
   getSalonSlots,
   getWindowSize,
@@ -504,4 +512,5 @@ module.exports = {
   getArtistsForServices,
   fillRandomArtists,
   getBookingPrice,
+  addTime
 };
