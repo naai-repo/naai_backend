@@ -26,7 +26,6 @@ const ServiceSchema = new mongoose.Schema({
         required: true,
         default: 1
     },
-
     productsUsed: [{
         product: { type: mongoose.Schema.ObjectId, ref: 'Product' },
         usagePerService: Number 
@@ -60,7 +59,6 @@ const ServiceSchema = new mongoose.Schema({
             }
         }
     ],
-
     basePrice: Number,
     cutPrice: Number,
 }, {
