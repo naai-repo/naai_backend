@@ -16,6 +16,7 @@ const {
 } = require("../../helper/bookingHelper");
 const Booking = require("../../model/partnerApp/Booking");
 const Artist = require("../../model/partnerApp/Artist");
+const Product = require("../../model/partnerApp/inventory/product.model");
 const User = require("../../model/customerApp/User");
 const jwtVerify = require("../../middleware/jwtVerification");
 const sendMail = require("../../helper/sendMail");
@@ -511,7 +512,15 @@ router.post("/confirm", jwtVerify, async (req, res) => {
     let endDate = new Date(startDate).getTime() + addTime(totalTime);
     endDate = new Date(endDate);
     await scheduleJobToChangeBookingStatus(startDate, booking, "in-progress");
-    await scheduleJobToChangeBookingStatus(endDate, booking, "completed");
+    scheduleJobToChangeBookingStatus(endDate, booking, "completed")
+    .then((b) =>{
+      let serviceIds = b.artistServiceMap.map(o => o.serviceId.toString())
+      updateInventoryOnServiceCompletion(serviceIds);
+    }).catch((err)=>{
+     if(err){
+      res.status(err.code || 500).json(wrapperMessage("error in product updation", err.message));
+     }
+    })
     res.json(wrapperMessage("success", "Booking Confirmed!", booking));
   } catch (err) {
     console.log(err);
@@ -677,5 +686,67 @@ router.post("/status", async (req, res) => {
     res.status(err.code || 500).json(wrapperMessage("failed", err.message));
   }
 });
+
+
+
+const Service = require('./models/Service'); // Assuming this is the path to your Service model
+const Inventory = require('./models/Inventory'); // Assuming this is the path to your Inventory model
+const productModel = require("../../model/partnerApp/inventory/product.model");
+
+async function updateInventoryOnServiceCompletion(serviceIds) {
+    try {
+        
+        if (!Array.isArray(serviceIds) || serviceIds.length === 0) {
+            console.log('No service IDs provided.');
+            return;
+        }
+
+        const services = await Service.find({ _id: { $in: serviceIds } }).populate('productsUsed.product');
+
+        if (services.length === 0) {
+            console.log('No services found.');
+            return;
+        }
+
+        for (const service of services) {
+         
+            if (!service.productsUsed || service.productsUsed.length === 0) {
+                console.log(`No products used in service ${service._id}.`);
+                continue;
+            }
+
+            // Iterate over the products used in the service
+            for (const productUsage of service.productsUsed) {
+                const productId = productUsage.product._id;
+                const usageQuantity = productUsage.usagePerService;
+                const productName = productUsage.product.name; 
+
+                if (!productId) {
+                    console.log(`Invalid product ID for product ${productName} in service ${service._id}.`);
+                    continue;
+                }
+
+                const inventoryItem = await Product.findOne({ _id: productId });
+                if (inventoryItem) {
+                    if (inventoryItem.totalQuantity >= usageQuantity) {
+                        inventoryItem.totalQuantity -= usageQuantity;
+                        await inventoryItem.save();
+                        console.log(`Deducted ${usageQuantity} ${productName} from inventory for service ${service._id}.`);
+                    } else {
+                        console.log(`Insufficient quantity of ${productName} in inventory for service ${service._id}.`);
+                    }
+                } else {
+                    console.log(`Inventory not found for product ${productName} in service ${service._id}.`);
+                }
+            }
+
+            console.log(`Service ${service._id} completed successfully.`);
+        }
+    } catch (error) {
+        console.error('Error completing services:', error);
+    }
+}
+
+
 
 module.exports = router;
