@@ -5,6 +5,7 @@ const ReviewSchema = new mongoose.Schema({
     title: {
         type: String,
         default: '',
+        lowercase: true,
     },
     description: {
         type: String,
@@ -13,7 +14,8 @@ const ReviewSchema = new mongoose.Schema({
     rating: {
         type: Number,
         transform: v => v == null ? '' : v,
-        min: 0
+        min: 0,
+        set: v => v.toFixed(2)
     },
     userId: {
         type: mongoose.Schema.ObjectId,

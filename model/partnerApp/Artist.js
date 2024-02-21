@@ -6,10 +6,12 @@ const ArtistSchema = new mongoose.Schema(
     name: {
       type: String,
       required: true,
+      set: v => v.toLowerCase(),
     },
     rating: {
       type: Number,
       default: 0,
+      set: v => v.toFixed(2)
     },
     salonId: {
       type: mongoose.Schema.ObjectId,
@@ -26,12 +28,14 @@ const ArtistSchema = new mongoose.Schema(
             variableId: String,
             price: {
               type: Number,
+              set: v => v.toFixed(2)
             }
           }
         ],
         price: {
           type: Number,
           required: true,
+          set: v => v.toFixed(2)
         },
       },
     ],
