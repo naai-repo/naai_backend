@@ -9,6 +9,7 @@ const bookingSchema = new mongoose.Schema(
     bookingType: {
       type: String,
       required: true,
+      lowercase: true,
     },
     salonId: {
       type: mongoose.Schema.ObjectId,
@@ -17,10 +18,12 @@ const bookingSchema = new mongoose.Schema(
     amount: {
       type: Number,
       required: true,
+      set: v => v.toFixed(2)
     },
     paymentAmount: {
       type: Number,
       required: true,
+      set: v => v.toFixed(2)
     },
     paymentId: {
       type: String,
@@ -29,7 +32,8 @@ const bookingSchema = new mongoose.Schema(
     bookingStatus: {
       type: String,
       required: true,
-      enum: ["completed", "pending", "in-progress"]
+      enum: ["completed", "pending", "in-progress"],
+      lowercase: true,
     },
     paymentStatus: {
       type: String,
@@ -67,15 +71,18 @@ const bookingSchema = new mongoose.Schema(
           variableType: {
             type: String,
             required: true,
+            lowercase: true,
           },
           variableName: {
             type: String,
             required: true,
+            lowercase: true,
           },
         },
         servicePrice: {
           type: Number,
           required: true,
+          set: v => v.toFixed(2)
         },
         timeSlot: {
           start: {
@@ -90,6 +97,8 @@ const bookingSchema = new mongoose.Schema(
         chosenBy: {
           type: String,
           required: true,
+          enum: ["user", "algo"],
+          lowercase: true,
         },
       },
     ],

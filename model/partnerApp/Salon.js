@@ -20,7 +20,8 @@ const SalonSchema = new mongoose.Schema({
     },
     name :{
         type: String,
-        required: true
+        required: true,
+        lowercase: true,
     },
     salonType : {
         type: String,
@@ -43,12 +44,14 @@ const SalonSchema = new mongoose.Schema({
         type: Number,
         default: 0,
         min: 0,
-        max: 5
+        max: 5,
+        set: v => v.toFixed(2)
     },
     closedOn: {
         type: String,
         default: "none",
-        required: true
+        required: true,
+        lowercase: true
     },
     phoneNumber : {
         type: Number,
@@ -63,7 +66,8 @@ const SalonSchema = new mongoose.Schema({
     },
     owner: {
         type: String,
-        required: true
+        required: true,
+        lowercase: true
     },
     gst: {
         type: String,

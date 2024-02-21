@@ -45,12 +45,14 @@ const ServiceSchema = new mongoose.Schema({
             variablePrice: {
                 type: Number,
                 required: true,
-                default: 0
+                default: 0,
+                set: v => v.toFixed(2)
             },
             variableCutPrice: {
                 type: Number,
                 required: true,
-                default: 0
+                default: 0,
+                set: v => v.toFixed(2)
             },
             variableTime: {
                 type: Number,
@@ -59,8 +61,14 @@ const ServiceSchema = new mongoose.Schema({
             }
         }
     ],
-    basePrice: Number,
-    cutPrice: Number,
+    basePrice: {
+        type: Number,
+        set: v => v.toFixed(2)
+    },
+    cutPrice: {
+        type: Number,
+        set: v => v.toFixed(2)
+    },
 }, {
     timestamps: true
 },

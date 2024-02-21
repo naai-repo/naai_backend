@@ -4,12 +4,12 @@ const mongoose = require('mongoose');
 const PartnerSchema = new mongoose.Schema({
     name :{
         type: String,
-  
+        lowercase: true,
     },
     email :{
         type: String,
-        unique:true
-
+        unique:true,
+        lowercase: true,
     },
     password :{
         type: String,

@@ -687,8 +687,6 @@ router.post("/status", async (req, res) => {
   }
 });
 
-
-
 const Service = require('./models/Service'); // Assuming this is the path to your Service model
 const Inventory = require('./models/Inventory'); // Assuming this is the path to your Inventory model
 const productModel = require("../../model/partnerApp/inventory/product.model");
@@ -746,7 +744,5 @@ async function updateInventoryOnServiceCompletion(serviceIds) {
         console.error('Error completing services:', error);
     }
 }
-
-
 
 module.exports = router;
