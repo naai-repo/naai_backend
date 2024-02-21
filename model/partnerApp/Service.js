@@ -43,16 +43,16 @@ const ServiceSchema = new mongoose.Schema({
                 required: true
             },
             variablePrice: {
-                type: Number,
+                type: mongoose.Schema.Types.Decimal128,
                 required: true,
                 default: 0,
-                set: v => v.toFixed(2)
+                set: v => Number(v).toFixed(2)
             },
             variableCutPrice: {
-                type: Number,
+                type: mongoose.Schema.Types.Decimal128,
                 required: true,
                 default: 0,
-                set: v => v.toFixed(2)
+                set: v => Number(v).toFixed(2)
             },
             variableTime: {
                 type: Number,
@@ -62,12 +62,12 @@ const ServiceSchema = new mongoose.Schema({
         }
     ],
     basePrice: {
-        type: Number,
-        set: v => v.toFixed(2)
+        type: mongoose.Schema.Types.Decimal128,
+        set: v => Number(v).toFixed(2)
     },
     cutPrice: {
-        type: Number,
-        set: v => v.toFixed(2)
+        type: mongoose.Schema.Types.Decimal128,
+        set: v => Number(v).toFixed(2)
     },
 }, {
     timestamps: true

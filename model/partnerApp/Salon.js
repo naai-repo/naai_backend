@@ -1,115 +1,120 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 // Schema for Salon
-const SalonSchema = new mongoose.Schema({
-    address:{
-        type: String,
-        required: true,
-        unique: true
+const SalonSchema = new mongoose.Schema(
+  {
+    address: {
+      type: String,
+      required: true,
+      unique: true,
     },
     location: {
-        type: {
-            type: String,
-            enum: ['Point'],
-            default: "Point"
-        },
-        coordinates: {
-            type: [Number],
-            default: [0, 0]
-        }
+      type: {
+        type: String,
+        enum: ["Point"],
+        default: "Point",
+      },
+      coordinates: {
+        type: [Number],
+        default: [0, 0],
+      },
     },
-    name :{
+    name: {
+      type: String,
+      required: true,
+      lowercase: true,
+    },
+    salonType: {
+      type: String,
+      enum: ["unisex", "male", "female", "not specified"],
+      default: "not specified",
+      lowercase: true,
+      required: true,
+    },
+    timing: {
+      opening: {
         type: String,
         required: true,
-        lowercase: true,
-    },
-    salonType : {
+      },
+      closing: {
         type: String,
-        enum: ["unisex", "male", "female", "not specified"],
-        default: "not specified",
-        lowercase: true,
-        required: true
-    },
-    timing : {
-        opening : {
-            type: String,
-            required: true
-        },
-        closing: {
-            type: String,
-            required: true
-        },
+        required: true,
+      },
     },
     rating: {
-        type: Number,
-        default: 0,
-        min: 0,
-        max: 5,
-        set: v => v.toFixed(2)
+      type: mongoose.Schema.Types.Decimal128,
+      default: 0,
+      min: 0,
+      max: 5,
+      set: v => Number(v).toFixed(2),
     },
     closedOn: {
-        type: String,
-        default: "none",
-        required: true,
-        lowercase: true
+      type: String,
+      default: "none",
+      required: true,
+      lowercase: true,
     },
-    phoneNumber : {
-        type: Number,
-        required: true,
-        unique: true,
-        validate: {
-            validator: function(val) {
-                return val.toString().length === 10
-            },
-            message: val => `${val.value} has to be 10 digits`
-        }
+    phoneNumber: {
+      type: Number,
+      required: true,
+      unique: true,
+      validate: {
+        validator: function (val) {
+          return val.toString().length === 10;
+        },
+        message: (val) => `${val.value} has to be 10 digits`,
+      },
     },
     owner: {
-        type: String,
-        required: true,
-        lowercase: true
+      type: String,
+      required: true,
+      lowercase: true,
     },
     gst: {
-        type: String,
-        default: "XX-XXXXXXXXX-XX"
+      type: String,
+      default: "XX-XXXXXXXXX-XX",
     },
     pan: {
-        type: String,
-        default: "XX-XXXXXXXXX-XX"
+      type: String,
+      default: "XX-XXXXXXXXX-XX",
     },
     live: {
-        type: Boolean,
-        default: false
+      type: Boolean,
+      default: false,
     },
     paid: {
-        type: Boolean,
-        default: false
+      type: Boolean,
+      default: false,
     },
     bookings: {
-        type: Number,
-        default: 0
+      type: Number,
+      default: 0,
     },
     discount: {
-        type: Number,
-        default: 0
+      type: Number,
+      default: 0,
     },
     links: {
-        instagram: {
-            type: String,
-            default: ''
-        }
+      instagram: {
+        type: String,
+        default: "",
+      },
     },
-    images: [{
+    images: [
+      {
         key: {
-            type: String,
+          type: String,
         },
         url: {
-            type: String,
-        }
-    }]
-},{
-    timestamps: true
-});
+          type: String,
+        },
+      },
+    ],
+  },
+  {
+    timestamps: true,
+  }
+);
 
 SalonSchema.index({ location: "2dsphere" });
 

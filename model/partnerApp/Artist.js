@@ -6,12 +6,12 @@ const ArtistSchema = new mongoose.Schema(
     name: {
       type: String,
       required: true,
-      set: v => v.toLowerCase(),
+      lowercase: true,
     },
     rating: {
-      type: Number,
+      type: mongoose.Schema.Types.Decimal128,
       default: 0,
-      set: v => v.toFixed(2)
+      set: v => Number(v).toFixed(2)
     },
     salonId: {
       type: mongoose.Schema.ObjectId,
@@ -27,15 +27,15 @@ const ArtistSchema = new mongoose.Schema(
           {
             variableId: String,
             price: {
-              type: Number,
-              set: v => v.toFixed(2)
+              type: mongoose.Schema.Types.Decimal128,
+              set: v => Number(v).toFixed(2)
             }
           }
         ],
         price: {
-          type: Number,
+          type: mongoose.Schema.Types.Decimal128,
           required: true,
-          set: v => v.toFixed(2)
+          set: v => Number(v).toFixed(2)
         },
       },
     ],
