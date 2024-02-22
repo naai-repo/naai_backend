@@ -513,9 +513,9 @@ router.post("/confirm", jwtVerify, async (req, res) => {
     endDate = new Date(endDate);
     await scheduleJobToChangeBookingStatus(startDate, booking, "in-progress");
     scheduleJobToChangeBookingStatus(endDate, booking, "completed")
-    .then((b) =>{
+    .then(async (b) =>{
       let serviceIds = b.artistServiceMap.map(o => o.serviceId.toString())
-      updateInventoryOnServiceCompletion(serviceIds);
+      await updateInventoryOnServiceCompletion(serviceIds);
     }).catch((err)=>{
      if(err){
       res.status(err.code || 500).json(wrapperMessage("error in product updation", err.message));
@@ -687,9 +687,6 @@ router.post("/status", async (req, res) => {
   }
 });
 
-const Service = require('./models/Service'); // Assuming this is the path to your Service model
-const Inventory = require('./models/Inventory'); // Assuming this is the path to your Inventory model
-const productModel = require("../../model/partnerApp/inventory/product.model");
 
 async function updateInventoryOnServiceCompletion(serviceIds) {
     try {
