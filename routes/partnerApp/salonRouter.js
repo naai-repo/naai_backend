@@ -1,9 +1,11 @@
+const mongoose = require("mongoose");
 const router = require("express").Router();
 const Salon = require("../../model/partnerApp/Salon");
 const Booking = require("../../model/partnerApp/Booking");
 const Artist = require("../../model/partnerApp/Artist");
 const wrapperMessage = require("../../helper/wrapperMessage");
 const Service = require("../../model/partnerApp/Service");
+const ObjectId = mongoose.Types.ObjectId;
 
 // User ID : 64f786e3b23d28509e6791e0
 // saloon ID : 64f786e3b23d28509e6791e1
@@ -182,7 +184,21 @@ router.get("/single/:id", async (req, res) => {
   try {
     let data = await Salon.findOne({ _id: req.params.id });
     let artistData = await Artist.find({ salonId: req.params.id });
-    let serviceData = await Service.find({ salonId: req.params.id });
+    let serviceIds = new Set();
+    artistData.forEach((artist) => {
+      artist.services.forEach((service) => {
+        serviceIds.add(service.serviceId.toString());
+      });
+    });
+    serviceIds = Array.from(serviceIds);
+    serviceIds = serviceIds.map((id) => new ObjectId(id));
+    let serviceData = await Service.aggregate([
+      {
+        $match: {
+          _id: { $in: serviceIds },
+        },
+      },
+    ]);
     res.json(
       wrapperMessage("success", "", {
         data,

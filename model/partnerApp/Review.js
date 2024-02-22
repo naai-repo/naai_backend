@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const CommonUtils = require('../../helper/commonUtils');
 
 // Schema for Artists
 const ReviewSchema = new mongoose.Schema({
@@ -12,10 +13,11 @@ const ReviewSchema = new mongoose.Schema({
         default: ''
     },
     rating: {
-        type: Number,
+        type: mongoose.Schema.Types.Decimal128,
         transform: v => v == null ? '' : v,
         min: 0,
-        set: v => v.toFixed(2)
+        set: v => Number(v).toFixed(2),
+        get: CommonUtils.getDouble,
     },
     userId: {
         type: mongoose.Schema.ObjectId,
@@ -33,7 +35,8 @@ const ReviewSchema = new mongoose.Schema({
         type: mongoose.Schema.ObjectId
     }]
 }, {
-    timestamps: true
+    timestamps: true,
+    toJSON: { getters: true, virtuals: false},
 });
 
 module.exports = new mongoose.model("Review", ReviewSchema);
