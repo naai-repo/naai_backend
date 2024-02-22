@@ -1,6 +1,5 @@
-const axios = require('axios')
+const axios = require("axios");
 class CommonUtils {
-
   static isEmail(email) {
     return /^\S+@\S+\.\S+$/i.test(email);
   }
@@ -31,6 +30,12 @@ class CommonUtils {
     );
   }
 
+  static getDouble(value) {
+    if (typeof value !== "undefined") {
+      console.log("value", value);
+      return parseFloat(value.toString()).toFixed(2);
+    }
+  }
 }
 
 module.exports = CommonUtils;
