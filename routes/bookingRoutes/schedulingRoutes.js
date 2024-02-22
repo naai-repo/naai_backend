@@ -515,7 +515,7 @@ router.post("/confirm", jwtVerify, async (req, res) => {
     scheduleJobToChangeBookingStatus(endDate, booking, "completed")
     .then((b) =>{
       let serviceIds = b.artistServiceMap.map(o => o.serviceId.toString())
-      updateInventoryOnServiceCompletion(serviceIds);
+      await updateInventoryOnServiceCompletion(serviceIds);
     }).catch((err)=>{
      if(err){
       res.status(err.code || 500).json(wrapperMessage("error in product updation", err.message));
@@ -686,6 +686,7 @@ router.post("/status", async (req, res) => {
     res.status(err.code || 500).json(wrapperMessage("failed", err.message));
   }
 });
+
 
 async function updateInventoryOnServiceCompletion(serviceIds) {
     try {
