@@ -15,7 +15,7 @@ const scheduleJobToChangeBookingStatus = (date, booking, status) => {
           `Booking (${bookingDate._id})  status changed to ${status}`
         );
       });
-      resolve(date);
+      resolve(booking);
     } catch (err) {
       reject(err);
     }
