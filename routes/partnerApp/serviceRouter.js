@@ -37,23 +37,29 @@ router.post("/add", async (req, res) => {
       let price = req.body.basePrice - (req.body.basePrice * discount) / 100;
       req.body.cutPrice = req.body.basePrice;
       req.body.basePrice = price;
-    }
-    if (req.body.variables) {
-      console.log(req.body.variables);
-      let minTime = req.body.variables.reduce((a, b) =>
-        Math.min(a.variableTime || a, b.variableTime)
-      );
-      let minPrice = req.body.variables.reduce((a, b) =>
-        Math.min(a.variablePrice || a, b.variablePrice)
-      );
-      req.body.avgTime = minTime;
-      req.body.basePrice = minPrice;
+      console.log("here" , req.body.variables.length);
+      if (req.body.variables) {
+        for (let variable of req.body.variables) {
+          variable.variableCutPrice = variable.variablePrice;
+          variable.variablePrice =
+            variable.variablePrice - (variable.variablePrice * discount) / 100;
+        }
+        let minTime = req.body.variables.reduce((a, b) =>
+          Math.min(a.variableTime || a, b.variableTime)
+        );
+        let minPrice = req.body.variables.reduce((a, b) =>
+          Math.min(a.variablePrice || a, b.variablePrice)
+        );
+        req.body.avgTime = minTime;
+        req.body.basePrice = minPrice;
+      }
     }
     const newService = new Service(req.body);
     const service = await newService.save();
-    res.status(200).json(newService);
+    res.status(200).json(service);
   } catch (err) {
     res.status(500).json(err);
+    console.log(err);
   }
 });
 

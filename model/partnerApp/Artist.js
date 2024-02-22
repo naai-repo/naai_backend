@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const CommonUtils = require("../../helper/commonUtils");
 
 // Schema for Artists
 const ArtistSchema = new mongoose.Schema(
@@ -11,7 +12,8 @@ const ArtistSchema = new mongoose.Schema(
     rating: {
       type: mongoose.Schema.Types.Decimal128,
       default: 0,
-      set: v => Number(v).toFixed(2)
+      set: (v) => Number(v).toFixed(2),
+      get: CommonUtils.getDouble,
     },
     salonId: {
       type: mongoose.Schema.ObjectId,
@@ -28,14 +30,16 @@ const ArtistSchema = new mongoose.Schema(
             variableId: String,
             price: {
               type: mongoose.Schema.Types.Decimal128,
-              set: v => Number(v).toFixed(2)
-            }
-          }
+              set: (v) => Number(v).toFixed(2),
+              get: CommonUtils.getDouble,
+            },
+          },
         ],
         price: {
           type: mongoose.Schema.Types.Decimal128,
           required: true,
-          set: v => Number(v).toFixed(2)
+          set: (v) => Number(v).toFixed(2),
+          get: CommonUtils.getDouble,
         },
       },
     ],
@@ -44,7 +48,7 @@ const ArtistSchema = new mongoose.Schema(
       enum: ["unisex", "male", "female", "not specified"],
       default: "not specified",
       lowercase: true,
-      required: true
+      required: true,
     },
     location: {
       type: {
@@ -75,16 +79,18 @@ const ArtistSchema = new mongoose.Schema(
       },
       end: {
         type: String,
-        required: true
-      }
+        required: true,
+      },
     },
-    offDay: [ {
-      type: String,
-      required: true
-    } ],
+    offDay: [
+      {
+        type: String,
+        required: true,
+      },
+    ],
     availability: {
       type: Boolean,
-      default: true
+      default: true,
     },
     live: {
       type: Boolean,
@@ -92,29 +98,30 @@ const ArtistSchema = new mongoose.Schema(
     },
     paid: {
       type: Boolean,
-      default: false
+      default: false,
     },
     bookings: {
       type: Number,
-      default: 0
-    }, 
+      default: 0,
+    },
     links: {
       instagram: {
-          type: String,
-          default: ''
-      }
+        type: String,
+        default: "",
+      },
     },
     imageKey: {
       type: String,
-      default: ''
+      default: "",
     },
     imageUrl: {
-        type: String,
-        default: ''
-    }
+      type: String,
+      default: "",
+    },
   },
   {
     timestamps: true,
+    toJSON: { getters: true, virtuals: false},
   }
 );
 
