@@ -513,7 +513,7 @@ router.post("/confirm", jwtVerify, async (req, res) => {
     endDate = new Date(endDate);
     await scheduleJobToChangeBookingStatus(startDate, booking, "in-progress");
     scheduleJobToChangeBookingStatus(endDate, booking, "completed")
-    .then((b) =>{
+    .then(async (b) =>{
       let serviceIds = b.artistServiceMap.map(o => o.serviceId.toString())
       await updateInventoryOnServiceCompletion(serviceIds);
     }).catch((err)=>{
