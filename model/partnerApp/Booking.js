@@ -16,11 +16,11 @@ const bookingSchema = new mongoose.Schema(
       required: true,
     },
     amount: {
-      type: Number,
+      type: mongoose.Schema.Types.Decimal128,
       required: true,
     },
     paymentAmount: {
-      type: Number,
+      type: mongoose.Schema.Types.Decimal128,
       required: true,
     },
     paymentId: {
@@ -78,7 +78,7 @@ const bookingSchema = new mongoose.Schema(
           },
         },
         servicePrice: {
-          type: Number,
+          type: mongoose.Schema.Types.Decimal128,
           required: true,
         },
         timeSlot: {
