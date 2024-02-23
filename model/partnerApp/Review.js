@@ -12,7 +12,7 @@ const ReviewSchema = new mongoose.Schema({
         default: ''
     },
     rating: {
-        type: mongoose.Schema.Types.Decimal128,
+        type: Number,
         transform: v => v == null ? '' : v,
         min: 0,
     },
