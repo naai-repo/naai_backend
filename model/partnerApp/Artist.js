@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const CommonUtils = require("../../helper/commonUtils");
 
 // Schema for Artists
 const ArtistSchema = new mongoose.Schema(
@@ -10,10 +9,8 @@ const ArtistSchema = new mongoose.Schema(
       lowercase: true,
     },
     rating: {
-      type: mongoose.Schema.Types.Decimal128,
+      type: Number,
       default: 0,
-      set: (v) => Number(v).toFixed(2),
-      get: CommonUtils.getDouble,
     },
     salonId: {
       type: mongoose.Schema.ObjectId,
@@ -29,17 +26,13 @@ const ArtistSchema = new mongoose.Schema(
           {
             variableId: String,
             price: {
-              type: mongoose.Schema.Types.Decimal128,
-              set: (v) => Number(v).toFixed(2),
-              get: CommonUtils.getDouble,
+              type: Number,
             },
           },
         ],
         price: {
-          type: mongoose.Schema.Types.Decimal128,
+          type: Number,
           required: true,
-          set: (v) => Number(v).toFixed(2),
-          get: CommonUtils.getDouble,
         },
       },
     ],
@@ -121,7 +114,6 @@ const ArtistSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-    toJSON: { getters: true, virtuals: false},
   }
 );
 

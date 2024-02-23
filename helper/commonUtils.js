@@ -29,13 +29,6 @@ class CommonUtils {
       }
     );
   }
-
-  static getDouble(value) {
-    if (typeof value !== "undefined") {
-      console.log("value", value);
-      return parseFloat(value.toString()).toFixed(2);
-    }
-  }
 }
 
 module.exports = CommonUtils;

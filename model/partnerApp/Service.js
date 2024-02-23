@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const CommonUtils = require("../../helper/commonUtils");
 
 // Schema for Service
 const ServiceSchema = new mongoose.Schema(
@@ -47,18 +46,14 @@ const ServiceSchema = new mongoose.Schema(
           required: true,
         },
         variablePrice: {
-          type: mongoose.Schema.Types.Decimal128,
+          type: Number,
           required: true,
           default: 0,
-          set: (v) => Number(v).toFixed(2),
-          get: CommonUtils.getDouble,
         },
         variableCutPrice: {
-          type: mongoose.Schema.Types.Decimal128,
+          type: Number,
           required: true,
           default: 0,
-          set: (v) => Number(v).toFixed(2),
-          get: CommonUtils.getDouble,
         },
         variableTime: {
           type: Number,
@@ -68,19 +63,14 @@ const ServiceSchema = new mongoose.Schema(
       },
     ],
     basePrice: {
-      type: mongoose.Schema.Types.Decimal128,
-      set: (v) => Number(v).toFixed(2),
-      get: CommonUtils.getDouble,
+      type: Number,
     },
     cutPrice: {
-      type: mongoose.Schema.Types.Decimal128,
-      set: (v) => Number(v).toFixed(2),
-      get: CommonUtils.getDouble,
+      type: Number,
     },
   },
   {
     timestamps: true,
-    toJSON: { getters: true, virtuals: false},
   }
 );
 
