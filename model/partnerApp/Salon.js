@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const CommonUtils = require("../../helper/commonUtils");
 
 // Schema for Salon
 const SalonSchema = new mongoose.Schema(
@@ -43,12 +42,10 @@ const SalonSchema = new mongoose.Schema(
       },
     },
     rating: {
-      type: mongoose.Schema.Types.Decimal128,
+      type: Number,
       default: 0,
       min: 0,
       max: 5,
-      set: (v) => Number(v).toFixed(2),
-      get: CommonUtils.getDouble,
     },
     closedOn: {
       type: String,
@@ -115,7 +112,6 @@ const SalonSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-    toJSON: { getters: true, virtuals: false},
   }
 );
 

@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const CommonUtils = require("../../helper/commonUtils");
 
 const bookingSchema = new mongoose.Schema(
   {
@@ -19,14 +18,10 @@ const bookingSchema = new mongoose.Schema(
     amount: {
       type: mongoose.Schema.Types.Decimal128,
       required: true,
-      set: v => Number(v).toFixed(2),
-      get: CommonUtils.getDouble,
     },
     paymentAmount: {
       type: mongoose.Schema.Types.Decimal128,
       required: true,
-      set: v => Number(v).toFixed(2),
-      get: CommonUtils.getDouble,
     },
     paymentId: {
       type: String,
@@ -85,8 +80,6 @@ const bookingSchema = new mongoose.Schema(
         servicePrice: {
           type: mongoose.Schema.Types.Decimal128,
           required: true,
-          set: v => Number(v).toFixed(2),
-          get: CommonUtils.getDouble,
         },
         timeSlot: {
           start: {
@@ -109,10 +102,8 @@ const bookingSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-    toJSON: { getters: true, virtuals: false},
   }
 );
 
 const Booking = mongoose.model("Booking", bookingSchema);
-
 module.exports = Booking;
