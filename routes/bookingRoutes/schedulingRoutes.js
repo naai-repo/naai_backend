@@ -629,15 +629,15 @@ router.get("/user/bookings", jwtVerify, async (req, res) => {
     date = new Date(`${mm}-${dd}-${yyyy}`);
     let current_bookings = await Booking.find({
       userId: userId,
-      bookingDate: date,
+      bookingStatus: "in-progress"
     });
     let previous_bookings = await Booking.find({
       userId: userId,
-      bookingDate: { $lt: date },
+      bookingStatus: "completed"
     }).sort({ bookingDate: -1 });
     let upcoming_bookings = await Booking.find({
       userId: userId,
-      bookingDate: { $gt: date },
+      bookingStatus: "pending",
     }).sort({ bookingDate: 1 });
     let prev_booking = [];
     for (let itr = skip; itr < skip + limit; itr++) {
