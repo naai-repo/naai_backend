@@ -17,7 +17,6 @@ const ReviewRouter = require('./routes/partnerApp/reviewRouter');
 const SalonRouter = require('./routes/partnerApp/salonRouter');
 const ServiceRouter = require('./routes/partnerApp/serviceRouter');
 const ArtistRouter = require('./routes/partnerApp/artistRouter');
-const BookingRouter = require('./routes/partnerApp/bookingRouter');
 const PartnerRouter = require('./routes/partnerApp/partnerRouter')
 const OtpRouter = require('./routes/partnerApp/otpRouter');
 const InventoryRouter = require('./routes/partnerApp/inventoryRouter');
@@ -54,7 +53,6 @@ app.use("/partner/review", ReviewRouter);
 app.use("/partner/salon", SalonRouter);
 app.use("/partner/service", ServiceRouter);
 app.use("/partner/artist", ArtistRouter);
-app.use("/partner/booking", BookingRouter);
 app.use("/partner/user", PartnerRouter);
 app.use("/partner/otp", OtpRouter);
 app.use("/partner/inventory", InventoryRouter);
