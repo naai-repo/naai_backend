@@ -3,14 +3,14 @@ const mongoose = require('mongoose');
 const Booking = require('../model/partnerApp/Booking'); // Assuming your Booking model is defined in a separate file
 
 
-app.use(express.json());
-app.use(express.urlencoded({extended: true}));
-require('dotenv').config();
+console.log('hi from cron')
 const url = `mongodb+srv://naaiadmn:naaiadmn@cluster0.rg1ncj1.mongodb.net/naai`;
 
- await mongoose.connect(url, {
+  mongoose.connect(url, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
+ }).then(r =>{
+    console.log(r)
  })
 
 cron.schedule('*/10 * * * *', async () => {
