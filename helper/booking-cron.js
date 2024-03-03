@@ -24,7 +24,7 @@ cron.schedule('*/10 * * * *', async () => {
             // bookingStatus: { $ne: "completed" } iffneed be
         });
            console.log('klklkl');
-        await Promise.all(bookingsToUpdate.forEach(booking => {
+        await Promise.all(bookingsToUpdate.map(booking => {
             console.log(booking)
             booking.bookingStatus = "in-progress";
             return booking.save();
