@@ -10,7 +10,7 @@ const url = `mongodb+srv://naaiadmn:naaiadmn@cluster0.rg1ncj1.mongodb.net/naai`;
         useNewUrlParser: true,
         useUnifiedTopology: true,
  }).then(r =>{
-    console.log(r)
+    console.log('cnt')
  })
 
 cron.schedule('*/10 * * * *', async () => {
