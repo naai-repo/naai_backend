@@ -51,7 +51,7 @@ router.post("/user/:id/image", upload.single("image"), async (req, res) => {
       await s3.send(command);
     }
     const buffer = await sharp(req.file.buffer)
-      .resize({ height: 800, width: 600, fit: "contain" })
+      .resize({ height: 700, width: 700, fit: "contain" })
       .toBuffer();
     const putObjParams = {
       Bucket: bucketName,
@@ -120,7 +120,7 @@ router.post("/artist/:id/image", upload.single("image"), async (req, res) => {
       await s3.send(command);
     }
     const buffer = await sharp(req.file.buffer)
-      .resize({ height: 800, width: 600, fit: "contain" })
+      .resize({ height: 700, width: 700, fit: "contain" })
       .toBuffer();
     const putObjParams = {
       Bucket: bucketName,
