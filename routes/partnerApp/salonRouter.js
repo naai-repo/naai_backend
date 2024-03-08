@@ -181,57 +181,9 @@ router.post("/:id/update", async (req, res) => {
   }
 });
 
-router.get("/single/:id", jwtVerify, async (req, res) => {
+router.get("/single/:id", async (req, res) => {
   try {
     let data = await Salon.findOne({ _id: req.params.id });
-    console.log(req.user);
-    let salon = await Salon.aggregate([
-      {
-        $match: {
-          _id: new ObjectId(req.params.id),
-        },
-      },
-      {
-        $addFields: {
-          distance: {
-            $sqrt: {
-              $add: [
-                {
-                  $pow: [
-                    {
-                      $subtract: [
-                        {
-                          $arrayElemAt: [req.user.location.coordinates, 0],
-                        },
-                        {
-                          $arrayElemAt: ["$location.coordinates", 0],
-                        },
-                      ],
-                    },
-                    2,
-                  ],
-                },
-                {
-                  $pow: [
-                    {
-                      $subtract: [
-                        {
-                          $arrayElemAt: [req.user.location.coordinates, 1],
-                        },
-                        {
-                          $arrayElemAt: ["$location.coordinates", 1],
-                        },
-                      ],
-                    },
-                    2,
-                  ],
-                },
-              ],
-            },
-          },
-        },
-      },
-    ]);
     if (!data) {
       let err = new Error("No such salon exists!");
       err.code = 404;
@@ -256,7 +208,6 @@ router.get("/single/:id", jwtVerify, async (req, res) => {
     res.json(
       wrapperMessage("success", "", {
         data,
-        salon: salon,
         artists: artistData,
         services: serviceData,
       })
