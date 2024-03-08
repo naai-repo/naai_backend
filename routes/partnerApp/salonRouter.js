@@ -181,7 +181,7 @@ router.post("/:id/update", async (req, res) => {
   }
 });
 
-router.get("/single/:id", jwtVerify, async (req, res) => {
+router.get("/single/:id", async (req, res) => {
   try {
     let data = await Salon.findOne({ _id: req.params.id });
     if (!data) {
@@ -208,7 +208,6 @@ router.get("/single/:id", jwtVerify, async (req, res) => {
     res.json(
       wrapperMessage("success", "", {
         data,
-        salon: salon,
         artists: artistData,
         services: serviceData,
       })
