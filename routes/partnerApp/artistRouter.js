@@ -115,16 +115,18 @@ router.post("/add/:artistId/services", async (req, res) => {
         isSalonService = false;
         break;
       }
-      if(service.variables.length){
-        if(service.variables.length !== newServices[index].variables.length){
-          let err = new Error(
-            `Invalid number of variables for the service!`
-          );
+      if (service.variables.length) {
+        if (service.variables.length !== newServices[index].variables.length) {
+          let err = new Error(`Invalid number of variables for the service!`);
           err.code = 400;
           throw err;
         }
         for (let variable of newServices[index].variables) {
-          if (!service.variables.some((obj) => obj._id.toString() === variable.variableId)) {
+          if (
+            !service.variables.some(
+              (obj) => obj._id.toString() === variable.variableId
+            )
+          ) {
             let err = new Error(
               `No such variable (${variable.variableId}) exists in the service!`
             );
@@ -132,7 +134,9 @@ router.post("/add/:artistId/services", async (req, res) => {
             throw err;
           }
         }
-        newServices[index].price = newServices[index].variables.reduce((a, b) => Math.min(a.price || a, b.price));
+        newServices[index].price = newServices[index].variables.reduce((a, b) =>
+          Math.min(a.price || a, b.price)
+        );
       }
     }
     if (!isSalonService) {
@@ -185,6 +189,33 @@ router.post("/:id/update", async (req, res) => {
 router.get("/single/:id", async (req, res) => {
   try {
     let data = await Artist.findOne({ _id: req.params.id });
+    if (!data) {
+      let err = new Error("No such artist found!");
+      err.code = 404;
+      throw err;
+    }
+    let salonData = await Salon.findOne({ _id: data.salonId });
+    if (!salonData) {
+      let err = new Error("This artist is associated with an unknown salon!");
+      err.code = 404;
+      throw err;
+    }
+    let discount = salonData.discount;
+    let services = data.services;
+    for (let service of services) {
+      let price = service.price;
+      let basePrice = price - (price * discount) / 100;
+      service.price = basePrice;
+      service._doc.cutPrice = price;
+      if (service.variables.length) {
+        for (let variable of service.variables) {
+          let price = variable.price;
+          let basePrice = price - (price * discount) / 100;
+          variable.price = basePrice;
+          variable._doc.cutPrice = price;
+        }
+      }
+    }
     res.json(wrapperMessage("success", "", data));
   } catch (err) {
     console.log(err);
