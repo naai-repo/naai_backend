@@ -6,6 +6,7 @@ const Booking = require("../../model/partnerApp/Booking");
 const wrapperMessage = require("../../helper/wrapperMessage");
 const jwtVerify = require("../../middleware/jwtVerification");
 const Service = require("../../model/partnerApp/Service");
+const CommonUtils = require("../../helper/commonUtils");
 
 // User ID : 64f786e3b23d28509e6791e0
 // saloon ID : 64f786e3b23d28509e6791e1
@@ -201,21 +202,8 @@ router.get("/single/:id", async (req, res) => {
       throw err;
     }
     let discount = salonData.discount;
-    let services = data.services;
-    for (let service of services) {
-      let price = service.price;
-      let basePrice = price - (price * discount) / 100;
-      service.price = basePrice;
-      service._doc.cutPrice = price;
-      if (service.variables.length) {
-        for (let variable of service.variables) {
-          let price = variable.price;
-          let basePrice = price - (price * discount) / 100;
-          variable.price = basePrice;
-          variable._doc.cutPrice = price;
-        }
-      }
-    }
+    let services = await CommonUtils.addDiscountToServices(discount, data.services);
+    data.services = services;
     res.json(wrapperMessage("success", "", data));
   } catch (err) {
     console.log(err);
