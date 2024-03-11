@@ -1,4 +1,5 @@
 const axios = require("axios");
+const Service = require("../model/partnerApp/Service");
 class CommonUtils {
   static isEmail(email) {
     return /^\S+@\S+\.\S+$/i.test(email);
@@ -28,6 +29,49 @@ class CommonUtils {
         },
       }
     );
+  }
+
+  static addDiscountToServices(discount, services) {
+    return new Promise((resolve, reject) => {
+      for (let service of services) {
+        let price = service.price;
+        let basePrice = price - (price * discount) / 100;
+        service.price = basePrice;
+        service._doc.cutPrice = price;
+        if (service.variables.length) {
+          for (let variable of service.variables) {
+            let price = variable.price;
+            let basePrice = price - (price * discount) / 100;
+            variable.price = basePrice;
+            variable._doc.cutPrice = price;
+          }
+        }
+      }
+      resolve(services);
+    });
+  }
+
+  static async updateDiscountedServicePrice(salonId, discount) {
+    try {
+      let services = await Service.find({salonId});
+      let saveServicesPromiseArr = [];
+      for (let service of services) {
+        let cutPrice = service.cutPrice;
+        let basePrice = cutPrice - (cutPrice * discount) / 100;
+        service.basePrice = basePrice;
+        if (service.variables.length) {
+          for (let variable of service.variables) {
+            let cutPrice = variable.variableCutPrice;
+            let basePrice = cutPrice - (cutPrice * discount) / 100;
+            variable.variablePrice = basePrice;
+          }
+        }
+        saveServicesPromiseArr.push(service.save());
+      }
+      await Promise.all(saveServicesPromiseArr);
+    } catch (err) {
+      console.log(err);
+    }
   }
 }
 
