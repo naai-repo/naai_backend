@@ -6,6 +6,7 @@ const Artist = require("../../model/partnerApp/Artist");
 const wrapperMessage = require("../../helper/wrapperMessage");
 const Service = require("../../model/partnerApp/Service");
 const jwtVerify = require("../../middleware/jwtVerification");
+const CommonUtils = require("../../helper/commonUtils");
 const ObjectId = mongoose.Types.ObjectId;
 
 // User ID : 64f786e3b23d28509e6791e0
@@ -190,6 +191,16 @@ router.get("/single/:id", async (req, res) => {
       throw err;
     }
     let artistData = await Artist.find({ salonId: req.params.id });
+    let artistDiscountedServicesPromiseArr = [];
+    for(let artist of artistData){
+      artistDiscountedServicesPromiseArr.push(
+        CommonUtils.addDiscountToServices(data.discount, artist.services)
+      );
+    }
+    let artistDiscountedServicesArr = await Promise.all(artistDiscountedServicesPromiseArr);
+    for(let index in artistDiscountedServicesArr){
+      artistData[index].services = artistDiscountedServicesArr[index];
+    }
     let serviceIds = new Set();
     artistData.forEach((artist) => {
       artist.services.forEach((service) => {
@@ -441,5 +452,25 @@ router.post("/filter", async (req, res) => {
     res.status(err.code || 500).json(wrapperMessage("failed", err.message));
   }
 });
+
+router.post("/update/discount", async (req, res) => {
+  try{
+    let discount = Number(req.body.discount);
+    let salonId = req.body.salonId;
+    let salonData = await Salon.findOne({ _id: salonId });
+    if (!salonData) {
+      let err = new Error("No such salon exists!");
+      err.code = 404;
+      throw err;
+    }
+    salonData.discount = discount;
+    await salonData.save();
+    await CommonUtils.updateDiscountedServicePrice(salonId, discount);
+    res.status(200).json(wrapperMessage("success", "Discount updated successfully!"));
+  }catch(err){
+    console.log(err);
+    res.status(err.code || 500).json(wrapperMessage("failed", err.message));
+  }
+})
 
 module.exports = router;
