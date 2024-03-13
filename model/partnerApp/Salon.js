@@ -93,6 +93,16 @@ const SalonSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    discountTime: {
+      start: {
+        type: String,
+        default: ""
+      },
+      end: {
+        type: String,
+        default: ""
+      }
+    },
     links: {
       instagram: {
         type: String,

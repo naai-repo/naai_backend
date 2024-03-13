@@ -192,13 +192,15 @@ router.get("/single/:id", async (req, res) => {
     }
     let artistData = await Artist.find({ salonId: req.params.id });
     let artistDiscountedServicesPromiseArr = [];
-    for(let artist of artistData){
+    for (let artist of artistData) {
       artistDiscountedServicesPromiseArr.push(
         CommonUtils.addDiscountToServices(data.discount, artist.services)
       );
     }
-    let artistDiscountedServicesArr = await Promise.all(artistDiscountedServicesPromiseArr);
-    for(let index in artistDiscountedServicesArr){
+    let artistDiscountedServicesArr = await Promise.all(
+      artistDiscountedServicesPromiseArr
+    );
+    for (let index in artistDiscountedServicesArr) {
       artistData[index].services = artistDiscountedServicesArr[index];
     }
     let serviceIds = new Set();
@@ -454,9 +456,11 @@ router.post("/filter", async (req, res) => {
 });
 
 router.post("/update/discount", async (req, res) => {
-  try{
+  try {
     let discount = Number(req.body.discount);
     let salonId = req.body.salonId;
+    let startDate = req.body.startDate;
+    let endDate = req.body.endDate;
     let salonData = await Salon.findOne({ _id: salonId });
     if (!salonData) {
       let err = new Error("No such salon exists!");
@@ -464,13 +468,39 @@ router.post("/update/discount", async (req, res) => {
       throw err;
     }
     salonData.discount = discount;
+    if (!startDate) {
+      salonData.discountTime.start = "";
+    } else {
+      startDate = startDate.split("/").map((item) => Number(item));
+      salonData.discountTime.start = new Date(
+        startDate[2],
+        startDate[0] - 1,
+        startDate[1],
+        0,
+        0
+      ).toISOString();
+    }
+    if (!endDate) {
+      salonData.discountTime.end = "";
+    } else {
+      endDate = endDate.split("/").map((item) => Number(item));
+      salonData.discountTime.end = new Date(
+        endDate[2],
+        endDate[0] - 1,
+        endDate[1],
+        0,
+        0
+      ).toISOString();
+    }
     await salonData.save();
     await CommonUtils.updateDiscountedServicePrice(salonId, discount);
-    res.status(200).json(wrapperMessage("success", "Discount updated successfully!"));
-  }catch(err){
+    res
+      .status(200)
+      .json(wrapperMessage("success", "Discount updated successfully!"));
+  } catch (err) {
     console.log(err);
     res.status(err.code || 500).json(wrapperMessage("failed", err.message));
   }
-})
+});
 
 module.exports = router;

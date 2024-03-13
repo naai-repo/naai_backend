@@ -29,6 +29,7 @@ const LocationRouter = require("./routes/customerApp/locationRouter");
 
 // Booking Appointment
 const SchedulingRouter = require("./routes/bookingRoutes/schedulingRoutes");
+const { testing } = require("./helper/scheduler");
 
 // MiddleWares
 app.use(express.json());
@@ -84,6 +85,15 @@ app.get("/artist/:id", (req, res) => {
 
 app.get("/.well-known/assetlinks.json", (req, res) => {
   res.sendFile(__dirname + "/deep-linking/assetlinks.json");
+});
+
+app.get("/test", async (req, res) => {
+  try {
+    console.log("Testing started!");
+    testing("2024-03-11T20:24:00.000Z");
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 app.listen(PORT, async () => {
