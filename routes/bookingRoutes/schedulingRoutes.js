@@ -465,8 +465,8 @@ router.post("/confirm", jwtVerify, async (req, res) => {
                 <p>Artist Id : ${obj.artistId}</p>
                 <p>Artist Name : ${artistList[index].name}</p>
                 <p>Timeslot : ${obj.timeSlot.start} - ${obj.timeSlot.end}</p>
-                <p>Service Price (Discounted) : ${obj.servicePrice}</p>
-                <p>Service Price (Original) : ${obj.serviceCutPrice}</p>
+                <p>Service Price (Original) : ${obj.servicePrice}</p>
+                <p>Service Price (Discounted) : ${obj.discountedPrice}</p>
             `;
           });
           let servicesData = serviceMap.join("&ensp;");
