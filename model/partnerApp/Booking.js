@@ -81,7 +81,7 @@ const bookingSchema = new mongoose.Schema(
           type: Number,
           required: true,   
         },
-        serviceCutPrice: {
+        discountedPrice: {
           type: Number,
           required: true,   
         },

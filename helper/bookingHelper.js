@@ -481,13 +481,13 @@ const getBookingPrice = (booking) => {
             err.code = 404;
             throw err;
           }
-          services[index].servicePrice = variable.price - (variable.price * discount) / 100;
-          services[index].serviceCutPrice = variable.price;
+          services[index].discountedPrice = variable.price - (variable.price * discount) / 100;
+          services[index].servicePrice = variable.price;
           amount += variable.price;
           price += variable.price - (variable.price * discount) / 100;
         } else {
-          services[index].servicePrice = service.price - (service.price * discount) / 100;
-          services[index].serviceCutPrice = service.price
+          services[index].discountedPrice = service.price - (service.price * discount) / 100;
+          services[index].servicePrice = service.price
           price += service.price - (service.price * discount) / 100;
           amount += service.price;
         }
