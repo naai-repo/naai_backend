@@ -440,8 +440,11 @@ const getBookingPrice = (booking) => {
   return new Promise(async (resolve, reject) => {
     try {
       let price = 0;
+      let amount = 0;
       let services = booking.artistServiceMap;
       let artistPromiseArr = [];
+      let salonData = await Salon.findOne({ _id: booking.salonId });
+      const discount = salonData.discount;
       for (let service of services) {
         artistPromiseArr.push(Artist.findOne({ _id: service.artistId }));
       }
@@ -478,14 +481,17 @@ const getBookingPrice = (booking) => {
             err.code = 404;
             throw err;
           }
-          services[index].servicePrice = variable.price;
-          price += variable.price;
+          services[index].servicePrice = variable.price - (variable.price * discount) / 100;
+          services[index].serviceCutPrice = variable.price;
+          amount += variable.price;
+          price += variable.price - (variable.price * discount) / 100;
         } else {
-          services[index].servicePrice = service.price;
-          price += service.price;
+          services[index].servicePrice = service.price - (service.price * discount) / 100;
+          services[index].serviceCutPrice = service.price
+          price += service.price - (service.price * discount) / 100;
+          amount += service.price;
         }
       }
-      let amount = price;
       resolve({ ...booking, amount: amount, paymentAmount: price });
     } catch (err) {
       reject(err);
