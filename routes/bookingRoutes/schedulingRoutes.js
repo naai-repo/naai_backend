@@ -169,7 +169,7 @@ router.post("/schedule", jwtVerify, async (req, res) => {
       newRequests,
       salonSlotsLength,
       salonId,
-      new Date(date)
+      date
     );
     let perms = permutations(request);
     let randomArtistService = newRequests.filter(
@@ -409,7 +409,7 @@ router.post("/book", jwtVerify, async (req, res) => {
 router.post("/confirm", jwtVerify, async (req, res) => {
   try {
     let data = req.body.booking;
-    data = await getBookingPrice(data)
+    data = await getBookingPrice(data);
     let totalTime = req.body.totalTime;
     let userId = req.user.id;
     let newBooking = new Booking(data);
