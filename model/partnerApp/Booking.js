@@ -81,6 +81,10 @@ const bookingSchema = new mongoose.Schema(
           type: Number,
           required: true,   
         },
+        discountedPrice: {
+          type: Number,
+          required: true,   
+        },
         timeSlot: {
           start: {
             type: String,

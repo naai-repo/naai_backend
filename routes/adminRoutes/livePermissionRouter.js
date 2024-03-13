@@ -9,6 +9,11 @@ router.post('/live/salon', async (req, res) => {
     try{
         let {salonId, live} = req.body;
         let salon = await Salon.updateOne({_id: salonId}, {live: live});
+        let artists = await Artist.find({salonId: salonId});
+        await Promise.all(artists.map(artist => {
+            artist.live = live;
+            return artist.save();
+        }))
         if(live){
             res.json(wrapperMessage("success", "Salon granted live permission", salon));
         }else{

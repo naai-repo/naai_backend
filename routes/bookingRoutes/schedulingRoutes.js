@@ -169,7 +169,7 @@ router.post("/schedule", jwtVerify, async (req, res) => {
       newRequests,
       salonSlotsLength,
       salonId,
-      new Date(date)
+      date
     );
     let perms = permutations(request);
     let randomArtistService = newRequests.filter(
@@ -398,7 +398,6 @@ router.post("/book", jwtVerify, async (req, res) => {
       bookingType: Array.from(artistSet).length === 1 ? "single" : "multiple",
       artistServiceMap,
     };
-    data = await getBookingPrice(data);
     res.status(200).json({ booking: data, totalTime: totalTime });
   } catch (err) {
     console.log(err);
@@ -409,6 +408,7 @@ router.post("/book", jwtVerify, async (req, res) => {
 router.post("/confirm", jwtVerify, async (req, res) => {
   try {
     let data = req.body.booking;
+    data = await getBookingPrice(data);
     let totalTime = req.body.totalTime;
     let userId = req.user.id;
     let newBooking = new Booking(data);
@@ -465,6 +465,8 @@ router.post("/confirm", jwtVerify, async (req, res) => {
                 <p>Artist Id : ${obj.artistId}</p>
                 <p>Artist Name : ${artistList[index].name}</p>
                 <p>Timeslot : ${obj.timeSlot.start} - ${obj.timeSlot.end}</p>
+                <p>Service Price (Original) : ${obj.servicePrice}</p>
+                <p>Service Price (Discounted) : ${obj.discountedPrice}</p>
             `;
           });
           let servicesData = serviceMap.join("&ensp;");
@@ -479,6 +481,8 @@ router.post("/confirm", jwtVerify, async (req, res) => {
                   ).toLocaleString("en-GB", dateOptions)}</p>
                   <p>Booking Time: ${booking.timeSlot.start}</p>
                   <p>Booking Payment Status: ${booking.paymentStatus}</p>
+                  <p>Booking Amount (Discounted): ${booking.paymentAmount}</p>
+                  <p>Booking Amount (Original): ${booking.amount}</p>
                   <p>User Name: ${user.name}</p>
                   <p>User Id: ${user._id}</p>
                   <p>User Phonenumber: ${user.phoneNumber}</p>
@@ -513,14 +517,17 @@ router.post("/confirm", jwtVerify, async (req, res) => {
     endDate = new Date(endDate);
     await scheduleJobToChangeBookingStatus(startDate, booking, "in-progress");
     scheduleJobToChangeBookingStatus(endDate, booking, "completed")
-    .then(async (b) =>{
-      let serviceIds = b.artistServiceMap.map(o => o.serviceId.toString())
-      await updateInventoryOnServiceCompletion(serviceIds);
-    }).catch((err)=>{
-     if(err){
-      res.status(err.code || 500).json(wrapperMessage("error in product updation", err.message));
-     }
-    })
+      .then(async (b) => {
+        let serviceIds = b.artistServiceMap.map((o) => o.serviceId.toString());
+        await updateInventoryOnServiceCompletion(serviceIds);
+      })
+      .catch((err) => {
+        if (err) {
+          res
+            .status(err.code || 500)
+            .json(wrapperMessage("error in product updation", err.message));
+        }
+      });
     res.json(wrapperMessage("success", "Booking Confirmed!", booking));
   } catch (err) {
     console.log(err);
@@ -594,15 +601,20 @@ router.post("/bookAgain", jwtVerify, async (req, res) => {
       }
       requests.push(obj);
     });
-    for(let request of requests) {
-      if("variable" in request) {
-        let variable = await Service.findOne({ _id: request.service, variables: { $elemMatch: { _id: request.variable } } });
-        if(!variable) {
+    for (let request of requests) {
+      if ("variable" in request) {
+        let variable = await Service.findOne({
+          _id: request.service,
+          variables: { $elemMatch: { _id: request.variable } },
+        });
+        if (!variable) {
           let err = new Error("No such variable found!");
           err.code = 404;
           throw err;
         }
-        request.variable = variable.variables.filter((ele) => ele._id.toString() === request.variable)[0];
+        request.variable = variable.variables.filter(
+          (ele) => ele._id.toString() === request.variable
+        )[0];
       }
     }
     res
@@ -629,11 +641,11 @@ router.get("/user/bookings", jwtVerify, async (req, res) => {
     date = new Date(`${mm}-${dd}-${yyyy}`);
     let current_bookings = await Booking.find({
       userId: userId,
-      bookingStatus: "in-progress"
+      bookingStatus: "in-progress",
     });
     let previous_bookings = await Booking.find({
       userId: userId,
-      bookingStatus: "completed"
+      bookingStatus: "completed",
     }).sort({ bookingDate: -1 });
     let upcoming_bookings = await Booking.find({
       userId: userId,
@@ -687,59 +699,66 @@ router.post("/status", async (req, res) => {
   }
 });
 
-
 async function updateInventoryOnServiceCompletion(serviceIds) {
-    try {
-        
-        if (!Array.isArray(serviceIds) || serviceIds.length === 0) {
-            console.log('No service IDs provided.');
-            return;
-        }
-
-        const services = await Service.find({ _id: { $in: serviceIds } }).populate('productsUsed.product');
-
-        if (services.length === 0) {
-            console.log('No services found.');
-            return;
-        }
-
-        for (const service of services) {
-         
-            if (!service.productsUsed || service.productsUsed.length === 0) {
-                console.log(`No products used in service ${service._id}.`);
-                continue;
-            }
-
-            // Iterate over the products used in the service
-            for (const productUsage of service.productsUsed) {
-                const productId = productUsage.product._id;
-                const usageQuantity = productUsage.usagePerService;
-                const productName = productUsage.product.name; 
-
-                if (!productId) {
-                    console.log(`Invalid product ID for product ${productName} in service ${service._id}.`);
-                    continue;
-                }
-
-                const inventoryItem = await Product.findOne({ _id: productId });
-                if (inventoryItem) {
-                    if (inventoryItem.totalQuantity >= usageQuantity) {
-                        inventoryItem.totalQuantity -= usageQuantity;
-                        await inventoryItem.save();
-                        console.log(`Deducted ${usageQuantity} ${productName} from inventory for service ${service._id}.`);
-                    } else {
-                        console.log(`Insufficient quantity of ${productName} in inventory for service ${service._id}.`);
-                    }
-                } else {
-                    console.log(`Inventory not found for product ${productName} in service ${service._id}.`);
-                }
-            }
-
-            console.log(`Service ${service._id} completed successfully.`);
-        }
-    } catch (error) {
-        console.error('Error completing services:', error);
+  try {
+    if (!Array.isArray(serviceIds) || serviceIds.length === 0) {
+      console.log("No service IDs provided.");
+      return;
     }
+
+    const services = await Service.find({ _id: { $in: serviceIds } }).populate(
+      "productsUsed.product"
+    );
+
+    if (services.length === 0) {
+      console.log("No services found.");
+      return;
+    }
+
+    for (const service of services) {
+      if (!service.productsUsed || service.productsUsed.length === 0) {
+        console.log(`No products used in service ${service._id}.`);
+        continue;
+      }
+
+      // Iterate over the products used in the service
+      for (const productUsage of service.productsUsed) {
+        const productId = productUsage.product._id;
+        const usageQuantity = productUsage.usagePerService;
+        const productName = productUsage.product.name;
+
+        if (!productId) {
+          console.log(
+            `Invalid product ID for product ${productName} in service ${service._id}.`
+          );
+          continue;
+        }
+
+        const inventoryItem = await Product.findOne({ _id: productId });
+        if (inventoryItem) {
+          if (inventoryItem.totalQuantity >= usageQuantity) {
+            inventoryItem.totalQuantity -= usageQuantity;
+            await inventoryItem.save();
+            console.log(
+              `Deducted ${usageQuantity} ${productName} from inventory for service ${service._id}.`
+            );
+          } else {
+            console.log(
+              `Insufficient quantity of ${productName} in inventory for service ${service._id}.`
+            );
+          }
+        } else {
+          console.log(
+            `Inventory not found for product ${productName} in service ${service._id}.`
+          );
+        }
+      }
+
+      console.log(`Service ${service._id} completed successfully.`);
+    }
+  } catch (error) {
+    console.error("Error completing services:", error);
+  }
 }
 
 module.exports = router;
