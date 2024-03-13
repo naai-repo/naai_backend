@@ -22,6 +22,20 @@ const scheduleJobToChangeBookingStatus = (date, booking, status) => {
   });
 };
 
+const testing = (time) => {
+  return new Promise((resolve, reject) => {
+    try {
+      schedule.scheduleJob(time, async () => {
+        console.log("Testing");
+      });
+      resolve();
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
+
 module.exports = {
   scheduleJobToChangeBookingStatus,
+  testing
 };
