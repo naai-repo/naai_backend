@@ -398,7 +398,6 @@ router.post("/book", jwtVerify, async (req, res) => {
       bookingType: Array.from(artistSet).length === 1 ? "single" : "multiple",
       artistServiceMap,
     };
-    data = await getBookingPrice(data);
     res.status(200).json({ booking: data, totalTime: totalTime });
   } catch (err) {
     console.log(err);
@@ -409,6 +408,7 @@ router.post("/book", jwtVerify, async (req, res) => {
 router.post("/confirm", jwtVerify, async (req, res) => {
   try {
     let data = req.body.booking;
+    data = await getBookingPrice(data)
     let totalTime = req.body.totalTime;
     let userId = req.user.id;
     let newBooking = new Booking(data);
