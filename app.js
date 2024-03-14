@@ -29,6 +29,7 @@ const LocationRouter = require("./routes/customerApp/locationRouter");
 
 // Booking Appointment
 const SchedulingRouter = require("./routes/bookingRoutes/schedulingRoutes");
+const { testing } = require("./helper/scheduler");
 
 // MiddleWares
 app.use(express.json());
