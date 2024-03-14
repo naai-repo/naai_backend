@@ -87,13 +87,8 @@ app.get("/.well-known/assetlinks.json", (req, res) => {
   res.sendFile(__dirname + "/deep-linking/assetlinks.json");
 });
 
-app.get("/test", async (req, res) => {
-  try {
-    console.log("Testing started!");
-    testing("2024-03-11T20:24:00.000Z");
-  } catch (err) {
-    console.log(err);
-  }
+app.get("/.well-known/apple-app-site-association",(req,res) =>{
+  res.setHeader("Content-Type","application/json").sendFile(__dirname + "/deep-linking/apple-app-site-association");
 });
 
 app.listen(PORT, async () => {
