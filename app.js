@@ -86,6 +86,10 @@ app.get("/.well-known/assetlinks.json", (req, res) => {
   res.sendFile(__dirname + "/deep-linking/assetlinks.json");
 });
 
+app.get("/.well-known/apple-app-site-association",(req,res) =>{
+  res.setHeader("Content-Type","application/json").sendFile(__dirname + "/deep-linking/apple-app-site-association");
+});
+
 app.listen(PORT, async () => {
   try {
     //connecting to database
