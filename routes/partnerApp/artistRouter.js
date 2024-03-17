@@ -228,6 +228,11 @@ router.post("/topArtists", async (req, res) => {
       },
       {
         $match: {
+          live: true
+        }
+      },
+      {
+        $match: {
           $or: [
             { targetGender: req.query.type },
             { targetGender: "unisex" },
@@ -325,6 +330,11 @@ router.post("/filter", async (req, res) => {
           distanceField: "distance",
           distanceMultiplier: 0.001,
         },
+      },
+      {
+        $match: {
+          live: true
+        }
       },
       {
         $match: {
