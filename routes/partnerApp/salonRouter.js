@@ -248,6 +248,11 @@ router.post("/topSalons", async (req, res) => {
       },
       {
         $match: {
+          live: true
+        }
+      },
+      {
+        $match: {
           $or: [
             { salonType: req.query.type },
             { salonType: "unisex" },
@@ -351,6 +356,11 @@ router.post("/filter", async (req, res) => {
           distanceField: "distance",
           distanceMultiplier: 0.001,
         },
+      },
+      {
+        $match: {
+          live: true
+        }
       },
       {
         $match: {
