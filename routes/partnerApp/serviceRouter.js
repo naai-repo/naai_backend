@@ -157,6 +157,11 @@ router.post("/search/salon", async (req, res) => {
       },
       {
         $match: {
+          live: true
+        }
+      },
+      {
+        $match: {
           $or: [
             { salonType: req.query.type },
             { salonType: "unisex" },
