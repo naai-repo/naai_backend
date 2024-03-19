@@ -388,6 +388,7 @@ router.post("/filter", async (req, res) => {
         }
       );
     }
+    
     let salons = await Salon.aggregate(
       FilterUtils.aggregationForDiscount(
         geoNear,
