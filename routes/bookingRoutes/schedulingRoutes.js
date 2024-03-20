@@ -476,6 +476,14 @@ router.post("/confirm", jwtVerify, async (req, res) => {
                   <h1>Booking Details</h1>
                   <p>Booking Id: ${booking._id}</p>
                   <p>Booking Type: ${booking.bookingType}</p>
+                  <p>Booking Created On: ${new Date(
+                    booking.createdAt
+                  ).toLocaleString("en-GB", {
+                    dateStyle: "full",
+                    timeStyle: "long",
+                    hour12: true,
+                    timeZone: "Asia/Kolkata",
+                  })}</p>
                   <p>Booking Date: ${new Date(
                     booking.bookingDate
                   ).toLocaleString("en-GB", dateOptions)}</p>
