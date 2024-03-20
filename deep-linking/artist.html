@@ -18,4 +18,22 @@
 <body>
     <h1>This is artist page</h1>
 </body>
+<script>
+    let userAgent = navigator.userAgent.toLowerCase();
+    if (userAgent.indexOf("android") > -1) {
+      userAgent = "Android";
+      window.location.href =
+        "https://play.google.com/store/apps/details?id=com.naai.flutterApp";
+    } else if (userAgent.indexOf("iphone") > -1) {
+      userAgent = "IOS";
+      window.location.href = "https://apps.apple.com/in/app/naai/id6463771158";
+    } else {
+      userAgent = "Others";
+      window.alert("Please use an Android or IOS device to open this link");
+    }
+    let body = document.querySelector("body");
+    let div = document.createElement("div");
+    div.innerHTML = userAgent;
+    body.appendChild(div);
+</script>
 </html>
