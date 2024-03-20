@@ -341,8 +341,10 @@ router.post("/filter", async (req, res) => {
     let queryObject = [];
     let salonArr = [];
     if (category) {
-      queryObject.push({ serviceTitle: { $regex: category, $options: "i" } });
-      queryObject.push({ category: { $regex: category, $options: "i" } });
+      let serviceTitleMatch = category.map(ele => ({ serviceTitle: { $regex: ele, $options: "i" } }));
+      let categoryMatch = category.map(ele => ({ category: { $regex: ele, $options: "i" } }));
+      queryObject.push({ $or: serviceTitleMatch });
+      queryObject.push({ $or: categoryMatch});
       let serviceArr = await Service.find({
         $or: queryObject,
         $nor: [{ salonId: null }],
@@ -388,11 +390,11 @@ router.post("/filter", async (req, res) => {
         }
       );
     }
-    
+
     let salons = await Salon.aggregate(
       FilterUtils.aggregationForDiscount(
         geoNear,
-        req.query.type,
+        req.query.gender,
         typePresent,
         discountMax,
         discountMin,

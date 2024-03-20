@@ -1,3 +1,4 @@
+const Artist = require("../model/partnerApp/Artist");
 const Booking = require("../model/partnerApp/Booking");
 const Salon = require("../model/partnerApp/Salon");
 const Service = require("../model/partnerApp/Service");
@@ -51,6 +52,60 @@ class FilterUtils {
               discount: {
                 $lt: discountMax,
               },
+            },
+          ],
+        },
+      },
+      {
+        $match: {
+          $and: [
+            {
+              rating: {
+                $gte: ratingMin,
+              },
+            },
+            {
+              rating: {
+                $lte: ratingMax,
+              },
+            },
+          ],
+        },
+      },
+    ];
+    return aggregation;
+  }
+
+  static aggregationForArtists(
+    geoNear,
+    targetGender,
+    typePresent,
+    ratingMax = 5,
+    ratingMin = 0
+  ) {
+    const aggregation = [
+      ...geoNear,
+      {
+        $match: {
+          live: true,
+        },
+      },
+      {
+        $match: {
+          $or: [
+            { targetGender: targetGender },
+            { targetGender: "unisex" },
+            {
+              $and: [
+                { randomFieldToCheck: { $exists: typePresent } },
+                {
+                  $or: [
+                    { targetGender: "male" },
+                    { targetGender: "female" },
+                    { targetGender: "unisex" },
+                  ],
+                },
+              ],
             },
           ],
         },
@@ -238,6 +293,50 @@ class FilterUtils {
             (pricePoints[salon.priceType] || 0) * 0.07;
 
           if (salon.paid) {
+            score += 0.2;
+          }
+
+          list[itr]["score"] = score;
+        }
+        return list;
+    }
+  }
+
+  static async getScoreForArtists(strategy, list, maxDistance, end) {
+    let maxRating = 5;
+    let totalBookings = await Booking.find().count("val");
+    let totalArtists = await Artist.find().count("artist");
+    let avgBookings = totalBookings / totalArtists;
+
+    switch (strategy) {
+      case "rating": 
+        for (let itr = 0; itr <= end; itr++) {
+          let artist = list[itr];
+          let score = 0;
+          score =
+            ((maxDistance - artist.distance) / maxDistance) * 0.4 +
+            (artist.rating / maxRating) * 0.4;
+
+          if (artist.paid) {
+            score += 0.2;
+          }
+
+          list[itr]["score"] = score;
+        }
+        return list;
+        
+      default:
+        for (let itr = 0; itr <= end; itr++) {
+          let artist = list[itr];
+          let bookings =
+            artist.bookings >= avgBookings ? avgBookings : artist.bookings;
+          let score = 0;
+          score =
+            ((maxDistance - artist.distance) / maxDistance) * 0.5 +
+            (artist.rating / maxRating) * 0.3 +
+            (bookings / avgBookings) * 0.2;
+
+          if (artist.paid) {
             score += 0.2;
           }
 
