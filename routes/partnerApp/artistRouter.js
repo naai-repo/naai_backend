@@ -280,7 +280,8 @@ router.post("/topArtists", async (req, res) => {
       "relevance",
       artists,
       maxDistance,
-      end
+      end,
+      "desc"
     );
 
     artists.sort((a, b) => {
@@ -390,23 +391,16 @@ router.post("/filter", async (req, res) => {
       filter,
       artists,
       maxDistance,
-      end
+      end,
+      order
     );
 
     // Sorting the artists based on the order ascending or descending
-    if (order === "asc") {
-      artists.sort((a, b) => {
-        if (a.score > b.score) return 1;
-        else if (a.score < b.score) return -1;
-        else return 0;
-      });
-    } else {
-      artists.sort((a, b) => {
-        if (a.score < b.score) return 1;
-        else if (a.score > b.score) return -1;
-        else return 0;
-      });
-    }
+    artists.sort((a, b) => {
+      if (a.score < b.score) return 1;
+      else if (a.score > b.score) return -1;
+      else return 0;
+    });
 
     let data = [];
     for (let itr = skip; itr < skip + limit; itr++) {
