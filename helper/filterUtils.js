@@ -536,7 +536,7 @@ class FilterUtils {
           list[itr]["score"] = score;
         }
         return list;
-
+        
       default:
         for (let itr = 0; itr <= end; itr++) {
           let artist = list[itr];
