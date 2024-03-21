@@ -289,7 +289,7 @@ router.post("/topSalons", async (req, res) => {
       end = 1000;
     }
 
-    salons = await FilterUtils.getScore("relevance", salons, maxDistance, end);
+    salons = await FilterUtils.getScore("relevance", salons, maxDistance, end, "desc");
     salons.sort((a, b) => {
       if (a.score < b.score) return 1;
       else if (a.score > b.score) return -1;
@@ -416,22 +416,13 @@ router.post("/filter", async (req, res) => {
       end = 1000;
     }
 
-    salons = await FilterUtils.getScore(filter, salons, maxDistance, end);
+    salons = await FilterUtils.getScore(filter, salons, maxDistance, end, order);
 
-    // Sorting the salons based on the order ascending or descending
-    if (order === "asc") {
-      salons.sort((a, b) => {
-        if (a.score > b.score) return 1;
-        else if (a.score < b.score) return -1;
-        else return 0;
-      });
-    } else {
-      salons.sort((a, b) => {
-        if (a.score < b.score) return 1;
-        else if (a.score > b.score) return -1;
-        else return 0;
-      });
-    }
+    salons.sort((a, b) => {
+      if (a.score < b.score) return 1;
+      else if (a.score > b.score) return -1;
+      else return 0;
+    });
 
     let data = [];
     for (let itr = skip; itr < skip + limit; itr++) {
