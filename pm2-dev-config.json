@@ -3,7 +3,7 @@
         {
             "name": "dev-app",
             "script": "npm",
-            "args" : "start_dev"
+            "args" : "run start_dev"
         }
     ]
 }
