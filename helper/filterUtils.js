@@ -182,7 +182,7 @@ class FilterUtils {
     return aggregation;
   }
 
-  static async addAvgPriceData(list) {
+  static async addAvgPriceData(list, priceTags) {
     let salonIdsToFilter = list.map((salon) => salon._id);
     const aggregation = [
       {
@@ -251,10 +251,17 @@ class FilterUtils {
 
       return { ...obj, ...extraData };
     });
+
+    if (priceTags.length !== 0) {
+      salonsData = salonsData.filter((salon) =>
+        priceTags.includes(salon.priceType.toLowerCase())
+      );
+    }
+
     return salonsData;
   }
 
-  static async addPriceTagToArtists(list) {
+  static async addPriceTagToArtists(list, priceTags) {
     let salonIdsToFilter = list.map((artist) => artist.salonId);
 
     const aggregation = [
@@ -325,19 +332,32 @@ class FilterUtils {
         avgBasePrice: extraData.avgBasePrice,
       };
     });
+    if (priceTags.length !== 0) {
+      artistData = artistData.filter((artist) =>
+        priceTags.includes(artist.priceType.toLowerCase())
+      );
+    }
     return artistData;
   }
 
-  static async getScore(strategy, list, maxDistance, end, order) {
+  static async getScore(strategy, list, order, priceTags) {
     let maxRating = 5;
     let maxDiscount = 50;
     let totalBookings = await Booking.find().count("bookings");
     let totalSalons = await Salon.find().count("salons");
     let avgBookings = totalBookings / totalSalons;
-    list = await FilterUtils.addAvgPriceData(list);
-
+    list = await FilterUtils.addAvgPriceData(list, priceTags);
     // Price points for each price type
     const pricePoints = FilterUtils.getPricePoints(order);
+    let maxDistance = 0;
+    let end = 0;
+    if (list.length < 1000) {
+      maxDistance = list[list.length - 1].distance;
+      end = list.length - 1;
+    } else {
+      maxDistance = list[1000].distance;
+      end = 1000;
+    }
 
     switch (strategy) {
       case "discount":
@@ -371,7 +391,7 @@ class FilterUtils {
           }
           list[itr]["score"] = score;
         }
-        return list;
+        return { salons: list, end };
 
       case "rating":
         for (let itr = 0; itr <= end; itr++) {
@@ -405,7 +425,7 @@ class FilterUtils {
 
           list[itr]["score"] = score;
         }
-        return list;
+        return { salons: list, end };
 
       case "price":
         for (let itr = 0; itr <= end; itr++) {
@@ -439,7 +459,7 @@ class FilterUtils {
           }
           list[itr]["score"] = score;
         }
-        return list;
+        return { salons: list, end };
 
       default:
         for (let itr = 0; itr <= end; itr++) {
@@ -462,18 +482,28 @@ class FilterUtils {
 
           list[itr]["score"] = score;
         }
-        return list;
+        return { salons: list, end };
     }
   }
 
-  static async getScoreForArtists(strategy, list, maxDistance, end, order) {
+  static async getScoreForArtists(strategy, list, order, priceTags) {
     let maxRating = 5;
     let totalBookings = await Booking.find().count("val");
     let totalArtists = await Artist.find().count("artist");
     let avgBookings = totalBookings / totalArtists;
-    list = await FilterUtils.addPriceTagToArtists(list);
+    list = await FilterUtils.addPriceTagToArtists(list, priceTags);
 
     const pricePoints = FilterUtils.getPricePoints(order); // Price points for each price type
+    let maxDistance = 0;
+    let end = 0;
+
+    if (list.length < 1000) {
+      maxDistance = list[list.length - 1].distance;
+      end = list.length - 1;
+    } else {
+      maxDistance = list[1000].distance;
+      end = 1000;
+    }
 
     switch (strategy) {
       case "rating":
@@ -505,7 +535,7 @@ class FilterUtils {
 
           list[itr]["score"] = score;
         }
-        return list;
+        return { artists: list, end };
 
       case "price":
         for (let itr = 0; itr <= end; itr++) {
@@ -535,8 +565,8 @@ class FilterUtils {
           }
           list[itr]["score"] = score;
         }
-        return list;
-        
+        return { artists: list, end };
+
       default:
         for (let itr = 0; itr <= end; itr++) {
           let artist = list[itr];
@@ -554,7 +584,7 @@ class FilterUtils {
 
           list[itr]["score"] = score;
         }
-        return list;
+        return { artists: list, end };
     }
   }
 }

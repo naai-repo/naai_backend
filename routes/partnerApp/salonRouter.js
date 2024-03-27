@@ -279,17 +279,9 @@ router.post("/topSalons", async (req, res) => {
       return;
     }
 
-    let maxDistance = 0;
-    let end = 0;
-    if (salons.length < 1000) {
-      maxDistance = salons[salons.length - 1].distance;
-      end = salons.length - 1;
-    } else {
-      maxDistance = salons[1000].distance;
-      end = 1000;
-    }
-
-    salons = await FilterUtils.getScore("relevance", salons, maxDistance, end, "desc");
+    let salonsData = await FilterUtils.getScore("relevance", salons, "desc", []);
+    salons = salonsData.salons;
+    end = salonsData.end;
     salons.sort((a, b) => {
       if (a.score < b.score) return 1;
       else if (a.score > b.score) return -1;
@@ -312,6 +304,9 @@ router.post("/topSalons", async (req, res) => {
 router.post("/filter", async (req, res) => {
   try {
     let filter = req.query.sortBy?.toLowerCase() || "relevance";
+    let priceTags = req.query.priceTag || [];
+    priceTags = priceTags.map((ele) => ele.toLowerCase());
+    console.log(priceTags);
     let order = req.query.order?.toLowerCase() || "desc";
     let typePresent = req.query.gender ? true : false;
     if (!filter) {
@@ -334,9 +329,7 @@ router.post("/filter", async (req, res) => {
     let ratingMin = Number(req.query.minRating) || 0;
     let ratingMax = Number(req.query.maxRating) || 5;
     let distance = isNaN(Number(req.query.distance)) ? null : Number(req.query.distance);
-    let maxDistance = 0;
     let end = 0;
-
     let category = req.query.category;
     let queryObject = [];
     let salonArr = [];
@@ -408,15 +401,10 @@ router.post("/filter", async (req, res) => {
       return;
     }
 
-    if (salons.length < 1000) {
-      maxDistance = salons[salons.length - 1].distance;
-      end = salons.length - 1;
-    } else {
-      maxDistance = salons[1000].distance;
-      end = 1000;
-    }
+    let salonsData = await FilterUtils.getScore(filter, salons, order, priceTags);
 
-    salons = await FilterUtils.getScore(filter, salons, maxDistance, end, order);
+    salons = salonsData.salons;
+    end = salonsData.end;
 
     salons.sort((a, b) => {
       if (a.score < b.score) return 1;
