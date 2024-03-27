@@ -262,27 +262,18 @@ router.post("/topArtists", async (req, res) => {
       res.status(200).json(wrapperMessage("success", "No result found!", []));
       return;
     }
-    let totalBookings = await Booking.find().count("val");
-    let totalArtists = await Artist.find().count("artist");
-    let maxDistance = 0;
-    let maxRating = 5;
-    let avgBookings = totalBookings / totalArtists;
-    let end = 0;
-    if (artists.length < 1000) {
-      maxDistance = artists[artists.length - 1].distance;
-      end = artists.length - 1;
-    } else {
-      maxDistance = artists[1000].distance;
-      end = 1000;
-    }
 
-    artists = await FilterUtils.getScoreForArtists(
+    let end = 0;
+
+    let artistsData = await FilterUtils.getScoreForArtists(
       "relevance",
       artists,
-      maxDistance,
-      end,
-      "desc"
+      "desc",
+      []
     );
+
+    artists = artistsData.artists;
+    end = artistsData.end;
 
     artists.sort((a, b) => {
       if (a.score < b.score) return 1;
@@ -307,6 +298,8 @@ router.post("/filter", async (req, res) => {
   try {
     let filter = req.query.sortBy?.toLowerCase() || "relevance";
     let order = req.query.order?.toLowerCase() || "desc";
+    let priceTags = req.query.priceTag || [];
+    console.log(priceTags);
     if (!filter) {
       let error = new Error("Invalid filter selected!");
       error.code = 400;
@@ -353,14 +346,14 @@ router.post("/filter", async (req, res) => {
         },
       });
     }
-    if(category){
+    if (category) {
       geoNear.push({
         $match: {
           _id: {
             $in: artistArr,
           },
         },
-      })
+      });
     }
 
     let artists = await Artist.aggregate(
@@ -377,25 +370,18 @@ router.post("/filter", async (req, res) => {
       res.status(200).json(wrapperMessage("success", "No result found!", []));
       return;
     }
-    let maxDistance = 0;
     let end = 0;
-    if (artists.length < 1000) {
-      maxDistance = artists[artists.length - 1].distance;
-      end = artists.length - 1;
-    } else {
-      maxDistance = artists[1000].distance;
-      end = 1000;
-    }
 
-    artists = await FilterUtils.getScoreForArtists(
+    let artistsData = await FilterUtils.getScoreForArtists(
       filter,
       artists,
-      maxDistance,
-      end,
-      order
+      order,
+      priceTags
     );
 
-    // Sorting the artists based on the order ascending or descending
+    artists = artistsData.artists;
+    end = artistsData.end;
+
     artists.sort((a, b) => {
       if (a.score < b.score) return 1;
       else if (a.score > b.score) return -1;
