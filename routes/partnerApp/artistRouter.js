@@ -314,7 +314,7 @@ router.post("/filter", async (req, res) => {
     let page = Number(req.query.page) || 1;
     let limit = Number(req.query.limit) || 3;
     let skip = (page - 1) * limit;
-    let typePresent = req.query.targetGender ? true : false;
+    let typePresent = req.query.gender ? true : false;
     let ratingMin = Number(req.query.minRating) || 0;
     let ratingMax = Number(req.query.maxRating) || 5;
     let distance = isNaN(Number(req.query.distance))
@@ -359,7 +359,7 @@ router.post("/filter", async (req, res) => {
     let artists = await Artist.aggregate(
       FilterUtils.aggregationForArtists(
         geoNear,
-        req.query.targetGender,
+        req.query.gender,
         typePresent,
         ratingMax,
         ratingMin
