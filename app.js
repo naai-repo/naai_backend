@@ -29,7 +29,12 @@ const LocationRouter = require("./routes/customerApp/locationRouter");
 
 // Booking Appointment
 const SchedulingRouter = require("./routes/bookingRoutes/schedulingRoutes");
-const { testing } = require("./helper/scheduler");
+
+// Sales Router
+const SalesRouter = require("./routes/salesRoutes/sales.routes");
+
+// Referral System
+const ReferralRouter = require('./routes/referralRoutes/referral.routes');
 
 // MiddleWares
 app.use(express.json());
@@ -68,6 +73,12 @@ app.use("/customer/plan", PlanRouter);
 
 // Scheduling Appointments
 app.use("/appointments", SchedulingRouter);
+
+// Sales Routes
+app.use("/sales", SalesRouter);
+
+// Referral System Routes
+app.use('/referral', ReferralRouter);
 
 app.get("/", async (req, res) => {
   res.sendFile(__dirname + "/index.html");

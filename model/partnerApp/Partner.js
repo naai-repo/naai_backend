@@ -31,6 +31,10 @@ const PartnerSchema = new mongoose.Schema({
     verified: {
         type: Boolean,
         default: false
+    },
+    plan: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Plan'
     }
 },{
     timestamps: true
