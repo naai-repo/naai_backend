@@ -21,8 +21,7 @@ class ReferralUtils {
     let referralCode = referralCodes.generate({
       length: 8,
       count: 1,
-      prefix: `${initials}-`,
-      postfix: `-${from}`,
+      prefix: `${initials}-`
     });
     newReferral.referralCode = referralCode[0];
     let referral = await new Referral(newReferral).save();
