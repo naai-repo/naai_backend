@@ -19,6 +19,8 @@ const salesSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+}, {
+  timestamps: true
 });
 
 salesSchema.pre("save", async function (next) {
