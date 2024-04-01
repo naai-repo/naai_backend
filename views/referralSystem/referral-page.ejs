@@ -3,16 +3,49 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/public/css/header.css" />
+    <link rel="stylesheet" href="/public/css/footer.css" />
+    <link rel="stylesheet" href="/public/css/referral-page.css" />
     <title>Referral Page</title>
   </head>
   <body>
-    <p>Name: <%= data.sales.name%></p>
-    <p>email: <%= data.sales.email%></p>
-    <p>Number of Referrals given: <%= data.referral.numberOfReferrals%></p>
+    <%- include("../partials/header")%>
 
-    <h2>Your Referral code is: <%= data.referral.referralCode%></h2>
-    <p>
+    <section class="sales-info">
+      <p>Name: <%= data.sales.name%></p>
+      <p>email: <%= data.sales.email%></p>
+      <p>phone number: <%= data.sales.phoneNumber%></p>
+      <p>Number of Referrals given: <%= data.referral.numberOfReferrals%></p>
+
+      <h3>Your Referral code is: <%= data.referral.referralCode%></h3>
+      <p>
         <strong>Use the above code and Signup the salons.</strong>
-    </p>
+      </p>
+      <div class="referral-link">
+        <h2>Referral Link</h2>
+        <a
+          href="/sales/salon-onboarding?ref=<%= data.referral.referralCode%>"
+          id="referral-link"
+        >
+          The following is your referral link, Share the following to singup
+          salons!
+        </a>
+        <span onclick="copyLink()" class="copy-button">(Click to Copy the Link)</span>
+        <br />
+        <p>
+          <strong>Use the above code and Signup the salons.</strong>
+        </p>
+      </div>
+    </section>
+
+    <%- include("../partials/footer")%>
   </body>
+  <script>
+    function copyLink() {
+      var referralLink = document.getElementById("referral-link");
+      console.log(referralLink.href);
+      navigator.clipboard.writeText(referralLink.href);
+      alert("Referral Link Copied!");
+    }
+  </script>
 </html>

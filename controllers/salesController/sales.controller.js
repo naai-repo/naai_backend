@@ -5,10 +5,10 @@ const Sales = require("../../model/sales/sales.model");
 
 exports.createSalesAccount = async (req, res, next) => {
   try {
-    const { email, password, name } = req.body;
+    const { email, password, name, phoneNumber } = req.body;
 
     // Validations that the input given is correct
-    if (!email || !password || !name) {
+    if (!email || !password || !name || !phoneNumber) {
       let err = new Error("Please provide all required fields!");
       err.code = 400;
       throw err;
@@ -22,6 +22,10 @@ exports.createSalesAccount = async (req, res, next) => {
       throw err;
     } else if (password.length < 8) {
       let err = new Error("Password is too short!");
+      err.code = 400;
+      throw err;
+    }else if(phoneNumber.toString().length !== 10) {
+      let err = new Error("Invalid phone number entered!");
       err.code = 400;
       throw err;
     }
@@ -38,6 +42,7 @@ exports.createSalesAccount = async (req, res, next) => {
         email,
         password,
         name,
+        phoneNumber
       });
 
       let referral = await ReferralUtils.getReferralCode(
