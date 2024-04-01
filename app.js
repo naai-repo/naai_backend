@@ -38,7 +38,7 @@ const ReferralRouter = require("./routes/referralRoutes/referral.routes");
 
 // set the view engine to ejs
 app.set("view engine", "ejs");
-app.use('/public', express.static('public'));
+app.use("/public", express.static("public"));
 
 // MiddleWares
 app.use(express.json());
@@ -110,6 +110,14 @@ app.get("/.well-known/apple-app-site-association", (req, res) => {
 
 app.get("/sales/login-page", (req, res) => {
   res.render("referralSystem/login");
+});
+
+app.get("/sales/salon-onboarding", (req, res) => {
+  let hasReferral = req.query.ref ? true : false;
+  res.render("referralSystem/salon-onboarding", {
+    hasReferral,
+    referral_code: req.query.ref,
+  });
 });
 
 app.listen(PORT, async () => {

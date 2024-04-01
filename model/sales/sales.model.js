@@ -1,27 +1,41 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 
-const salesSchema = new mongoose.Schema({
-  email: {
-    type: String,
-    required: true,
+const salesSchema = new mongoose.Schema(
+  {
+    email: {
+      type: String,
+      required: true,
+    },
+    password: {
+      type: String,
+      required: true,
+    },
+    phoneNumber: {
+      type: Number,
+      required: true,
+      unique: true,
+      validate: {
+        validator: function (val) {
+          return val.toString().length === 10;
+        },
+        message: (val) => `${val.value} has to be 10 digits`,
+      },
+    },
+    referral_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Referral",
+      default: new mongoose.Types.ObjectId(process.env.NULL_OBJECT_ID),
+    },
+    name: {
+      type: String,
+      required: true,
+    },
   },
-  password: {
-    type: String,
-    required: true,
-  },
-  referral_id: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Referral",
-    default: new mongoose.Types.ObjectId(process.env.NULL_OBJECT_ID),
-  },
-  name: {
-    type: String,
-    required: true,
-  },
-}, {
-  timestamps: true
-});
+  {
+    timestamps: true,
+  }
+);
 
 salesSchema.pre("save", async function (next) {
   if (!this.isModified("password")) {
