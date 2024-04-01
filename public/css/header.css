@@ -1,0 +1,29 @@
+.salon-header {
+  display: flex;
+  position: relative;
+  width: 100vw;
+}
+.salon-header .wrapper {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding: 3rem 8rem;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  height: 150px;
+  background-color: #fff;
+}
+
+.salon-header .logo img {
+  width: 100px;
+}
+
+.salon-header .set-up-button {
+  color: #a0153a !important;
+  font-weight: 600;
+}
+
+a {
+  text-decoration: none;
+}
