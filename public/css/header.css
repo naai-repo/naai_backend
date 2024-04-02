@@ -1,0 +1,55 @@
+.salon-header {
+  display: flex;
+  position: relative;
+  width: 100vw;
+}
+.salon-header .wrapper {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding: 3rem 8rem;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  height: 150px;
+  background-color: #fff;
+}
+
+.salon-header .logo img {
+  width: 100px;
+}
+
+.salon-header .set-up-button {
+  color: #a0153a !important;
+  font-weight: 600;
+}
+
+a {
+  text-decoration: none;
+}
+
+@media only screen and (max-width: 769px) {
+  * {
+    transition: ease all 0.25s;
+  }
+}
+
+@media only screen and (max-width: 768px) {
+  .salon-header {
+    height: 150px;
+  }
+  .salon-header .wrapper {
+    padding: 3rem 2rem;
+  }
+}
+
+@media only screen and (max-width: 425px) {
+  .footer .wrapper {
+    margin: 6rem 0rem;
+  }
+
+  .footer .wrapper .info {
+    display: flex;
+    flex-direction: column;
+  }
+}

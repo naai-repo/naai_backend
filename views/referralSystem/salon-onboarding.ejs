@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Salon Onboarding Form</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/public/css/header.css" />
+    <link rel="stylesheet" href="/public/css/footer.css" />
+    <link rel="stylesheet" href="/public/css/salon-onboarding.css" />
+  </head>
+  <body>
+    <%- include("../partials/header") %>
+
+    <section class="salon-onboarding-form">
+      <div class="titles">
+        <div class="salon-onboarding-title">This is Salon Onboarding Form</div>
+        <p class="salon-onboarding-subtitle">
+          Salon Owners and stylists can register here to get early access to the
+          Product.
+        </p>
+      </div>
+      <form id="salon-onboarding-form">
+        <label for="salon-type">Salon Type</label>
+        <select id="salon-type" required name="salon_type">
+          <option value="" selected disabled hidden>Choose Salon Type</option>
+          <option value="Men Salon">Men Salon</option>
+          <option value="Women Salon">Women Salon</option>
+          <option value="Unisex Salon">Unisex Salon</option>
+        </select>
+        <br />
+        <label for="salon-name">Salon Name</label>
+        <input
+          type="text"
+          id="salon-name"
+          name="salon_name"
+          placeholder="Your Salon Name"
+          required
+        /><br />
+
+        <label for="your-name">Your Name</label>
+        <input
+          type="text"
+          id="your-name"
+          placeholder="Your Name"
+          name="owner"
+          required
+        /><br />
+
+        <label for="email">Email</label>
+        <input
+          type="email"
+          id="email"
+          placeholder="Your email"
+          name="email"
+        /><br />
+
+        <label for="phone-number">Phone number (Whatsapp no. preferred)</label>
+        <input
+          type="number"
+          id="phone-number"
+          placeholder="Your phone number"
+          name="phonenumber"
+          required
+        /><br />
+
+        <label for="gst-number">GST Number</label>
+        <input
+          type="text"
+          id="gst-number"
+          placeholder="Your GST Number"
+          name="gst_number"
+        /><br />
+
+        <label for="address">Address</label>
+        <textarea
+          type="text"
+          id="address"
+          placeholder="Your Address"
+          style="height: 104px"
+          name="address"
+          required
+        ></textarea
+        ><br />
+
+        <label for="state">State</label>
+        <input
+          type="text"
+          id="state"
+          placeholder="Your state"
+          name="state"
+          required
+        /><br />
+
+        <label for="pincode">Pincode</label>
+        <input
+          type="number"
+          id="pincode"
+          placeholder="Your Pincode"
+          name="pincode"
+          required
+        /><br />
+
+        <label for="referral-code">Referral Code/Reference</label>
+        <% if(hasReferral) { %>
+        <input
+          type="text"
+          id="referral-code"
+          placeholder="Referral Code/Reference"
+          name="referral_code"
+          value="<%= referral_code %>"
+        /><br />
+        <% }else {%>
+        <input
+          type="text"
+          id="referral-code"
+          placeholder="Referral Code/Reference"
+          name="referral_code"
+        /><br />
+        <% } %>
+
+        <button type="submit" id="submit-button">Submit</button>
+      </form>
+    </section>
+    <%- include("../partials/footer") %>
+  </body>
+  <script src="/public/scripts/salon-onboarding.js"></script>
+</html>

@@ -29,7 +29,16 @@ const LocationRouter = require("./routes/customerApp/locationRouter");
 
 // Booking Appointment
 const SchedulingRouter = require("./routes/bookingRoutes/schedulingRoutes");
-const { testing } = require("./helper/scheduler");
+
+// Sales Router
+const SalesRouter = require("./routes/salesRoutes/sales.routes");
+
+// Referral System
+const ReferralRouter = require("./routes/referralRoutes/referral.routes");
+
+// set the view engine to ejs
+app.set("view engine", "ejs");
+app.use("/public", express.static("public"));
 
 // MiddleWares
 app.use(express.json());
@@ -69,6 +78,12 @@ app.use("/customer/plan", PlanRouter);
 // Scheduling Appointments
 app.use("/appointments", SchedulingRouter);
 
+// Sales Routes
+app.use("/sales", SalesRouter);
+
+// Referral System Routes
+app.use("/referral", ReferralRouter);
+
 app.get("/", async (req, res) => {
   res.sendFile(__dirname + "/index.html");
   // res.send("Welcome to backend");
@@ -87,8 +102,22 @@ app.get("/.well-known/assetlinks.json", (req, res) => {
   res.sendFile(__dirname + "/deep-linking/assetlinks.json");
 });
 
-app.get("/.well-known/apple-app-site-association",(req,res) =>{
-  res.setHeader("Content-Type","application/json").sendFile(__dirname + "/deep-linking/apple-app-site-association");
+app.get("/.well-known/apple-app-site-association", (req, res) => {
+  res
+    .setHeader("Content-Type", "application/json")
+    .sendFile(__dirname + "/deep-linking/apple-app-site-association");
+});
+
+app.get("/sales/login-page", (req, res) => {
+  res.render("referralSystem/login");
+});
+
+app.get("/sales/salon-onboarding", (req, res) => {
+  let hasReferral = req.query.ref ? true : false;
+  res.render("referralSystem/salon-onboarding", {
+    hasReferral,
+    referral_code: req.query.ref,
+  });
 });
 
 app.listen(PORT, async () => {
