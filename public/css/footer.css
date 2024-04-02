@@ -1,43 +1,70 @@
 /* Footer CSS */
 .footer {
-    height: 300px;
-    background-color: #a0153a !important;
-    display: flex;
-    width: 100%;
-    color: white;
-    font-weight: 300;
-    font-family: "Inter";
-  }
-  
+  height: 300px;
+  background-color: #a0153a !important;
+  display: flex;
+  width: 100%;
+  color: white;
+  font-weight: 300;
+  font-family: "Inter";
+}
+
+.footer .wrapper {
+  margin: 6rem 6rem;
+  width: 100%;
+  padding: 0px 2rem;
+}
+
+.footer .wrapper .top .info {
+  display: flex;
+  justify-content: space-between;
+}
+.footer .wrapper .top .info div {
+  margin-right: 10px;
+}
+
+.footer .wrapper .top .info .contact {
+  font-weight: 500;
+}
+
+.footer .wrapper .top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.footer .wrapper .logo img {
+  width: 65px;
+}
+
+.footer .wrapper .bottom {
+  margin-top: 1rem;
+}
+
+@media only screen and (max-width: 768px) {
   .footer .wrapper {
-    margin: 6rem 6rem;
-    width: 100%;
-    padding: 0px 2rem;
+    margin: 6rem 2rem;
   }
-  
-  .footer .wrapper .top .info {
+
+  .footer .wrapper .info {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
   }
-  .footer .wrapper .top .info div {
-    margin-right: 10px;
+}
+
+@media only screen and (max-width: 425px) {
+  .footer .wrapper {
+    margin: 6rem 0rem;
   }
-  
-  .footer .wrapper .top .info .contact {
-    font-weight: 500;
-  }
-  
-  .footer .wrapper .top {
+
+  .footer .wrapper .info {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
+    flex-direction: column;
   }
-  .footer .wrapper .logo img {
-    width: 65px;
+}
+
+@media only screen and (max-width: 375px) {
+  .footer .wrapper .info {
+    font-size: 0.8rem;
   }
-  
-  .footer .wrapper .bottom {
-    margin-top: 1rem;
-  }
-  
+}

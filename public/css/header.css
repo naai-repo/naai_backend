@@ -27,3 +27,29 @@
 a {
   text-decoration: none;
 }
+
+@media only screen and (max-width: 769px) {
+  * {
+    transition: ease all 0.25s;
+  }
+}
+
+@media only screen and (max-width: 768px) {
+  .salon-header {
+    height: 150px;
+  }
+  .salon-header .wrapper {
+    padding: 3rem 2rem;
+  }
+}
+
+@media only screen and (max-width: 425px) {
+  .footer .wrapper {
+    margin: 6rem 0rem;
+  }
+
+  .footer .wrapper .info {
+    display: flex;
+    flex-direction: column;
+  }
+}
