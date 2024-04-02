@@ -31,3 +31,9 @@
 .copy-button {
   cursor: pointer;
 }
+
+@media only screen and (max-width: 769px) {
+  .sales-info {
+    margin-top: 0px;
+  }
+}

@@ -15,7 +15,14 @@ form {
   display: flex;
   flex-wrap: wrap;
   max-width: 550px;
+  width: 80%;
   margin: 0 auto;
+}
+
+.titles {
+  max-width: 550px;
+  width: 80%;
+  margin: auto;
 }
 
 label {
@@ -107,4 +114,10 @@ textarea#address {
   resize: none;
   overflow: auto;
   width: 100%;
+}
+
+@media only screen and (max-width: 769px) {
+  .salon-onboarding-form {
+    margin-top: 0px;
+  }
 }
