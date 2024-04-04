@@ -119,6 +119,39 @@ const SalonSchema = new mongoose.Schema(
         },
       },
     ],
+    referrer:{
+      referrerId: {
+        type: mongoose.Schema.ObjectId,
+        default: process.env.NULL_OBJECT_ID
+      },
+      referralCode: {
+        type: String,
+        default: ""
+      }
+    },
+    subscription: {
+      planId: {
+        type: mongoose.Schema.ObjectId,
+        default: process.env.NULL_OBJECT_ID
+      },
+      planName: {
+        type: String,
+        default: ""
+      },
+      startDate: {
+        type: Date,
+        default: Date.now
+      },
+      endDate: {
+        type: Date,
+        default: Date.now
+      },
+      renewed: {
+        type: Boolean,
+        default: false
+      },
+      features: []
+    }
   },
   {
     timestamps: true,
