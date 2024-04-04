@@ -4,7 +4,7 @@ const passport = require("passport");
 const session = require("express-session");
 require("dotenv").config();
 const app = express();
-const PORT = 8800;
+const PORT = 8801;
 const url = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.rg1ncj1.mongodb.net/${process.env.DB_NAME}`;
 
 // Requiring routers
