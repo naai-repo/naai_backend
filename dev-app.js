@@ -4,7 +4,7 @@ const passport = require("passport");
 const session = require("express-session");
 require("dotenv").config();
 const app = express();
-const PORT = 8801;
+const PORT = 8800;
 const url = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.rg1ncj1.mongodb.net/${process.env.DB_NAME}`;
 
 // Requiring routers
@@ -20,7 +20,7 @@ const ArtistRouter = require("./routes/partnerApp/artistRouter");
 const PartnerRouter = require("./routes/partnerApp/partnerRouter");
 const OtpRouter = require("./routes/partnerApp/otpRouter");
 const InventoryRouter = require("./routes/partnerApp/inventoryRouter");
-const PlanRouter = require("./routes/partnerApp/planRouter");
+const PlanRouter = require("./routes/planRouter/plan.routes");
 
 // Customer App
 const UserRouter = require("./routes/customerApp/userRouter");
@@ -29,6 +29,16 @@ const LocationRouter = require("./routes/customerApp/locationRouter");
 
 // Booking Appointment
 const SchedulingRouter = require("./routes/bookingRoutes/schedulingRoutes");
+
+// Sales Router
+const SalesRouter = require("./routes/salesRoutes/sales.routes");
+
+// Referral System
+const ReferralRouter = require("./routes/referralRoutes/referral.routes");
+
+// set the view engine to ejs
+app.set("view engine", "ejs");
+app.use("/public", express.static("public"));
 
 // MiddleWares
 app.use(express.json());
@@ -63,10 +73,18 @@ app.use("/partner/inventory", InventoryRouter);
 app.use("/customer/user", UserRouter);
 app.use("/customer/otp", UserOtpRouter);
 app.use("/customer/user/location", LocationRouter);
-app.use("/customer/plan", PlanRouter);
+
+// Plan Routes
+app.use("/plan", PlanRouter);
 
 // Scheduling Appointments
 app.use("/appointments", SchedulingRouter);
+
+// Sales Routes
+app.use("/sales", SalesRouter);
+
+// Referral System Routes
+app.use("/referral", ReferralRouter);
 
 app.get("/", async (req, res) => {
   res.sendFile(__dirname + "/index.html");
@@ -86,8 +104,22 @@ app.get("/.well-known/assetlinks.json", (req, res) => {
   res.sendFile(__dirname + "/deep-linking/assetlinks.json");
 });
 
-app.get("/.well-known/apple-app-site-association",(req,res) =>{
-  res.setHeader("Content-Type","application/json").sendFile(__dirname + "/deep-linking/apple-app-site-association");
+app.get("/.well-known/apple-app-site-association", (req, res) => {
+  res
+    .setHeader("Content-Type", "application/json")
+    .sendFile(__dirname + "/deep-linking/apple-app-site-association");
+});
+
+app.get("/sales/login-page", (req, res) => {
+  res.render("referralSystem/login");
+});
+
+app.get("/sales/salon-onboarding", (req, res) => {
+  let hasReferral = req.query.ref ? true : false;
+  res.render("referralSystem/salon-onboarding", {
+    hasReferral,
+    referral_code: req.query.ref,
+  });
 });
 
 app.listen(PORT, async () => {
