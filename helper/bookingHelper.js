@@ -500,6 +500,16 @@ const getBookingPrice = (booking) => {
           amount += service.price;
         }
       }
+
+      if(booking.coupon.couponCode !== "") {
+        let discount = price * (booking.coupon.discount / 100);
+        if(discount >= booking.coupon.max_value) {
+          discount = booking.coupon.max_value;
+        }
+        price -= discount;
+        booking.coupon.couponDiscount = discount;
+      }
+
       resolve({ ...booking, amount: amount, paymentAmount: price });
     } catch (err) {
       reject(err);
@@ -515,6 +525,38 @@ const addTime = (time) => {
   }
 };
 
+const getServiceDetails = (id) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      let service = await Service.findOne({ _id: id });
+      if (!service) {
+        let err = new Error("Service not found!");
+        err.code = 404;
+        throw err;
+      }
+      resolve({title: service.serviceTitle, category: service.category});
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
+
+const getArtistName = (id) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      let artist = await Artist.findOne({ _id: id });
+      if (!artist) {
+        let err = new Error("Artist not found!");
+        err.code = 404;
+        throw err;
+      }
+      resolve(artist.name);
+    } catch (err) {
+      reject(err);
+    }
+  })
+};
+
 module.exports = {
   getSalonSlots,
   getWindowSize,
@@ -527,4 +569,6 @@ module.exports = {
   fillRandomArtists,
   getBookingPrice,
   addTime,
+  getArtistName,
+  getServiceDetails
 };
