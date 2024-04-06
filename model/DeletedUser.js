@@ -5,6 +5,10 @@ const DeletedUserSchema = new mongoose.Schema({
         type: mongoose.Schema.ObjectId,
         required: true,
     },
+    phoneNumber: {
+        type: Number,
+        required: true,
+    },
     reason: {
         type: String,
         required: true,

@@ -103,8 +103,15 @@ router.post("/update", async (req, res) => {
 router.get("/delete", jwtVerify, async (req, res) => {
   try {
     let userId = req.user.id;
+    let user = await User.findOne({ _id: userId });
+    if (!user) {
+      let err = new Error("User does not exist!");
+      err.code = 404;
+      throw err;
+    }
     let deletedUser = new DeletedUser({
       userId: userId,
+      phoneNumber: user.phoneNumber,
       reason: req.query.reason || "No reason provided",
     });
     await deletedUser.save();

@@ -13,6 +13,9 @@ const {
   fillRandomArtists,
   getBookingPrice,
   addTime,
+  getServiceName,
+  getArtistName,
+  getServiceDetails,
 } = require("../../helper/bookingHelper");
 const Booking = require("../../model/partnerApp/Booking");
 const Artist = require("../../model/partnerApp/Artist");
@@ -24,6 +27,7 @@ const Salon = require("../../model/partnerApp/Salon");
 const sendMessageToUser = require("../../helper/sendMessageToUser");
 const Service = require("../../model/partnerApp/Service");
 const { scheduleJobToChangeBookingStatus } = require("../../helper/scheduler");
+const Coupons = require("../../model/coupons/coupon.model");
 
 /* 
     BODY FOR SCHEDULING WILL CONTAIN
@@ -265,9 +269,26 @@ router.post("/schedule", jwtVerify, async (req, res) => {
 router.post("/book", jwtVerify, async (req, res) => {
   try {
     let userId = req.user.id;
-    let { timeSlots, salonId, bookingDate, key, timeSlot } = req.body;
+    let { timeSlots, salonId, bookingDate, key, timeSlot, coupon } = req.body;
     let date = bookingDate.split("-");
     let time = timeSlot[0].split(":");
+    let couponApplied = {};
+    let couponData = {};
+    if(coupon){
+      couponData = await Coupons.findOne({code : coupon.toLowerCase()});
+    }
+    if(!couponData){
+      let err = new Error("No such coupon found!");
+      err.code = 404;
+      throw err;
+    }else{
+      couponApplied = {
+        couponId: couponData._id,
+        couponCode: couponData.code,
+        discount: couponData.discount,
+        max_value: couponData.max_value,
+      }
+    }
     let data = {
       salonId: salonId,
       userId: userId,
@@ -281,6 +302,7 @@ router.post("/book", jwtVerify, async (req, res) => {
         time[0],
         time[1]
       ),
+      coupon: couponApplied
     };
     let artistServiceMap = [];
     let timeSlotOrder = timeSlots.filter((timeSlot) => timeSlot.key === key);
@@ -328,11 +350,15 @@ router.post("/book", jwtVerify, async (req, res) => {
     let lastTime = timeSlot[0];
     let randomServices = randomArr.map((obj) => obj.service?._id?.toString());
     let totalTime = 0;
-    timeSlotOrder.forEach((object) => {
+    for(let object of timeSlotOrder) {
+      let objService = await getServiceDetails(object.service._id);
       if (object.artist === "000000000000000000000000") {
         let obj = {
           serviceId: object.service._id,
+          serviceName: objService.title,
+          serviceCategory: objService.category,
           artistId: object.artist,
+          artistName: "",
           variable: {
             variableId: object.variable?._id || "none",
             variableType: object.variable?.variableType || "none",
@@ -350,8 +376,12 @@ router.post("/book", jwtVerify, async (req, res) => {
 
       let obj = {
         serviceId: object.service._id,
+        serviceName: objService.title,
+        serviceCategory: objService.category,
         artistId: object.artist,
+        artistName: await getArtistName(object.artist)
       };
+      
       if (randomServices.includes(obj.serviceId.toString())) {
         obj.chosenBy = "algo";
       } else {
@@ -388,7 +418,8 @@ router.post("/book", jwtVerify, async (req, res) => {
       };
       artistServiceMap.push(obj);
       lastTime = endTime;
-    });
+    };
+
     data = {
       ...data,
       timeSlot: {
