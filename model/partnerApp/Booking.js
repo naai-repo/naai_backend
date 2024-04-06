@@ -51,14 +51,48 @@ const bookingSchema = new mongoose.Schema(
       type: Date,
       required: true,
     },
+    coupon: {
+      couponId: {
+        type: mongoose.Schema.ObjectId,
+        default: process.env.NULL_OBJECT_ID,
+      },
+      couponCode: {
+        type: String,
+        default: ""
+      },
+      discount: {
+        type: Number,
+        default: 0,
+      },
+      max_value: {
+        type: Number,
+        default: 0,
+      },
+      couponDiscount: {
+        type: Number,
+        default: 0,
+      }
+    },
     artistServiceMap: [
       {
         artistId: {
           type: mongoose.Schema.ObjectId,
           required: true,
         },
+        artistName: {
+          type: String,
+          required: true,
+        },
         serviceId: {
           type: mongoose.Schema.ObjectId,
+          required: true,
+        },
+        serviceCategory: {
+          type: String,
+          required: true,
+        },
+        serviceName: {
+          type: String,
           required: true,
         },
         variable: {
