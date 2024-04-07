@@ -36,6 +36,9 @@ const SalesRouter = require("./routes/salesRoutes/sales.routes");
 // Referral System
 const ReferralRouter = require("./routes/referralRoutes/referral.routes");
 
+// Coupons System
+const CouponsRouter = require("./routes/couponRoutes/coupon.routes");
+
 // set the view engine to ejs
 app.set("view engine", "ejs");
 app.use("/public", express.static("public"));
@@ -85,6 +88,9 @@ app.use("/sales", SalesRouter);
 
 // Referral System Routes
 app.use("/referral", ReferralRouter);
+
+// Coupons System Routes
+app.use("/coupons", CouponsRouter);
 
 app.get("/", async (req, res) => {
   res.sendFile(__dirname + "/index.html");
