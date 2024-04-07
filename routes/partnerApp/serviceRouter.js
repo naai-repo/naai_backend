@@ -359,6 +359,12 @@ router.get("/title/search", async (req, res) => {
       updatedAt: 0,
     });
 
+    if(!serviceArr.length) {
+      let err = new Error("No result found!");
+      err.code = 404;
+      throw err;
+    }
+    
     res.status(200).json(
       wrapperMessage("success", "", {
         list: serviceArr,
