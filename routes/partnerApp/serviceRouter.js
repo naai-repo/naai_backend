@@ -347,6 +347,9 @@ router.post("/search/artist", async (req, res) => {
 router.get("/title/search", async (req, res) => {
   try {
     let name = req.query.name;
+    let page = Number(req.query.page) || 1;
+    let limit = Number(req.query.limit) || 3;
+    let skip = (page - 1) * limit;
     let queryObject = [];
     if (name) {
       queryObject.push({ serviceTitle: { $regex: name, $options: "i" } });
@@ -357,7 +360,7 @@ router.get("/title/search", async (req, res) => {
       createdAt: 0,
       __v: 0,
       updatedAt: 0,
-    });
+    }).skip(skip).limit(limit);
 
     if(!serviceArr.length) {
       let err = new Error("No result found!");
