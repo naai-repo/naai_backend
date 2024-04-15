@@ -128,6 +128,15 @@ app.get("/sales/salon-onboarding", (req, res) => {
   });
 });
 
+app.get("/server", (req, res) => {
+  let server = req.query.server?.toLowerCase();
+  if(server === "dev"){
+    res.json({server: process.env.DEV_SERVER})
+  }else{
+    res.json({server: process.env.PROD_SERVER})
+  }
+})
+
 app.listen(PORT, async () => {
   try {
     //connecting to database
