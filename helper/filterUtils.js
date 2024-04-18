@@ -576,7 +576,7 @@ class FilterUtils {
           score =
             ((maxDistance - artist.distance) / maxDistance) * 0.5 +
             (artist.rating / maxRating) * 0.3 +
-            (bookings / avgBookings) * 0.2;
+            ((bookings / avgBookings) || 0) * 0.2;
 
           if (artist.paid) {
             score += 0.2;
