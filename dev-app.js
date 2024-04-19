@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const passport = require("passport");
 const session = require("express-session");
+const cors = require('cors');
 require("dotenv").config();
 const app = express();
 const PORT = 8801;
@@ -42,6 +43,7 @@ const CouponsRouter = require("./routes/couponRoutes/coupon.routes");
 // set the view engine to ejs
 app.set("view engine", "ejs");
 app.use("/public", express.static("public"));
+app.use(cors());
 
 // MiddleWares
 app.use(express.json());
