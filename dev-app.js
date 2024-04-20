@@ -2,7 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const passport = require("passport");
 const session = require("express-session");
-const cors = require('cors');
+const cors = require("cors");
 require("dotenv").config();
 const app = express();
 const PORT = 8801;
@@ -39,6 +39,9 @@ const ReferralRouter = require("./routes/referralRoutes/referral.routes");
 
 // Coupons System
 const CouponsRouter = require("./routes/couponRoutes/coupon.routes");
+
+// POS System
+const PosRouter = require("./routes/posRoutes/pos.routes");
 
 // set the view engine to ejs
 app.set("view engine", "ejs");
@@ -94,6 +97,9 @@ app.use("/referral", ReferralRouter);
 // Coupons System Routes
 app.use("/coupons", CouponsRouter);
 
+// POS Routes
+app.use("/pos", PosRouter);
+
 app.get("/", async (req, res) => {
   res.sendFile(__dirname + "/index.html");
   // res.send("Welcome to backend");
@@ -132,12 +138,12 @@ app.get("/sales/salon-onboarding", (req, res) => {
 
 app.get("/server", (req, res) => {
   let server = req.query.server?.toLowerCase();
-  if(server === "dev"){
-    res.json({server: process.env.DEV_SERVER})
-  }else{
-    res.json({server: process.env.PROD_SERVER})
+  if (server === "dev") {
+    res.json({ server: process.env.DEV_SERVER });
+  } else {
+    res.json({ server: process.env.PROD_SERVER });
   }
-})
+});
 
 app.listen(PORT, async () => {
   try {
