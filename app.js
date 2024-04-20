@@ -40,6 +40,9 @@ const ReferralRouter = require("./routes/referralRoutes/referral.routes");
 // Coupons System
 const CouponsRouter = require("./routes/couponRoutes/coupon.routes");
 
+// POS System
+const PosRouter = require("./routes/posRoutes/pos.routes");
+
 // set the view engine to ejs
 app.set("view engine", "ejs");
 app.use("/public", express.static("public"));
@@ -94,10 +97,14 @@ app.use("/referral", ReferralRouter);
 // Coupons System Routes
 app.use("/coupons", CouponsRouter);
 
+// POS Routes
+app.use("/pos", PosRouter);
+
 app.get("/", async (req, res) => {
   res.sendFile(__dirname + "/index.html");
   // res.send("Welcome to backend");
 });
+
 
 // Deep linking routes
 app.get("/salon/:id", (req, res) => {
