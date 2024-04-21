@@ -66,15 +66,26 @@ router.post("/add", async (req, res) => {
 // Getting different service categories
 router.get("/category/all", async (req, res) => {
   try {
+    let salonId = req.query.salonId;
+    if(!salonId){
+      let err = new Error("Salon ID is required!");
+      err.code = 400;
+      throw err;
+    }
     let serviceData = await Service.aggregate([
-      {
-        $group: {
-          _id: null,
-          unique_categories: {
-            $addToSet: "$category",
-          },
+        {
+          $match: {
+            salonId: new ObjectId(salonId)
+          }
         },
-      },
+        {
+          $group: {
+            _id: null,
+            unique_categories: {
+              $addToSet: "$category",
+            },
+          },
+        }
     ]);
     res
       .status(200)
