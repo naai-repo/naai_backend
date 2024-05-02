@@ -4,6 +4,7 @@ const Service = require("../../model/partnerApp/Service");
 exports.getServicesFromCategories = async(req, res, next) => {
     try{
         let salonId = req.query.salonId;
+        const sex = req.query.sex;
         let category = req.params.category;
         let queryObject = {
             salonId
@@ -16,6 +17,7 @@ exports.getServicesFromCategories = async(req, res, next) => {
 
         if(category){
             queryObject.category = {$regex: category, $options: "i"};
+            queryObject.targetGender = sex;
         }
 
         let services = await Service.find(queryObject);
