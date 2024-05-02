@@ -67,6 +67,7 @@ router.post("/add", async (req, res) => {
 router.get("/category/all", async (req, res) => {
   try {
     let salonId = req.query.salonId;
+    let gender = req.query.sex;
     if(!salonId){
       let err = new Error("Salon ID is required!");
       err.code = 400;
@@ -75,7 +76,15 @@ router.get("/category/all", async (req, res) => {
     let serviceData = await Service.aggregate([
         {
           $match: {
-            salonId: new ObjectId(salonId)
+            salonId: new ObjectId(salonId),
+            $or: [
+              {
+                targetGender: gender.toLowerCase(),
+              },
+              {
+                targetGender: "unisex"
+              }
+            ]
           }
         },
         {
