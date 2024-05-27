@@ -473,5 +473,37 @@ router.post("/update/discount", async (req, res) => {
     res.status(err.code || 500).json(wrapperMessage("failed", err.message));
   }
 });
+router.post('/getSalonDataForDashboard', async (req, res) =>{
+  try {
+     let salonId = req.body.salonId;
+     let startDate = req.body.startDate;
+    let data = await Booking.aggregate([
+      {
+          $match: {
+              "salonId": new ObjectId(salonId), 
+              // Adjust 
+               "bookingDate": {
+                   $gte: new ISODate(startDate),
+                  //  $lt: new ISODate("2024-05-01T00:00:00.000Z")
+              }
+          }
+      },
+      {
+          $unwind: "$artistServiceMap"
+      },
+      {
+        $group: {
+            _id: "$artistServiceMap.artistId",
+            bookings: { $push: "$artistServiceMap" }
+      }
+    }   
+  ])
+      res.json(data)  
+  
+  } catch (err) {
+    console.log(err);
+    res.status(err.code || 500).json(wrapperMessage("failed", err.message));
+  }
+})
 
 module.exports = router;
