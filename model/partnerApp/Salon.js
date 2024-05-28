@@ -47,12 +47,11 @@ const SalonSchema = new mongoose.Schema(
       min: 0,
       max: 5,
     },
-    closedOn: {
-      type: String,
-      default: "none",
-      required: true,
-      lowercase: true,
-    },
+    closedOn: [
+      {
+        type: String,
+      },
+    ],
     phoneNumber: {
       type: Number,
       required: true,

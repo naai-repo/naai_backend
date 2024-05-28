@@ -164,6 +164,12 @@ router.post("/loginViaPassword", (req, res) => {
                 );
 
                 user = { ...user, accessToken };
+                if (user.name === "") {
+                  user = { ...user, newUser: true };
+                } else {
+                  user = { ...user, newUser: false };
+                }
+                res.cookie('token', accessToken, {httpOnly: true, secure: process.env.COOKIE_SECURE});
                 res.json(wrapperMessage("success", "", [user]));
               } else {
                 res.json(wrapperMessage("failed", "Invalid password entered!"));

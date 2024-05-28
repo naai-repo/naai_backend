@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const passport = require("passport");
 const session = require("express-session");
 const cors = require('cors');
+const cookieParser = require("cookie-parser");
 require("dotenv").config();
 const app = express();
 const PORT = 8800;
@@ -50,13 +51,14 @@ app.use(cors());
 
 // MiddleWares
 app.use(express.json());
+app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(
   session({
     secret: "keyboard cat",
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: false },
+    cookie: { secure: process.env.COOKIE_SECURE },
   })
 );
 app.use(passport.initialize());
