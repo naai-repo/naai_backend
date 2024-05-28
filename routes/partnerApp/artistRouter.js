@@ -46,7 +46,7 @@ router.get("/", async (req, res) => {
 router.post("/add", async (req, res) => {
   let newArtist = req.body;
   try {
-    if (newArtist.salonId !== "000000000000000000000000") {
+    if ("salonId" in newArtist) {
       let salonData = await Salon.find({ _id: newArtist.salonId });
       if (!salonData.length) {
         throw new Error("No such Salon exists!");
@@ -198,13 +198,16 @@ router.get("/single/:id", async (req, res) => {
       err.code = 404;
       throw err;
     }
-    let salonData = await Salon.findOne({ _id: data.salonId });
-    if (!salonData) {
-      let err = new Error("This artist is associated with an unknown salon!");
-      err.code = 404;
-      throw err;
+    let salonData;
+    if(data.salonId != process.env.NULL_OBJECT_ID){
+      salonData = await Salon.findOne({ _id: data.salonId });
+      if (!salonData) {
+        let err = new Error("This artist is associated with an unknown salon!");
+        err.code = 404;
+        throw err;
+      }
     }
-    let discount = salonData.discount;
+    let discount = salonData?.discount || 0;
     let services = await CommonUtils.addDiscountToServices(
       discount,
       data.services
