@@ -209,6 +209,14 @@ router.post("/update/", async (req, res) => {
       err.code = 400;
       throw err;
     }
+    if(req.body.email){
+      let userWithEmail = await Partner.find({email: req.body.email});
+      if(userWithEmail.length){
+        let err = new Error("User with this email already exists!");
+        err.code = 400;
+        throw err;
+      }
+    }
     let data = await Partner.find({_id: userId});
     if(!data.length){
       let err = new Error("No such user exists!");
