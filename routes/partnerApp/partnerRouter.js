@@ -5,6 +5,8 @@ const passport = require("passport");
 const CommonUtils = require("../../helper/commonUtils");
 
 const Partner = require("../../model/partnerApp/Partner");
+const Artist = require("../../model/partnerApp/Artist");
+const Salon = require("../../model/partnerApp/Salon");
 const wrapperMessage = require("../../helper/wrapperMessage");
 const sendOTPVerification = require("../../helper/sendOTPVerification");
 const { isLoggedIn } = require("../../helper/isLoggedIn");
@@ -207,6 +209,14 @@ router.post("/update/", async (req, res) => {
       err.code = 400;
       throw err;
     }
+    if(req.body.email){
+      let userWithEmail = await Partner.find({email: req.body.email});
+      if(userWithEmail.length){
+        let err = new Error("User with this email already exists!");
+        err.code = 400;
+        throw err;
+      }
+    }
     let data = await Partner.find({_id: userId});
     if(!data.length){
       let err = new Error("No such user exists!");
@@ -288,7 +298,40 @@ router.post("/:id/admin", async (req, res) => {
     console.log(err);
     res.json(wrapperMessage("failed", err.message));
   }
-})
+});
+
+router.get("/:id", async (req, res) => {
+  const { id } = req.params;
+
+  if (!id) {
+    return res.status(400).json(wrapperMessage("failed", "User ID is required!"));
+  }
+
+  try {
+    const partner = await Partner.findOne({ _id: id });
+    console.log(partner)
+    if (!partner) {
+      return res.status(404).json(wrapperMessage("failed", "Partner not found!"));
+    }s
+
+    const [artist, salon] = await Promise.all([
+      Artist.findOne({ phoneNumber: partner.phoneNumber }),
+      Salon.findOne({ phoneNumber: partner.phoneNumber })
+    ]);
+
+    const responsePayload = {
+      ...partner._doc,
+      ...(artist && artist._doc),
+      ...(salon && salon._doc),
+    };
+
+    return res.status(200).json(wrapperMessage("success", "", responsePayload));
+  } catch (err) {
+    console.error(err);
+    console.log('error for terminal');
+    return res.status(err.code || 500).json(wrapperMessage("failed", err.message));
+  }
+});
 
 // Google OAuth
 
