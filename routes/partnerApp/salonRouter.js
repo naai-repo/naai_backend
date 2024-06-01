@@ -483,7 +483,7 @@ router.post('/getSalonDataForDashboard', async (req, res) =>{
               "salonId": new ObjectId(salonId), 
               // Adjust 
                "bookingDate": {
-                   $gte: new ISODate(startDate),
+                   $gte: new Date(startDate),
                   //  $lt: new ISODate("2024-05-01T00:00:00.000Z")
               }
           }
