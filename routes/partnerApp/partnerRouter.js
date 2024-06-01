@@ -312,7 +312,7 @@ router.get("/:id", async (req, res) => {
     console.log(partner)
     if (!partner) {
       return res.status(404).json(wrapperMessage("failed", "Partner not found!"));
-    }s
+    }
 
     const [artist, salon] = await Promise.all([
       Artist.findOne({ phoneNumber: partner.phoneNumber }),
