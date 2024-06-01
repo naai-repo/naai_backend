@@ -506,4 +506,18 @@ router.post('/getSalonDataForDashboard', async (req, res) =>{
   }
 })
 
+router.get("/delete/test/:id", async (req, res) => {
+  try{
+    let salon = await Salon.findOneAndDelete({ _id: req.params.id });
+    console.log(salon);
+    if(!salon){
+      res.status(404).json(wrapperMessage("failed", "No such salon exists!"));
+    }
+    res.status(200).json(wrapperMessage("success", "Salon deleted successfully!", salon));
+  }catch(err){
+    console.log(err);
+    res.status(500).json(wrapperMessage("failed", err.message));
+  }
+})
+
 module.exports = router;

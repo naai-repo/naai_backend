@@ -318,11 +318,11 @@ router.get("/:id", async (req, res) => {
       Artist.findOne({ phoneNumber: partner.phoneNumber }),
       Salon.findOne({ phoneNumber: partner.phoneNumber })
     ]);
-
+console.log(artist, salon)
     const responsePayload = {
-      ...partner._doc,
-      ...(artist && artist._doc),
-      ...(salon && salon._doc),
+      partnerData: {...partner._doc},
+      artistData : {...(artist && artist._doc)},
+      salonData : {...(salon && salon._doc)},
     };
 
     return res.status(200).json(wrapperMessage("success", "", responsePayload));
