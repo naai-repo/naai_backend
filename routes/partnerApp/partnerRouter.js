@@ -333,6 +333,37 @@ console.log(artist, salon)
   }
 });
 
+//delete Partner
+router.get("/delete/partner/:id", async (req, res) => {
+  try{
+    let partner = await Partner.findOneAndDelete({ _id: req.params.id });
+    console.log(partner);
+    if(!partner){
+      res.status(404).json(wrapperMessage("failed", "No such Partner exists!"));
+    }
+    res.status(200).json(wrapperMessage("success", "Partner deleted successfully!", partner));
+  }catch(err){
+    console.log(err);
+    res.status(500).json(wrapperMessage("failed", err.message));
+  }
+})
+
+// delete Artist
+router.get("/delete/Artist/:id", async (req, res) => {
+  console.log('dfdfdf')
+  try{
+    let artist = await Artist.findOneAndDelete({ _id: req.params.id });
+    console.log(artist);
+    if(!artist){
+      res.status(404).json(wrapperMessage("failed", "Artist don't exist"));
+    }
+    res.status(200).json(wrapperMessage("success", "Artist deleted successfully!", artist));
+  }catch(err){
+    console.log(err);
+    res.status(500).json(wrapperMessage("failed", err.message));
+  }
+})
+
 // Google OAuth
 
 router.get('/auth/google',
