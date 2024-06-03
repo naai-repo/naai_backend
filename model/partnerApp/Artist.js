@@ -14,7 +14,7 @@ const ArtistSchema = new mongoose.Schema(
     },
     salonId: {
       type: mongoose.Schema.ObjectId,
-      required: true,
+      default: process.env.NULL_OBJECT_ID,
     },
     services: [
       {

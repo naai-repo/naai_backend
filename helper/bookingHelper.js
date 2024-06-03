@@ -177,12 +177,18 @@ const getTimeSlotsOfArtists = (requests, salonSlotsLength, salonId, date) => {
       let salonOpenTime = salonOpeningTime.split(":");
       let salonCloseTime = salonClosingTime.split(":");
       let artistPromiseArr = [];
+      date = date.split("-").map((ele) => Number(ele));
+      let startDate = new Date(date[2], date[0] - 1, date[1]);
+      let endDate = new Date(date[2], date[0] - 1, date[1] + 1); 
       requests.forEach((request) => {
         let artist = request.artist;
         artistPromiseArr.push(
           Booking.find({
             salonId: salonId,
-            bookingDate: date,
+            bookingDate: {
+              $gte: startDate,
+              $lt: endDate,
+            },
             artistServiceMap: { $elemMatch: { artistId: artist } },
           })
         );
@@ -440,8 +446,11 @@ const getBookingPrice = (booking) => {
   return new Promise(async (resolve, reject) => {
     try {
       let price = 0;
+      let amount = 0;
       let services = booking.artistServiceMap;
       let artistPromiseArr = [];
+      let salonData = await Salon.findOne({ _id: booking.salonId });
+      const discount = salonData.discount;
       for (let service of services) {
         artistPromiseArr.push(Artist.findOne({ _id: service.artistId }));
       }
@@ -478,14 +487,29 @@ const getBookingPrice = (booking) => {
             err.code = 404;
             throw err;
           }
+          services[index].discountedPrice =
+            variable.price - (variable.price * discount) / 100;
           services[index].servicePrice = variable.price;
-          price += variable.price;
+          amount += variable.price;
+          price += variable.price - (variable.price * discount) / 100;
         } else {
+          services[index].discountedPrice =
+            service.price - (service.price * discount) / 100;
           services[index].servicePrice = service.price;
-          price += service.price;
+          price += service.price - (service.price * discount) / 100;
+          amount += service.price;
         }
       }
-      let amount = price;
+
+      if(booking.coupon.couponCode !== "") {
+        let discount = price * (booking.coupon.discount / 100);
+        if(discount >= booking.coupon.max_value) {
+          discount = booking.coupon.max_value;
+        }
+        price -= discount;
+        booking.coupon.couponDiscount = discount;
+      }
+
       resolve({ ...booking, amount: amount, paymentAmount: price });
     } catch (err) {
       reject(err);
@@ -494,12 +518,44 @@ const getBookingPrice = (booking) => {
 };
 
 const addTime = (time) => {
-  if(time%2 === 0){
-      return Math.floor((time/2))*60*60*1000;
-  }else{
-      return Math.floor((time/2))*60*60*1000 + 30*60*1000;
+  if (time % 2 === 0) {
+    return Math.floor(time / 2) * 60 * 60 * 1000;
+  } else {
+    return Math.floor(time / 2) * 60 * 60 * 1000 + 30 * 60 * 1000;
   }
+};
+
+const getServiceDetails = (id) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      let service = await Service.findOne({ _id: id });
+      if (!service) {
+        let err = new Error("Service not found!");
+        err.code = 404;
+        throw err;
+      }
+      resolve({title: service.serviceTitle, category: service.category});
+    } catch (err) {
+      reject(err);
+    }
+  });
 }
+
+const getArtistName = (id) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      let artist = await Artist.findOne({ _id: id });
+      if (!artist) {
+        let err = new Error("Artist not found!");
+        err.code = 404;
+        throw err;
+      }
+      resolve(artist.name);
+    } catch (err) {
+      reject(err);
+    }
+  })
+};
 
 module.exports = {
   getSalonSlots,
@@ -512,5 +568,7 @@ module.exports = {
   getArtistsForServices,
   fillRandomArtists,
   getBookingPrice,
-  addTime
+  addTime,
+  getArtistName,
+  getServiceDetails
 };

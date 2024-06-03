@@ -4,8 +4,11 @@ const Artist = require("../model/partnerApp/Artist");
 const getArtistsListGivingService = (name) => {
   return new Promise(async (resolve, reject) => {
     try {
+      let categoryMatch = name.map((ele) => ({
+        category: { $regex: ele, $options: "i" },
+      }));
       let services = await Service.find({
-        category: { $regex: name, $options: "i" },
+        $or: categoryMatch,
       });
       services = services.map((service) => service._id);
       let artistPromiseArr = [];

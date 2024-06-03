@@ -7,6 +7,7 @@ const wrapperMessage = require("../../helper/wrapperMessage");
 const Service = require("../../model/partnerApp/Service");
 const jwtVerify = require("../../middleware/jwtVerification");
 const CommonUtils = require("../../helper/commonUtils");
+const FilterUtils = require("../../helper/filterUtils");
 const ObjectId = mongoose.Types.ObjectId;
 
 // User ID : 64f786e3b23d28509e6791e0
@@ -192,13 +193,15 @@ router.get("/single/:id", async (req, res) => {
     }
     let artistData = await Artist.find({ salonId: req.params.id });
     let artistDiscountedServicesPromiseArr = [];
-    for(let artist of artistData){
+    for (let artist of artistData) {
       artistDiscountedServicesPromiseArr.push(
         CommonUtils.addDiscountToServices(data.discount, artist.services)
       );
     }
-    let artistDiscountedServicesArr = await Promise.all(artistDiscountedServicesPromiseArr);
-    for(let index in artistDiscountedServicesArr){
+    let artistDiscountedServicesArr = await Promise.all(
+      artistDiscountedServicesPromiseArr
+    );
+    for (let index in artistDiscountedServicesArr) {
       artistData[index].services = artistDiscountedServicesArr[index];
     }
     let serviceIds = new Set();
@@ -246,6 +249,11 @@ router.post("/topSalons", async (req, res) => {
       },
       {
         $match: {
+          live: true,
+        },
+      },
+      {
+        $match: {
           $or: [
             { salonType: req.query.type },
             { salonType: "unisex" },
@@ -265,44 +273,15 @@ router.post("/topSalons", async (req, res) => {
         },
       },
     ]);
+
     if (!salons.length) {
       res.status(200).json(wrapperMessage("success", "No result found!", []));
       return;
     }
-    let totalBookings = await Booking.find().count("bookings");
-    let totalSalons = await Salon.find().count("salons");
-    let maxDistance = 0;
-    let maxRating = 5;
-    let maxDiscount = 50;
-    let avgBookings = totalBookings / totalSalons;
-    let end = 0;
-    if (salons.length < 1000) {
-      maxDistance = salons[salons.length - 1].distance;
-      end = salons.length - 1;
-    } else {
-      maxDistance = salons[1000].distance;
-      end = 1000;
-    }
 
-    for (let itr = 0; itr <= end; itr++) {
-      let salon = salons[itr];
-      let bookings =
-        salon.bookings >= avgBookings ? avgBookings : salon.bookings;
-      let discount =
-        salon.discount >= maxDiscount ? maxDiscount : salon.discount;
-      let score = 0;
-      score =
-        ((maxDistance - salon.distance) / maxDistance) * 0.6 +
-        (discount / maxDiscount || 0) * 0.3 +
-        (salon.rating / maxRating || 0) * 0.07 +
-        (bookings / avgBookings || 0) * 0.03;
-
-      if (salon.paid) {
-        score += 0.2;
-      }
-
-      salons[itr]["score"] = score;
-    }
+    let salonsData = await FilterUtils.getScore("relevance", salons, "desc", []);
+    salons = salonsData.salons;
+    end = salonsData.end;
     salons.sort((a, b) => {
       if (a.score < b.score) return 1;
       else if (a.score > b.score) return -1;
@@ -324,8 +303,12 @@ router.post("/topSalons", async (req, res) => {
 
 router.post("/filter", async (req, res) => {
   try {
-    let filter = req.query.filter.toLowerCase();
-    let typePresent = req.query.type ? true : false;
+    let filter = req.query.sortBy?.toLowerCase() || "relevance";
+    let priceTags = req.query.priceTag || [];
+    priceTags = priceTags.map((ele) => ele.toLowerCase());
+    console.log(priceTags);
+    let order = req.query.order?.toLowerCase() || "desc";
+    let typePresent = req.query.gender ? true : false;
     if (!filter) {
       let error = new Error("Invalid filter selected!");
       error.code = 400;
@@ -337,108 +320,98 @@ router.post("/filter", async (req, res) => {
       error.code = 400;
       throw error;
     }
+    // constants or variables values
     let page = Number(req.query.page) || 1;
     let limit = Number(req.query.limit) || 3;
     let skip = (page - 1) * limit;
-    let discountMin = Number(req.query.min) || 0;
-    let discountMax = Number(req.query.max) || 100;
-    let salons = await Salon.aggregate([
-      {
-        $geoNear: {
-          near: location,
-          distanceField: "distance",
-          distanceMultiplier: 0.001,
-        },
-      },
-      {
-        $match: {
-          $or: [
-            { salonType: req.query.type },
-            { salonType: "unisex" },
-            {
-              $and: [
-                { randomFieldToCheck: { $exists: typePresent } },
-                {
-                  $or: [
-                    { salonType: "male" },
-                    { salonType: "female" },
-                    { salonType: "unisex" },
-                  ],
-                },
-              ],
+    let discountMin = Number(req.query.minDiscount) || 0;
+    let discountMax = Number(req.query.maxDiscount) || 100;
+    let ratingMin = Number(req.query.minRating) || 0;
+    let ratingMax = Number(req.query.maxRating) || 5;
+    let distance = isNaN(Number(req.query.distance)) ? null : Number(req.query.distance);
+    let end = 0;
+    let category = req.query.category;
+    let queryObject = [];
+    let salonArr = [];
+    if (category) {
+      let serviceTitleMatch = category.map(ele => ({ serviceTitle: { $regex: ele, $options: "i" } }));
+      let categoryMatch = category.map(ele => ({ category: { $regex: ele, $options: "i" } }));
+      queryObject.push({ $or: serviceTitleMatch });
+      queryObject.push({ $or: categoryMatch});
+      let serviceArr = await Service.find({
+        $or: queryObject,
+        $nor: [{ salonId: null }],
+      });
+      let set = new Set();
+      salonArr = serviceArr.map((ele) => set.add(ele.salonId.toString()));
+      salonArr = Array.from(set);
+      salonArr = salonArr.map((ele) => new ObjectId(ele));
+    }
+
+    let geoNear = [];
+
+    if(distance){
+      geoNear.push(
+        {
+          $geoNear: {
+            near: location,
+            distanceField: "distance",
+            maxDistance: distance * 1000,
+            distanceMultiplier: 0.001,
+          },
+        }
+      );
+    }else{
+      geoNear.push(
+        {
+          $geoNear: {
+            near: location,
+            distanceField: "distance",
+            distanceMultiplier: 0.001,
+          }
+        }
+      );
+    }
+    if(category){
+      geoNear.push(
+        {
+          $match: {
+            _id: {
+              $in: salonArr,
             },
-          ],
-        },
-      },
-      {
-        $match: {
-          $and: [
-            {
-              discount: {
-                $gte: discountMin,
-              },
-            },
-            {
-              discount: {
-                $lt: discountMax,
-              },
-            },
-          ],
-        },
-      },
-    ]);
+          },
+        }
+      );
+    }
+
+    let salons = await Salon.aggregate(
+      FilterUtils.aggregationForDiscount(
+        geoNear,
+        req.query.gender,
+        typePresent,
+        discountMax,
+        discountMin,
+        ratingMax,
+        ratingMin
+      )
+    );
+
     if (!salons.length) {
       res.status(200).json(wrapperMessage("success", "No result found!", []));
       return;
     }
-    let maxDistance = 0;
-    let end = 0;
-    if (salons.length < 1000) {
-      maxDistance = salons[salons.length - 1].distance;
-      end = salons.length - 1;
-    } else {
-      maxDistance = salons[1000].distance;
-      end = 1000;
-    }
 
-    if (filter === "discount") {
-      let maxDiscount = 50;
-      for (let itr = 0; itr <= end; itr++) {
-        let salon = salons[itr];
-        let discount =
-          salon.discount >= maxDiscount ? maxDiscount : salon.discount;
-        let score = 0;
-        score =
-          ((maxDistance - salon.distance) / maxDistance) * 0.4 +
-          (discount / maxDiscount || 0) * 0.4;
+    let salonsData = await FilterUtils.getScore(filter, salons, order, priceTags);
 
-        if (salon.paid) {
-          score += 0.2;
-        }
-        salons[itr]["score"] = score;
-      }
-    } else if (filter === "rating") {
-      let maxRating = 5;
-      for (let itr = 0; itr <= end; itr++) {
-        let salon = salons[itr];
-        let score = 0;
-        score =
-          ((maxDistance - salon.distance) / maxDistance) * 0.4 +
-          (salon.rating / maxRating || 0) * 0.4;
-
-        if (salon.paid) {
-          score += 0.2;
-        }
-
-        salons[itr]["score"] = score;
-      }
-    }
+    salons = salonsData.salons;
+    end = salonsData.end;
 
     salons.sort((a, b) => {
       if (a.score < b.score) return 1;
       else if (a.score > b.score) return -1;
       else return 0;
     });
+
     let data = [];
     for (let itr = skip; itr < skip + limit; itr++) {
       if (!salons[itr]) {
@@ -454,9 +427,11 @@ router.post("/filter", async (req, res) => {
 });
 
 router.post("/update/discount", async (req, res) => {
-  try{
+  try {
     let discount = Number(req.body.discount);
     let salonId = req.body.salonId;
+    let startDate = req.body.startDate;
+    let endDate = req.body.endDate;
     let salonData = await Salon.findOne({ _id: salonId });
     if (!salonData) {
       let err = new Error("No such salon exists!");
@@ -464,12 +439,84 @@ router.post("/update/discount", async (req, res) => {
       throw err;
     }
     salonData.discount = discount;
+    if (!startDate) {
+      salonData.discountTime.start = "";
+    } else {
+      startDate = startDate.split("/").map((item) => Number(item));
+      salonData.discountTime.start = new Date(
+        startDate[2],
+        startDate[0] - 1,
+        startDate[1],
+        0,
+        0
+      ).toISOString();
+    }
+    if (!endDate) {
+      salonData.discountTime.end = "";
+    } else {
+      endDate = endDate.split("/").map((item) => Number(item));
+      salonData.discountTime.end = new Date(
+        endDate[2],
+        endDate[0] - 1,
+        endDate[1],
+        0,
+        0
+      ).toISOString();
+    }
     await salonData.save();
     await CommonUtils.updateDiscountedServicePrice(salonId, discount);
-    res.status(200).json(wrapperMessage("success", "Discount updated successfully!"));
-  }catch(err){
+    res
+      .status(200)
+      .json(wrapperMessage("success", "Discount updated successfully!"));
+  } catch (err) {
     console.log(err);
     res.status(err.code || 500).json(wrapperMessage("failed", err.message));
+  }
+});
+router.post('/getSalonDataForDashboard', async (req, res) =>{
+  try {
+     let salonId = req.body.salonId;
+     let startDate = req.body.startDate;
+    let data = await Booking.aggregate([
+      {
+          $match: {
+              "salonId": new ObjectId(salonId), 
+              // Adjust 
+               "bookingDate": {
+                   $gte: new Date(startDate),
+                  //  $lt: new ISODate("2024-05-01T00:00:00.000Z")
+              }
+          }
+      },
+      {
+          $unwind: "$artistServiceMap"
+      },
+      {
+        $group: {
+            _id: "$artistServiceMap.artistId",
+            bookings: { $push: "$artistServiceMap" }
+      }
+    }   
+  ])
+      res.json(data)  
+  
+  } catch (err) {
+    console.log(err);
+    res.status(err.code || 500).json(wrapperMessage("failed", err.message));
+  }
+})
+
+router.get("/delete/test/:id", async (req, res) => {
+  try{
+    let salon = await Salon.findOneAndDelete({ _id: req.params.id });
+    console.log(salon);
+    if(!salon){
+      res.status(404).json(wrapperMessage("failed", "No such salon exists!"));
+    }
+    res.status(200).json(wrapperMessage("success", "Salon deleted successfully!", salon));
+  }catch(err){
+    console.log(err);
+    res.status(500).json(wrapperMessage("failed", err.message));
   }
 })
 

@@ -64,6 +64,7 @@ router.post("/verify", async (req, res) => {
             }else{
               user = {...user, newUser: false}
             }
+            res.cookie('token', accessToken, {httpOnly: true, secure: process.env.COOKIE_SECURE})
             res.json(wrapperMessage("success", "", user));
           }
         }

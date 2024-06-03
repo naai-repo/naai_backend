@@ -2,6 +2,8 @@ const express = require("express");
 const mongoose = require("mongoose");
 const passport = require("passport");
 const session = require("express-session");
+const cors = require('cors');
+const cookieParser = require("cookie-parser");
 require("dotenv").config();
 const app = express();
 const PORT = 8800;
@@ -31,15 +33,33 @@ const LocationRouter = require("./routes/customerApp/locationRouter");
 // Booking Appointment
 const SchedulingRouter = require("./routes/bookingRoutes/schedulingRoutes");
 
+// Sales Router
+const SalesRouter = require("./routes/salesRoutes/sales.routes");
+
+// Referral System
+const ReferralRouter = require("./routes/referralRoutes/referral.routes");
+
+// Coupons System
+const CouponsRouter = require("./routes/couponRoutes/coupon.routes");
+
+// POS System
+const PosRouter = require("./routes/posRoutes/pos.routes");
+
+// set the view engine to ejs
+app.set("view engine", "ejs");
+app.use("/public", express.static("public"));
+app.use(cors());
+
 // MiddleWares
 app.use(express.json());
+app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(
   session({
     secret: "keyboard cat",
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: false },
+    cookie: { secure: process.env.COOKIE_SECURE },
   })
 );
 app.use(passport.initialize());
@@ -65,15 +85,30 @@ app.use("/partner/walkin", WalkinRouter);
 app.use("/customer/user", UserRouter);
 app.use("/customer/otp", UserOtpRouter);
 app.use("/customer/user/location", LocationRouter);
-app.use("/customer/plan", PlanRouter);
+
+// Plan Routes
+app.use("/plan", PlanRouter);
 
 // Scheduling Appointments
 app.use("/appointments", SchedulingRouter);
+
+// Sales Routes
+app.use("/sales", SalesRouter);
+
+// Referral System Routes
+app.use("/referral", ReferralRouter);
+
+// Coupons System Routes
+app.use("/coupons", CouponsRouter);
+
+// POS Routes
+app.use("/pos", PosRouter);
 
 app.get("/", async (req, res) => {
   res.sendFile(__dirname + "/index.html");
   // res.send("Welcome to backend");
 });
+
 
 // Deep linking routes
 app.get("/salon/:id", (req, res) => {
@@ -87,6 +122,33 @@ app.get("/artist/:id", (req, res) => {
 app.get("/.well-known/assetlinks.json", (req, res) => {
   res.sendFile(__dirname + "/deep-linking/assetlinks.json");
 });
+
+app.get("/.well-known/apple-app-site-association", (req, res) => {
+  res
+    .setHeader("Content-Type", "application/json")
+    .sendFile(__dirname + "/deep-linking/apple-app-site-association");
+});
+
+app.get("/sales/login-page", (req, res) => {
+  res.render("referralSystem/login");
+});
+
+app.get("/sales/salon-onboarding", (req, res) => {
+  let hasReferral = req.query.ref ? true : false;
+  res.render("referralSystem/salon-onboarding", {
+    hasReferral,
+    referral_code: req.query.ref,
+  });
+});
+
+app.get("/server", (req, res) => {
+  let server = req.query.server?.toLowerCase();
+  if(server === "dev"){
+    res.json({server: process.env.DEV_SERVER})
+  }else{
+    res.json({server: process.env.PROD_SERVER})
+  }
+})
 
 app.listen(PORT, async () => {
   try {

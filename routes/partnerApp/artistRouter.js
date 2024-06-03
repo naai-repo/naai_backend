@@ -7,6 +7,9 @@ const wrapperMessage = require("../../helper/wrapperMessage");
 const jwtVerify = require("../../middleware/jwtVerification");
 const Service = require("../../model/partnerApp/Service");
 const CommonUtils = require("../../helper/commonUtils");
+const FilterUtils = require("../../helper/filterUtils");
+const { getArtistsListGivingService } = require("../../helper/serviceHelper");
+const ObjectId = mongoose.Types.ObjectId;
 
 // User ID : 64f786e3b23d28509e6791e0
 // saloon ID : 64f786e3b23d28509e6791e1
@@ -43,7 +46,7 @@ router.get("/", async (req, res) => {
 router.post("/add", async (req, res) => {
   let newArtist = req.body;
   try {
-    if (newArtist.salonId !== "000000000000000000000000") {
+    if ("salonId" in newArtist) {
       let salonData = await Salon.find({ _id: newArtist.salonId });
       if (!salonData.length) {
         throw new Error("No such Salon exists!");
@@ -195,14 +198,20 @@ router.get("/single/:id", async (req, res) => {
       err.code = 404;
       throw err;
     }
-    let salonData = await Salon.findOne({ _id: data.salonId });
-    if (!salonData) {
-      let err = new Error("This artist is associated with an unknown salon!");
-      err.code = 404;
-      throw err;
+    let salonData;
+    if(data.salonId != process.env.NULL_OBJECT_ID){
+      salonData = await Salon.findOne({ _id: data.salonId });
+      if (!salonData) {
+        let err = new Error("This artist is associated with an unknown salon!");
+        err.code = 404;
+        throw err;
+      }
     }
-    let discount = salonData.discount;
-    let services = await CommonUtils.addDiscountToServices(discount, data.services);
+    let discount = salonData?.discount || 0;
+    let services = await CommonUtils.addDiscountToServices(
+      discount,
+      data.services
+    );
     data.services = services;
     res.json(wrapperMessage("success", "", data));
   } catch (err) {
@@ -228,6 +237,11 @@ router.post("/topArtists", async (req, res) => {
       },
       {
         $match: {
+          live: true,
+        },
+      },
+      {
+        $match: {
           $or: [
             { targetGender: req.query.type },
             { targetGender: "unisex" },
@@ -251,36 +265,19 @@ router.post("/topArtists", async (req, res) => {
       res.status(200).json(wrapperMessage("success", "No result found!", []));
       return;
     }
-    let totalBookings = await Booking.find().count("val");
-    let totalArtists = await Artist.find().count("artist");
-    let maxDistance = 0;
-    let maxRating = 5;
-    let avgBookings = totalBookings / totalArtists;
+
     let end = 0;
-    if (artists.length < 1000) {
-      maxDistance = artists[artists.length - 1].distance;
-      end = artists.length - 1;
-    } else {
-      maxDistance = artists[1000].distance;
-      end = 1000;
-    }
 
-    for (let itr = 0; itr <= end; itr++) {
-      let artist = artists[itr];
-      let bookings =
-        artist.bookings >= avgBookings ? avgBookings : artist.bookings;
-      let score = 0;
-      score =
-        ((maxDistance - artist.distance) / maxDistance) * 0.5 +
-        (artist.rating / maxRating) * 0.3 +
-        (bookings / avgBookings) * 0.2;
+    let artistsData = await FilterUtils.getScoreForArtists(
+      "relevance",
+      artists,
+      "desc",
+      []
+    );
 
-      if (artist.paid) {
-        score += 0.2;
-      }
+    artists = artistsData.artists;
+    end = artistsData.end;
 
-      artists[itr]["score"] = score;
-    }
     artists.sort((a, b) => {
       if (a.score < b.score) return 1;
       else if (a.score > b.score) return -1;
@@ -302,7 +299,10 @@ router.post("/topArtists", async (req, res) => {
 
 router.post("/filter", async (req, res) => {
   try {
-    let filter = req.query.filter.toLowerCase();
+    let filter = req.query.sortBy?.toLowerCase() || "relevance";
+    let order = req.query.order?.toLowerCase() || "desc";
+    let priceTags = req.query.priceTag || [];
+    console.log(priceTags);
     if (!filter) {
       let error = new Error("Invalid filter selected!");
       error.code = 400;
@@ -317,77 +317,80 @@ router.post("/filter", async (req, res) => {
     let page = Number(req.query.page) || 1;
     let limit = Number(req.query.limit) || 3;
     let skip = (page - 1) * limit;
-    let typePresent = req.query.type ? true : false;
-    let artists = await Artist.aggregate([
-      {
+    let typePresent = req.query.gender ? true : false;
+    let ratingMin = Number(req.query.minRating) || 0;
+    let ratingMax = Number(req.query.maxRating) || 5;
+    let distance = isNaN(Number(req.query.distance))
+      ? null
+      : Number(req.query.distance);
+    let category = req.query.category;
+    let geoNear = [];
+    let artistList = [];
+    if (category) {
+      artistList = await getArtistsListGivingService(category);
+    }
+    let artistArr = artistList.map((ele) => new ObjectId(ele));
+
+    if (distance) {
+      geoNear.push({
+        $geoNear: {
+          near: location,
+          distanceField: "distance",
+          maxDistance: distance * 1000,
+          distanceMultiplier: 0.001,
+        },
+      });
+    } else {
+      geoNear.push({
         $geoNear: {
           near: location,
           distanceField: "distance",
           distanceMultiplier: 0.001,
         },
-      },
-      {
+      });
+    }
+    if (category) {
+      geoNear.push({
         $match: {
-          $or: [
-            { targetGender: req.query.type },
-            { targetGender: "unisex" },
-            {
-              $and: [
-                { randomFieldToCheck: { $exists: typePresent } },
-                {
-                  $or: [
-                    { targetGender: "male" },
-                    { targetGender: "female" },
-                    { targetGender: "unisex" },
-                  ],
-                },
-              ],
-            },
-          ],
+          _id: {
+            $in: artistArr,
+          },
         },
-      },
-      {
-        $match: {
-          rating: { $gte: Number(req.query.min) || 0 },
-        },
-      },
-    ]);
+      });
+    }
+
+    let artists = await Artist.aggregate(
+      FilterUtils.aggregationForArtists(
+        geoNear,
+        req.query.gender,
+        typePresent,
+        ratingMax,
+        ratingMin
+      )
+    );
+
     if (!artists.length) {
       res.status(200).json(wrapperMessage("success", "No result found!", []));
       return;
     }
-    let maxDistance = 0;
     let end = 0;
-    if (artists.length < 1000) {
-      maxDistance = artists[artists.length - 1].distance;
-      end = artists.length - 1;
-    } else {
-      maxDistance = artists[1000].distance;
-      end = 1000;
-    }
 
-    if (filter === "rating") {
-      let maxRating = 5;
-      for (let itr = 0; itr <= end; itr++) {
-        let artist = artists[itr];
-        let score = 0;
-        score =
-          ((maxDistance - artist.distance) / maxDistance) * 0.4 +
-          (artist.rating / maxRating) * 0.4;
+    let artistsData = await FilterUtils.getScoreForArtists(
+      filter,
+      artists,
+      order,
+      priceTags
+    );
 
-        if (artist.paid) {
-          score += 0.2;
-        }
-
-        artists[itr]["score"] = score;
-      }
-    }
+    artists = artistsData.artists;
+    end = artistsData.end;
 
     artists.sort((a, b) => {
       if (a.score < b.score) return 1;
       else if (a.score > b.score) return -1;
       else return 0;
     });
+
     let data = [];
     for (let itr = skip; itr < skip + limit; itr++) {
       if (!artists[itr]) {

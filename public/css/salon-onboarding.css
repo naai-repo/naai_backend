@@ -1,0 +1,123 @@
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+body {
+  font-family: "inter";
+}
+
+h1 {
+  text-align: center;
+}
+
+form {
+  display: flex;
+  flex-wrap: wrap;
+  max-width: 550px;
+  width: 80%;
+  margin: 0 auto;
+}
+
+.titles {
+  max-width: 550px;
+  width: 80%;
+  margin: auto;
+}
+
+label {
+  color: #616161;
+  font: 600 12px/18px "Inter";
+  margin-bottom: 5px;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  padding: 10px;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  margin-bottom: 10px;
+  border-radius: 8px;
+}
+
+select option {
+  color: #000;
+}
+select:invalid {
+  color: #666;
+}
+
+#submit-button {
+  background-color: #a0153a !important;
+  width: 100%;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  margin-top: 10px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 300;
+}
+
+#submit-button.submitting {
+  background-color: #b02a4e !important;
+  width: 100%;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  margin-top: 10px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 300;
+  pointer-events: none;
+}
+
+button:hover {
+  background-color: #3e8e41;
+}
+
+.salon-onboarding-title {
+  color: #a0153a !important;
+  font-size: 1.5rem;
+  display: flex;
+  justify-content: center;
+  font-weight: 600;
+  font-family: "Inter";
+}
+
+.salon-onboarding-form {
+  background-color: #fafafc !important;
+  padding: 0.8rem 0px;
+  margin-top: 150px;
+  width: 100%;
+}
+
+.salon-onboarding-subtitle {
+  font-size: 0.875rem;
+  color: #383b3d;
+  font-weight: 300;
+  font-family: "Inter";
+  display: flex;
+  justify-content: center;
+  margin: 1.5rem auto;
+}
+
+textarea#address {
+  font-size: 0.875rem;
+  color: rgb(10, 10, 10);
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  resize: none;
+  overflow: auto;
+  width: 100%;
+}
+
+@media only screen and (max-width: 769px) {
+  .salon-onboarding-form {
+    margin-top: 0px;
+  }
+}

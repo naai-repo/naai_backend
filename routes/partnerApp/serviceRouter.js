@@ -66,15 +66,35 @@ router.post("/add", async (req, res) => {
 // Getting different service categories
 router.get("/category/all", async (req, res) => {
   try {
+    let salonId = req.query.salonId;
+    let gender = req.query.sex;
+    if(!salonId){
+      let err = new Error("Salon ID is required!");
+      err.code = 400;
+      throw err;
+    }
     let serviceData = await Service.aggregate([
-      {
-        $group: {
-          _id: null,
-          unique_categories: {
-            $addToSet: "$category",
-          },
+        {
+          $match: {
+            salonId: new ObjectId(salonId),
+            $or: [
+              {
+                targetGender: gender.toLowerCase(),
+              },
+              {
+                targetGender: "unisex"
+              }
+            ]
+          }
         },
-      },
+        {
+          $group: {
+            _id: null,
+            unique_categories: {
+              $addToSet: "$category",
+            },
+          },
+        }
     ]);
     res
       .status(200)
@@ -154,6 +174,11 @@ router.post("/search/salon", async (req, res) => {
             $in: salonArr,
           },
         },
+      },
+      {
+        $match: {
+          live: true
+        }
       },
       {
         $match: {
@@ -342,6 +367,9 @@ router.post("/search/artist", async (req, res) => {
 router.get("/title/search", async (req, res) => {
   try {
     let name = req.query.name;
+    let page = Number(req.query.page) || 1;
+    let limit = Number(req.query.limit) || 3;
+    let skip = (page - 1) * limit;
     let queryObject = [];
     if (name) {
       queryObject.push({ serviceTitle: { $regex: name, $options: "i" } });
@@ -352,8 +380,14 @@ router.get("/title/search", async (req, res) => {
       createdAt: 0,
       __v: 0,
       updatedAt: 0,
-    });
+    }).skip(skip).limit(limit);
 
+    if(!serviceArr.length) {
+      let err = new Error("No result found!");
+      err.code = 404;
+      throw err;
+    }
+    
     res.status(200).json(
       wrapperMessage("success", "", {
         list: serviceArr,
