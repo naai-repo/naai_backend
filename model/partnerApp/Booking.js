@@ -11,6 +11,12 @@ const bookingSchema = new mongoose.Schema(
       required: true,
       lowercase: true,
     },
+    bookingMode: {
+      type: String,
+      lowercase: true,
+      enum: ["app", "walkin"],
+      default: "app",
+    },
     salonId: {
       type: mongoose.Schema.ObjectId,
       required: true,
