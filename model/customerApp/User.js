@@ -27,6 +27,12 @@ const UserSchema = new mongoose.Schema(
         message: (val) => `${val.value} has to be 10 digits`,
       },
     },
+    userType: {
+      type: String,
+      enum: ["walkin", "app"],
+      default: "walkin",
+      lowercase: true,
+    },
     location: {
       type: {
         type: String,
