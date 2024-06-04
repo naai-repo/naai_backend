@@ -31,7 +31,6 @@ const bookingSchema = new mongoose.Schema(
     },
     paymentId: {
       type: String,
-      required: true,
     },
     bookingStatus: {
       type: String,
@@ -41,16 +40,39 @@ const bookingSchema = new mongoose.Schema(
     },
     paymentStatus: {
       type: String,
-      required: true,
     },
+    payments: [
+      {
+        paymentId: {
+          type: String,
+          required: true,
+        },
+        paymentAmount: {
+          type: Number,
+          required: true,
+        },
+        paymentStatus: {
+          type: String,
+          required: true,
+        },
+        paymentDate: {
+          type: Date,
+          required: true,
+        },
+        paymentMode: {
+          type: String,
+          required: true,
+          enum: ["cash", "card", "upi", "wallet"],
+          lowercase: true,
+        },
+      }
+    ],
     timeSlot: {
       start: {
         type: String,
-        required: true,
       },
       end: {
         type: String,
-        required: true,
       },
     },
     bookingDate: {
@@ -128,11 +150,9 @@ const bookingSchema = new mongoose.Schema(
         timeSlot: {
           start: {
             type: String,
-            required: true,
           },
           end: {
             type: String,
-            required: true,
           },
         },
         chosenBy: {
