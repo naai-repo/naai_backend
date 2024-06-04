@@ -2,7 +2,8 @@ const express = require("express");
 const mongoose = require("mongoose");
 const passport = require("passport");
 const session = require("express-session");
-const cors = require("cors");
+const cors = require('cors');
+const cookieParser = require("cookie-parser");
 require("dotenv").config();
 const app = express();
 const PORT = 8801;
@@ -21,7 +22,8 @@ const ArtistRouter = require("./routes/partnerApp/artistRouter");
 const PartnerRouter = require("./routes/partnerApp/partnerRouter");
 const OtpRouter = require("./routes/partnerApp/otpRouter");
 const InventoryRouter = require("./routes/partnerApp/inventoryRouter");
-const PlanRouter = require("./routes/planRouter/plan.routes");
+const PlanRouter = require("./routes/partnerApp/planRouter");
+const WalkinRouter = require("./routes/partnerApp/walkinRouter")
 
 // Customer App
 const UserRouter = require("./routes/customerApp/userRouter");
@@ -50,13 +52,14 @@ app.use(cors());
 
 // MiddleWares
 app.use(express.json());
+app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(
   session({
     secret: "keyboard cat",
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: false },
+    cookie: { secure: process.env.COOKIE_SECURE },
   })
 );
 app.use(passport.initialize());
@@ -76,6 +79,7 @@ app.use("/partner/artist", ArtistRouter);
 app.use("/partner/user", PartnerRouter);
 app.use("/partner/otp", OtpRouter);
 app.use("/partner/inventory", InventoryRouter);
+app.use("/partner/walkin", WalkinRouter);
 
 // Customer App Routes
 app.use("/customer/user", UserRouter);
@@ -104,6 +108,7 @@ app.get("/", async (req, res) => {
   res.sendFile(__dirname + "/index.html");
   // res.send("Welcome to backend");
 });
+
 
 // Deep linking routes
 app.get("/salon/:id", (req, res) => {
@@ -138,12 +143,12 @@ app.get("/sales/salon-onboarding", (req, res) => {
 
 app.get("/server", (req, res) => {
   let server = req.query.server?.toLowerCase();
-  if (server === "dev") {
-    res.json({ server: process.env.DEV_SERVER });
-  } else {
-    res.json({ server: process.env.PROD_SERVER });
+  if(server === "dev"){
+    res.json({server: process.env.DEV_SERVER})
+  }else{
+    res.json({server: process.env.PROD_SERVER})
   }
-});
+})
 
 app.listen(PORT, async () => {
   try {
