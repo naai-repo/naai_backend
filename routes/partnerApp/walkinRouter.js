@@ -23,6 +23,8 @@ router.post("/add/user", async (req, res) => {
     }
     let newUser = new User({
       phoneNumber: phoneNumber,
+      name: req.body.name || "",
+      gender: req.body.gender.toLowerCase() || "not specified",
       userType: "walkin",
     });
     let data = await newUser.save();
@@ -65,7 +67,8 @@ router.get("/users/list", async (req, res) => {
       },
       {
         $project: {
-          _id: 1,
+          id: "$_id",
+          _id: 0,
           name: 1,
           phoneNumber:1,
           gender: 1
@@ -106,6 +109,10 @@ router.post("/add/booking", async (req, res) => {
     });
     
     let billDate = new Date();
+    let date = billDate.toLocaleString("en-in", {timeZone: "Asia/Kolkata", hourCycle: "h24"});
+    date = date.split(", ")[1];
+    let time = date.split(":");
+    let timeStr = `${time[0]}:${time[1]}`;
 
     let paymentsArray = [];
     payments.forEach(payment => {
@@ -152,26 +159,39 @@ router.post("/add/booking", async (req, res) => {
         },
         servicePrice: service.basePrice,
         discountedPrice: service.price,
+        timeSlot: {
+          start: timeStr,
+          end: timeStr,
+        },
         chosenBy: "user", 
       })
     }
 
     let walkinBooking = new Booking({
-      userId: customer._id,
+      userId: customer.id,
       bookingType: uniqueArtists.size > 1 ? "multiple" : "single",
       bookingMode: "walkin",
       salonId: salon,
       amount: bill.originalAmount,
+      bill: {
+        cashDiscount: bill.cashDisc,
+        percentageDiscount: bill.percentDisc,
+        percentageDiscountAmount: bill.percentCashDisc,
+      },
       paymentAmount: paymentAmount,
       bookingStatus: "completed",
       payments: paymentsArray,
+      timeSlot: {
+        start: timeStr,
+        end: timeStr
+      },
       bookingDate: billDate,
       coupon: {
-        couponId: coupon.id,
-        couponCode: coupon.code,
-        discount: coupon.discount,
-        max_value: coupon.max_value,
-        couponDiscount: coupon.couponDiscount,
+        couponId: coupon.id || null,
+        couponCode: coupon.code || null,
+        discount: coupon.discount || null,
+        max_value: coupon.max_value || null,
+        couponDiscount: coupon.couponDiscount || null,
       },
       artistServiceMap: artistServiceMap,
     })
