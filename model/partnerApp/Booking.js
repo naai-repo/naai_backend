@@ -41,6 +41,20 @@ const bookingSchema = new mongoose.Schema(
     paymentStatus: {
       type: String,
     },
+    bill:{
+      cashDiscount: {
+        type: Number,
+        default: 0
+      },
+      percentageDiscount: {
+        type: Number,
+        default: 0
+      },
+      percentageDiscountAmount: {
+        type: Number,
+        default: 0
+      }
+    },
     payments: [
       {
         paymentId: {
