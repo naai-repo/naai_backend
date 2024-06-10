@@ -494,7 +494,10 @@ router.post('/getSalonDataForDashboard', async (req, res) =>{
       {
         $group: {
             _id: "$artistServiceMap.artistId",
-            bookings: { $push: "$artistServiceMap" }
+            bookings:
+             { $push: {artistServiceMap: "$artistServiceMap",  timeSlot: "$timeSlot", bookingMode: '$bookingMode'}
+        }
+
       }
     }   
   ])

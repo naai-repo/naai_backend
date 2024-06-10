@@ -174,6 +174,7 @@ router.post("/add/booking", async (req, res) => {
     });
     
     let billDate = new Date();
+
     let date = billDate.toLocaleString("en-in", {timeZone: "Asia/Kolkata", hourCycle: "h24"});
     date = date.split(", ")[1];
     let time = date.split(":");
