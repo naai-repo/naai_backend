@@ -3,12 +3,20 @@ const wrapperMessage = require("../../helper/wrapperMessage");
 const User = require("../../model/customerApp/User");
 const Artist = require("../../model/partnerApp/Artist");
 const Booking = require("../../model/partnerApp/Booking");
+const Salon = require("../../model/partnerApp/Salon");
 const Service = require("../../model/partnerApp/Service");
 
 router.post("/add/user", async (req, res) => {
   try {
     const phoneNumber = req.body.phoneNumber;
+    const salonId = req.body.salonId;
     let user = await User.findOne({ phoneNumber: phoneNumber });
+    let salon = await Salon.findOne({_id: salonId});
+    if(!salon){
+      let err = new Error("Salon not found");
+      err.code = 404;
+      throw err;
+    }
     if (user) {
       let data = {
         id: user._id,
@@ -16,6 +24,14 @@ router.post("/add/user", async (req, res) => {
         phoneNumber: user.phoneNumber,
         userType: user.userType,
       };
+      if(!user.walkinSalons.includes(salonId)){
+        user.walkinSalons.push(salonId);
+        await user.save();
+      }
+      if(!salon.WalkinUsers.includes(phoneNumber.toString())){
+        salon.WalkinUsers.push(phoneNumber.toString());
+        await salon.save();
+      }
       res
         .status(200)
         .json(wrapperMessage("success", "User already exists", data));
@@ -26,7 +42,10 @@ router.post("/add/user", async (req, res) => {
       name: req.body.name || "",
       gender: req.body.gender.toLowerCase() || "not specified",
       userType: "walkin",
+      walkinSalons: [salonId],
     });
+    salon.WalkinUsers.push(phoneNumber.toString());
+    await salon.save();
     let data = await newUser.save();
     res
       .status(200)
@@ -50,31 +69,77 @@ router.get("/users", async (req, res) => {
 router.get("/users/list", async (req, res) => {
   try {
     const number = req.query.number;
-    const aggregation = [
-      {
-        $addFields: {
-          stringPhoneNumber: {
-            $toString: "$phoneNumber"
+    const salonId = req.query.salonId;
+    let aggregation = [];
+    if(number.length === 10){
+      aggregation = [
+        {
+          $addFields: {
+            stringPhoneNumber: {
+              $toString: "$phoneNumber"
+            }
+          }
+        },
+        {
+          $match: {
+            stringPhoneNumber: {
+              $regex: `^${number}`
+            }
+          }
+        },
+        {
+          $project: {
+            id: "$_id",
+            _id: 0,
+            name: 1,
+            phoneNumber:1,
+            gender: 1
           }
         }
-      },
-      {
-        $match: {
-          stringPhoneNumber: {
-            $regex: `^${number}`
+      ];
+    }else{
+      aggregation = [
+        {
+          $addFields: {
+            stringPhoneNumber: {
+              $toString: "$phoneNumber"
+            },
+            userGoesToSalon: {
+              $cond: [
+                {
+                  $setIsSubset: [[{$toObjectId : salonId}], {$ifNull: ["$walkinSalons", []]}]
+                },
+                true,
+                false
+              ]
+            }
+          }
+        },
+        {
+          $match: {
+            $and : [
+              {
+                stringPhoneNumber : {
+                  $regex: `${number}`
+                }
+              },
+              {
+                userGoesToSalon: true
+              }
+            ]
+          }
+        },
+        {
+          $project: {
+            id: "$_id",
+            _id: 0,
+            name: 1,
+            phoneNumber:1,
+            gender: 1,
           }
         }
-      },
-      {
-        $project: {
-          id: "$_id",
-          _id: 0,
-          name: 1,
-          phoneNumber:1,
-          gender: 1
-        }
-      }
-    ];
+      ];
+    }
     let data = await User.aggregate(aggregation);
     if(data.length === 0){
       res.status(200).json(wrapperMessage("success", "No user found with this number", []));

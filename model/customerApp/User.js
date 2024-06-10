@@ -86,8 +86,12 @@ const UserSchema = new mongoose.Schema(
       expiryDate: {
         type: Date
       },
-    
     },
+    walkinSalons: [
+      {
+        type: mongoose.Schema.ObjectId,
+      }
+    ]
   },
   {
     timestamps: true,
