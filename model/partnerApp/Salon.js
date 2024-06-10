@@ -47,11 +47,10 @@ const SalonSchema = new mongoose.Schema(
       min: 0,
       max: 5,
     },
-    closedOn: [
-      {
-        type: String,
-      },
-    ],
+    closedOn: {
+      type: String,
+      default: "none",
+    },
     phoneNumber: {
       type: Number,
       required: true,
@@ -95,12 +94,12 @@ const SalonSchema = new mongoose.Schema(
     discountTime: {
       start: {
         type: String,
-        default: ""
+        default: "",
       },
       end: {
         type: String,
-        default: ""
-      }
+        default: "",
+      },
     },
     links: {
       instagram: {
@@ -118,43 +117,48 @@ const SalonSchema = new mongoose.Schema(
         },
       },
     ],
-    referrer:{
+    referrer: {
       referrerId: {
         type: mongoose.Schema.ObjectId,
-        default: process.env.NULL_OBJECT_ID
+        default: process.env.NULL_OBJECT_ID,
       },
       referralCode: {
         type: String,
-        default: ""
-      }
+        default: "",
+      },
     },
     subscription: {
       planId: {
         type: mongoose.Schema.ObjectId,
-        default: process.env.NULL_OBJECT_ID
+        default: process.env.NULL_OBJECT_ID,
       },
       planName: {
         type: String,
-        default: ""
+        default: "",
       },
       startDate: {
         type: Date,
-        default: Date.now
+        default: Date.now,
       },
       endDate: {
         type: Date,
-        default: Date.now
+        default: Date.now,
       },
       renewed: {
         type: Boolean,
-        default: false
+        default: false,
       },
-      features: []
-    }
+      features: [],
+    },
+    WalkinUsers: [
+      {
+        type: String,
+      },
+    ],
   },
   {
     timestamps: true,
-    toJSON: { getters: true, virtuals: false},
+    toJSON: { getters: true, virtuals: false },
   }
 );
 
