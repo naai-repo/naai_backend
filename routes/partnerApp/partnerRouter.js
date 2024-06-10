@@ -201,7 +201,7 @@ router.post("/loginViaPassword", (req, res) => {
   }
 });
 
-router.post("/update/", async (req, res) => {
+router.post("/update", async (req, res) => {
   try{
     let userId = req.body.userId;
     if(!userId){
@@ -211,7 +211,7 @@ router.post("/update/", async (req, res) => {
     }
     if(req.body.email){
       let userWithEmail = await Partner.find({email: req.body.email});
-      if(userWithEmail.length){
+      if(userWithEmail.length && userWithEmail[0] !== userId){
         let err = new Error("User with this email already exists!");
         err.code = 400;
         throw err;
