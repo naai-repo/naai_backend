@@ -800,4 +800,27 @@ async function updateInventoryOnServiceCompletion(serviceIds) {
   }
 }
 
+router.get("/booking/info", async (req, res) => {
+  try{
+    const bookingId = req.query.id;
+    if(!bookingId){
+      let err =  new Error("Booking Id is required!");
+      err.code = 400;
+      throw err;
+    }
+
+    const booking = await Booking.findOne({_id: bookingId});
+    if(!booking){
+      let err = new Error("No such booking found!");
+      err.code = 404;
+      throw err;
+    }
+
+    res.status(200).json(wrapperMessage("success", "Booking fetched", booking));
+  }catch(err){
+    console.log(err);
+    res.status(err.code || 500).json(wrapperMessage("failed", err.message));
+  }
+})
+
 module.exports = router;
