@@ -155,6 +155,10 @@ const SalonSchema = new mongoose.Schema(
         type: String,
       },
     ],
+    taxIncluded: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
