@@ -163,6 +163,31 @@ router.post("/add/booking", async (req, res) => {
       payments,
       coupon
     }
+
+    let userData = await User.findOne({ _id: customer.id });
+    let salonData = await Salon.findOne({ _id: salon });
+    if(!salonData){
+      let err = new Error("Salon not found");
+      err.code = 404;
+      throw err;
+    }
+    if(!userData){
+      let err = new Error("User not found");
+      err.code = 404;
+      throw err;
+    }
+
+    if(salonData.WalkinUsers.indexOf(userData.phoneNumber.toString()) === -1){
+      console.log("Saved salonData")
+      salonData.WalkinUsers.push(userData.phoneNumber.toString());
+      await salonData.save();
+    }
+    if(userData.walkinSalons.indexOf(salon.toString()) === -1){
+      console.log("Saved userData")
+      userData.walkinSalons.push(salon.toString());
+      await userData.save();
+    }
+
     let uniqueArtists = new Set();
     selectedServices.forEach(service => {
       uniqueArtists.add(service.artistId.toString());
@@ -229,7 +254,8 @@ router.post("/add/booking", async (req, res) => {
           start: timeStr,
           end: timeStr,
         },
-        chosenBy: "user", 
+        chosenBy: "user",
+        tax: service.tax || 0,
       })
     }
 
