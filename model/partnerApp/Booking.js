@@ -175,6 +175,10 @@ const bookingSchema = new mongoose.Schema(
           enum: ["user", "algo"],
           lowercase: true,
         },
+        tax: {
+          type: Number,
+          default: 0
+        }
       },
     ],
   },
