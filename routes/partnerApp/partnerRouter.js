@@ -22,7 +22,7 @@ router.post("/login", (req, res) => {
       if (result.length) {
         // User Already exists
         sendOTPVerification(result[0], res);
-      } else {
+      } else if(!req.body.hasOwnProperty("isForManager")){
         // try to create new user
         const newPartner = new Partner({
           phoneNumber,
@@ -41,6 +41,13 @@ router.post("/login", (req, res) => {
               )
             );
           });
+      }else{
+        res.json(
+          wrapperMessage(
+            "failed",
+            "Partner Not Found!"
+          )
+        );
       }
     })
     .catch((err) => {
