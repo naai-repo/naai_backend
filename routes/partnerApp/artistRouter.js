@@ -183,7 +183,8 @@ router.post("/remove/:serviceId/services", async (req, res) => {
 router.post("/:id/update", async (req, res) => {
   try {
     let data = await Artist.updateOne({ _id: req.params.id }, req.body);
-    res.json(wrapperMessage("success", "", data));
+    let artistData =  await Artist.findOne({ _id: req.params.id }); 
+    res.json(wrapperMessage("success", "", artistData));
   } catch (err) {
     console.log(err);
     res.json(wrapperMessage("failed", err.message));
