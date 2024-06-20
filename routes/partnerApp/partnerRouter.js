@@ -218,7 +218,7 @@ router.post("/update", async (req, res) => {
     }
     if(req.body.email){
       let userWithEmail = await Partner.find({email: req.body.email});
-      if(userWithEmail.length && userWithEmail[0] !== userId){
+      if(userWithEmail.length && userWithEmail[0]._id.toString() !== userId){
         let err = new Error("User with this email already exists!");
         err.code = 400;
         throw err;
@@ -233,8 +233,11 @@ router.post("/update", async (req, res) => {
 
     let user = await Partner.findOne({_id: userId});
     user.name = req.body.name || user.name;
-    user.email = req.body.email || user.email;
+    if(user.email !== req.body.email){
+      user.email = req.body.email || user.email;
+    }
     user.password = req.body.password || user.password;
+    user.admin = req.body.admin || user.admin;
     let newUser = await user.save();
     
     res.json(wrapperMessage("success", "User updated successfully!", newUser));
