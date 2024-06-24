@@ -823,4 +823,32 @@ router.get("/booking/info", async (req, res) => {
   }
 })
 
+// route to get all the bookings of a salon between start and end date
+router.get("/bookings/forStats", async (req, res) => {
+  try {
+    const salonId = req.query.salonId;
+    const startDate = req.query.startDate;
+    const endDate = req.query.endDate;
+
+    if (!salonId || !startDate || !endDate) {
+      let err = new Error("Salon Id, Start Date and End Date are required!");
+      err.code = 400;
+      throw err;
+    }
+
+    const bookings = await Booking.find({
+      salonId: salonId,
+      bookingDate: {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate),
+      },
+    });
+
+    res.status(200).json(wrapperMessage("success", "Bookings fetched", bookings));
+  } catch (err) {
+    console.log(err);
+    res.status(err.code || 500).json(wrapperMessage("failed", err.message));
+  }
+});
+
 module.exports = router;
