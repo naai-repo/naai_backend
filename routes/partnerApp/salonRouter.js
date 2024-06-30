@@ -524,7 +524,6 @@ router.post('/getSalonDataForDashboard', async (req, res) =>{
     } 
   ])
 
-  let newDatd = 
 
       res.json(data)  
   
