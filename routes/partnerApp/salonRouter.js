@@ -504,8 +504,28 @@ router.post('/getSalonDataForDashboard', async (req, res) =>{
         }
 
       }
-    }   
+    },
+    {
+      $lookup: {
+        from: "artists", 
+        let: { artistId: "$_id" },
+        pipeline: [
+          { $match: { $expr: { $eq: ["$_id", "$$artistId"] } } },
+          { $project: { offDay: 1, timing: 1 } } 
+        ],
+        as: "artistData" 
+      }
+    },
+    {
+      $unwind: {
+        path: "$artistData",
+        preserveNullAndEmptyArrays: true 
+      }
+    } 
   ])
+
+  let newDatd = 
+
       res.json(data)  
   
   } catch (err) {
