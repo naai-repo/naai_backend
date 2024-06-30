@@ -495,13 +495,36 @@ router.post('/getSalonDataForDashboard', async (req, res) =>{
         $group: {
             _id: "$artistServiceMap.artistId",
             bookings:
-             { $push: {artistServiceMap: "$artistServiceMap",  timeSlot: "$timeSlot", bookingMode: '$bookingMode',bookingId: "$_id",
-             userId: "$userId",}
+             { $push: {artistServiceMap: "$artistServiceMap",  timeSlot: "$timeSlot", 
+             bookingMode: '$bookingMode',
+             bookingId: "$_id",
+             userId: "$userId",
+             bookingStatus:'$bookingStatus'
+            }
         }
 
       }
-    }   
+    },
+    {
+      $lookup: {
+        from: "artists", 
+        let: { artistId: "$_id" },
+        pipeline: [
+          { $match: { $expr: { $eq: ["$_id", "$$artistId"] } } },
+          { $project: { offDay: 1, timing: 1 } } 
+        ],
+        as: "artistData" 
+      }
+    },
+    {
+      $unwind: {
+        path: "$artistData",
+        preserveNullAndEmptyArrays: true 
+      }
+    } 
   ])
+
+
       res.json(data)  
   
   } catch (err) {
