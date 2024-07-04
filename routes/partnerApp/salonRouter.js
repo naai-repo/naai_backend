@@ -547,4 +547,57 @@ router.get("/delete/test/:id", async (req, res) => {
   }
 })
 
+
+// salon walkin customer
+
+router.post("/customerList", async (req, res) => {
+  try {
+    let salonId = req.body.salonId;
+    let page = parseInt(req.query.page) || 1;
+    let limit = parseInt(req.query.limit) || 10;
+    let skip = (page - 1) * limit;
+    const salonData = await Salon.findOne({ _id: salonId });
+
+    if (!salonData) {
+      return res
+        .status(404)
+        .json(wrapperMessage("failed", "No such salon exists!"));
+    }
+
+    const paginatedUsers = salonData.WalkinUsers.slice(skip, skip + limit);
+
+    const users = await User.find({ phoneNumber: { $in: paginatedUsers } });
+
+    res.status(200).json(wrapperMessage("success", "Salon users", users));
+  } catch (err) {
+    console.error(err);
+    res.status(500).json(wrapperMessage("failed", err.message));
+  }
+});
+
+router.post("/addCustomer", async (req, res) => {
+  try {
+    let salonId = req.body.salonId;
+    let customer = req.body.customer;
+    const salonData = await Salon.findOne({ _id: salonId });
+
+    const foundUser = await User.findOne({
+      phoneNumber: customer.phoneNumber,
+    });
+    if (foundUser){
+       return res.status(500).json(
+          wrapperMessage("failed", "user with this phone number already exist")
+        );
+      }
+    const user = new User(customer);
+
+    salonData.WalkinUsers.push(user.phoneNumber.toString());
+
+    user.save();
+    await salonData.save();
+    res.status(200).json(wrapperMessage("success", "user created successfully", user));
+  } catch (err) {
+    res.status(500).json(wrapperMessage("failed", err.message));
+  }
+});
 module.exports = router;
