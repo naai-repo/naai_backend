@@ -560,7 +560,6 @@ router.get("/delete/test/:id", async (req, res) => {
 });
 
 // salon walkin customer
-
 router.post("/customerList", async (req, res) => {
   try {
     let salonId = req.body.salonId;
@@ -598,7 +597,9 @@ router.post("/addCustomer", async (req, res) => {
 
     const user = new User(customer);
 
-    const foundWalkinUser = salonData.WalkinUsers.includes(user.phoneNumber.toString());
+    const foundWalkinUser = salonData.WalkinUsers.includes(
+      user.phoneNumber.toString()
+    );
 
     if (foundWalkinUser) {
       let err = new Error("User with this phone number alreay exist in salon");
@@ -607,7 +608,7 @@ router.post("/addCustomer", async (req, res) => {
     }
 
     salonData.WalkinUsers.push(user.phoneNumber.toString());
-    
+
     if (!foundUser) {
       user.save();
     }
@@ -619,4 +620,40 @@ router.post("/addCustomer", async (req, res) => {
     res.status(err.code || 500).json(wrapperMessage("failed", err.message));
   }
 });
+
+router.post("/customer/search", async (req, res) => {
+  try {
+    const salonId = req.body.salonId;
+    const search = req.body.search;
+    let page = parseInt(req.query.page) || 1;
+    let limit = parseInt(req.query.limit) || 10;
+    let skip = (page - 1) * limit;
+
+    const salon = await Salon.findOne({ _id: salonId });
+    if (!salon) {
+      let err = new Error("No such salon exists!");
+      err.code = 404;
+      throw err;
+    }
+
+    let users = [];
+
+    if (isNaN(Number(search))) {
+      users = await User.find({walkinSalons: salonId,
+        name: { $regex: search, $options: "i" },}).skip(skip).limit(limit);
+    } else {
+      const searchUsers = salon.WalkinUsers.filter((number) =>
+        number.includes(search)
+      );
+      const paginatedUsers = searchUsers.slice(skip, skip + limit);
+      users = await User.find({ phoneNumber: { $in: paginatedUsers } });
+    }
+    res
+      .status(200)
+      .json(wrapperMessage("success", "user created successfully", users));
+  } catch (err) {
+    res.status(err.code || 500).json(wrapperMessage("failed", err.message));
+  }
+});
+
 module.exports = router;
