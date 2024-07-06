@@ -281,10 +281,15 @@ router.post("/topSalons", async (req, res) => {
     }
 
     let salonsData = await FilterUtils.getScore(
+      
       "relevance",
+     
       salons,
+     
       "desc",
+     
       []
+    
     );
     salons = salonsData.salons;
     end = salonsData.end;
@@ -349,7 +354,7 @@ router.post("/filter", async (req, res) => {
         category: { $regex: ele, $options: "i" },
       }));
       queryObject.push({ $or: serviceTitleMatch });
-      queryObject.push({ $or: categoryMatch });
+      queryObject.push({ $or: categoryMatch  });
       let serviceArr = await Service.find({
         $or: queryObject,
         $nor: [{ salonId: null }],
