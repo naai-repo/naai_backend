@@ -52,7 +52,6 @@ exports.searchSingleSalonServices = async (req, res, next) => {
     let queryObject = [];
     if (name) {
       queryObject.push({ serviceTitle: { $regex: name, $options: "i" } });
-      queryObject.push({ category: { $regex: name, $options: "i" } });
     }
     let services = await Service.find({
       $and: [{ salonId: salonId }, { $or: queryObject }],

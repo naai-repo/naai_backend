@@ -3,6 +3,7 @@ const router = require("express").Router();
 const Salon = require("../../model/partnerApp/Salon");
 const Booking = require("../../model/partnerApp/Booking");
 const Artist = require("../../model/partnerApp/Artist");
+const User = require("../../model/customerApp/User");
 const wrapperMessage = require("../../helper/wrapperMessage");
 const Service = require("../../model/partnerApp/Service");
 const jwtVerify = require("../../middleware/jwtVerification");
@@ -279,7 +280,17 @@ router.post("/topSalons", async (req, res) => {
       return;
     }
 
-    let salonsData = await FilterUtils.getScore("relevance", salons, "desc", []);
+    let salonsData = await FilterUtils.getScore(
+      
+      "relevance",
+     
+      salons,
+     
+      "desc",
+     
+      []
+    
+    );
     salons = salonsData.salons;
     end = salonsData.end;
     salons.sort((a, b) => {
@@ -328,16 +339,22 @@ router.post("/filter", async (req, res) => {
     let discountMax = Number(req.query.maxDiscount) || 100;
     let ratingMin = Number(req.query.minRating) || 0;
     let ratingMax = Number(req.query.maxRating) || 5;
-    let distance = isNaN(Number(req.query.distance)) ? null : Number(req.query.distance);
+    let distance = isNaN(Number(req.query.distance))
+      ? null
+      : Number(req.query.distance);
     let end = 0;
     let category = req.query.category;
     let queryObject = [];
     let salonArr = [];
     if (category) {
-      let serviceTitleMatch = category.map(ele => ({ serviceTitle: { $regex: ele, $options: "i" } }));
-      let categoryMatch = category.map(ele => ({ category: { $regex: ele, $options: "i" } }));
+      let serviceTitleMatch = category.map((ele) => ({
+        serviceTitle: { $regex: ele, $options: "i" },
+      }));
+      let categoryMatch = category.map((ele) => ({
+        category: { $regex: ele, $options: "i" },
+      }));
       queryObject.push({ $or: serviceTitleMatch });
-      queryObject.push({ $or: categoryMatch});
+      queryObject.push({ $or: categoryMatch  });
       let serviceArr = await Service.find({
         $or: queryObject,
         $nor: [{ salonId: null }],
@@ -350,38 +367,32 @@ router.post("/filter", async (req, res) => {
 
     let geoNear = [];
 
-    if(distance){
-      geoNear.push(
-        {
-          $geoNear: {
-            near: location,
-            distanceField: "distance",
-            maxDistance: distance * 1000,
-            distanceMultiplier: 0.001,
-          },
-        }
-      );
-    }else{
-      geoNear.push(
-        {
-          $geoNear: {
-            near: location,
-            distanceField: "distance",
-            distanceMultiplier: 0.001,
-          }
-        }
-      );
+    if (distance) {
+      geoNear.push({
+        $geoNear: {
+          near: location,
+          distanceField: "distance",
+          maxDistance: distance * 1000,
+          distanceMultiplier: 0.001,
+        },
+      });
+    } else {
+      geoNear.push({
+        $geoNear: {
+          near: location,
+          distanceField: "distance",
+          distanceMultiplier: 0.001,
+        },
+      });
     }
-    if(category){
-      geoNear.push(
-        {
-          $match: {
-            _id: {
-              $in: salonArr,
-            },
+    if (category) {
+      geoNear.push({
+        $match: {
+          _id: {
+            $in: salonArr,
           },
-        }
-      );
+        },
+      });
     }
 
     let salons = await Salon.aggregate(
@@ -401,7 +412,12 @@ router.post("/filter", async (req, res) => {
       return;
     }
 
-    let salonsData = await FilterUtils.getScore(filter, salons, order, priceTags);
+    let salonsData = await FilterUtils.getScore(
+      filter,
+      salons,
+      order,
+      priceTags
+    );
 
     salons = salonsData.salons;
     end = salonsData.end;
@@ -473,55 +489,202 @@ router.post("/update/discount", async (req, res) => {
     res.status(err.code || 500).json(wrapperMessage("failed", err.message));
   }
 });
-router.post('/getSalonDataForDashboard', async (req, res) =>{
+router.post("/getSalonDataForDashboard", async (req, res) => {
   try {
-     let salonId = req.body.salonId;
-     let startDate = req.body.startDate;
+    let salonId = req.body.salonId;
+    let startDate = req.body.startDate;
     let data = await Booking.aggregate([
       {
-          $match: {
-              "salonId": new ObjectId(salonId), 
-              // Adjust 
-               "bookingDate": {
-                   $gte: new Date(startDate),
-                  //  $lt: new ISODate("2024-05-01T00:00:00.000Z")
-              }
-          }
+        $match: {
+          salonId: new ObjectId(salonId),
+          // Adjust
+          bookingDate: {
+            $gte: new Date(startDate),
+            //  $lt: new ISODate("2024-05-01T00:00:00.000Z")
+          },
+        },
       },
       {
-          $unwind: "$artistServiceMap"
+        $unwind: "$artistServiceMap",
       },
       {
         $group: {
-            _id: "$artistServiceMap.artistId",
-            bookings:
-             { $push: {artistServiceMap: "$artistServiceMap",  timeSlot: "$timeSlot", bookingMode: '$bookingMode',bookingId: "$_id",
-             userId: "$userId",}
-        }
+          _id: "$artistServiceMap.artistId",
+          bookings: {
+            $push: {
+              artistServiceMap: "$artistServiceMap",
+              timeSlot: "$timeSlot",
+              bookingMode: "$bookingMode",
+              bookingId: "$_id",
+              userId: "$userId",
+              bookingStatus: "$bookingStatus",
+            },
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: "artists",
+          let: { artistId: "$_id" },
+          pipeline: [
+            { $match: { $expr: { $eq: ["$_id", "$$artistId"] } } },
+            { $project: { offDay: 1, timing: 1 } },
+          ],
+          as: "artistData",
+        },
+      },
+      {
+        $unwind: {
+          path: "$artistData",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+    ]);
 
-      }
-    }   
-  ])
-      res.json(data)  
-  
+    res.json(data);
   } catch (err) {
     console.log(err);
     res.status(err.code || 500).json(wrapperMessage("failed", err.message));
   }
-})
+});
 
 router.get("/delete/test/:id", async (req, res) => {
-  try{
+  try {
     let salon = await Salon.findOneAndDelete({ _id: req.params.id });
     console.log(salon);
-    if(!salon){
+    if (!salon) {
       res.status(404).json(wrapperMessage("failed", "No such salon exists!"));
     }
-    res.status(200).json(wrapperMessage("success", "Salon deleted successfully!", salon));
-  }catch(err){
+    res
+      .status(200)
+      .json(wrapperMessage("success", "Salon deleted successfully!", salon));
+  } catch (err) {
     console.log(err);
     res.status(500).json(wrapperMessage("failed", err.message));
   }
-})
+});
+
+// salon walkin customer
+
+router.post("/customerList", async (req, res) => {
+  try {
+    let salonId = req.body.salonId;
+    let page = parseInt(req.query.page) || 1;
+    let limit = parseInt(req.query.limit) || 10;
+    let skip = (page - 1) * limit;
+    const salonData = await Salon.findOne({ _id: salonId });
+
+    if (!salonData) {
+      let err = new Error("No such salon exists!");
+      err.code = 404;
+      throw err;
+    }
+
+    const paginatedUsers = salonData.WalkinUsers.slice(skip, skip + limit);
+
+    const users = await User.find({ phoneNumber: { $in: paginatedUsers } });
+
+    res.status(200).json(wrapperMessage("success", "Salon users", users));
+  } catch (err) {
+    console.error(err);
+    res.status(err.code || 500).json(wrapperMessage("failed", err.message));
+  }
+});
+
+router.post("/addCustomer", async (req, res) => {
+  try {
+    let salonId = req.body.salonId;
+    let customer = req.body.customer;
+    const salonData = await Salon.findOne({ _id: salonId });
+
+    const foundUser = await User.findOne({
+      phoneNumber: customer.phoneNumber,
+    });
+
+    const user = new User(customer);
+    
+    const foundWalkinUser = salonData.WalkinUsers.includes(
+      user.phoneNumber.toString()
+    );
+
+    if (foundWalkinUser) {
+      let err = new Error("User with this phone number alreay exist in salon");
+      err.code = 404;
+      throw err;
+    }
+
+    salonData.WalkinUsers.push(user.phoneNumber.toString());
+
+    if (!foundUser) {
+      user.save();
+    }
+    await salonData.save();
+    res
+      .status(200)
+      .json(wrapperMessage("success", "user created successfully", user));
+  } catch (err) {
+    res.status(err.code || 500).json(wrapperMessage("failed", err.message));
+  }
+});
+
+router.post("/customers/search", async (req, res) => {
+  try {
+    const salonId = req.body.salonId;
+    const search = req.body.search;
+    let page = parseInt(req.query.page) || 1;
+    let limit = parseInt(req.query.limit) || 10;
+    let skip = (page - 1) * limit;
+
+    const salon = await Salon.findOne({ _id: salonId });
+    if (!salon) {
+      let err = new Error("No such salon exists!");
+      err.code = 404;
+      throw err;
+    }
+
+    let users = [];
+
+    if (isNaN(Number(search))) {
+      users = await User.find({walkinSalons: salonId,
+        name: { $regex: search, $options: "i" },}).skip(skip).limit(limit);
+    } else {
+      const searchUsers = salon.WalkinUsers.filter((number) =>
+        number.includes(search)
+      );
+      const paginatedUsers = searchUsers.slice(skip, skip + limit);
+      users = await User.find({ phoneNumber: { $in: paginatedUsers } });
+    }
+    res
+      .status(200)
+      .json(wrapperMessage("success", "user created successfully", users));
+  } catch (err) {
+    res.status(err.code || 500).json(wrapperMessage("failed", err.message));
+  }
+});
+
+router.post("/customers/filter", async (req, res) => {
+  try {
+    let salonId = req.body.salonId;
+    let filter = req.body.filter;
+    let page = parseInt(req.query.page) || 1;
+    let limit = parseInt(req.query.limit) || 10;
+    let skip = (page - 1) * limit;
+
+    if (!filter) {
+      let error = new Error("Invalid filter selected!");
+      error.code = 400;
+      throw error;
+    }
+    
+    const filterCriteria = { walkinSalons: salonId, gender: filter.gender };
+
+    const users = await User.find(filterCriteria).skip(skip).limit(limit);
+
+    res.status(200).json(wrapperMessage("success", "Salon users", users));
+  } catch (err) {
+    console.error(err);
+    res.status(err.code || 500).json(wrapperMessage("failed", err.message));
+  }
+});
 
 module.exports = router;
