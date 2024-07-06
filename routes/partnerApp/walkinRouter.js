@@ -93,7 +93,8 @@ router.get("/users/list", async (req, res) => {
             _id: 0,
             name: 1,
             phoneNumber:1,
-            gender: 1
+            gender: 1,
+            dues: 1,
           }
         }
       ];
@@ -136,6 +137,7 @@ router.get("/users/list", async (req, res) => {
             name: 1,
             phoneNumber:1,
             gender: 1,
+            dues: 1,
           }
         }
       ];
@@ -265,10 +267,12 @@ router.post("/add/booking", async (req, res) => {
       bookingMode: "walkin",
       salonId: salon,
       amount: bill.originalAmount,
+      amountDue: bill.amountDue,
       bill: {
         cashDiscount: bill.cashDisc,
         percentageDiscount: bill.percentDisc,
         percentageDiscountAmount: bill.percentCashDisc,
+        duesCleared: bill.duesCleared,
       },
       paymentAmount: paymentAmount,
       bookingStatus: "completed",
@@ -288,6 +292,17 @@ router.post("/add/booking", async (req, res) => {
       artistServiceMap: artistServiceMap,
     })
     let saveBooking = await walkinBooking.save();
+    if(bill.amountDue > 0){
+      let dues = userData.dues;
+      dues.push({
+        bookingId: saveBooking._id,
+        salonId: salon,
+        amount: bill.amountDue,
+        bookingDate: billDate
+      });
+      userData.dues = dues;
+      await userData.save();
+    }
     res.status(200).json(wrapperMessage("success","Booking added for POS", {walkinBooking, saveBooking}));
   }catch(err){
     console.log(err);
@@ -296,4 +311,72 @@ router.post("/add/booking", async (req, res) => {
 });
 
 // Routes for walkin booking creation!
+
+// Route for Clearing Out the Dues
+
+router.post("/clear/dues", async (req, res) => {
+  try{
+    let {userId, salonId, amountPaid} = req.body;
+    amountPaid = Number(amountPaid);
+    let userData = await User.findOne({ _id: userId });
+    if(!userData){
+      let err = new Error("User not found");
+      err.code = 404;
+      throw err;
+    }
+    if(amountPaid === 0){
+      let err = new Error("No Dues Paid");
+      err.status = "success"
+      err.code = 200;
+      throw err;
+    }
+    let dues = userData.dues;
+    let salonFound = false;
+    let newDues = [];
+    while(amountPaid > 0 && dues.length > 0){
+      let due = dues[0];
+      if(due.salonId.toString() !== salonId.toString()){
+        newDues.push(due);
+        dues.shift();
+        continue;
+      }else{
+        salonFound = true;
+        let booking = await Booking.findOne({ _id: due.bookingId });
+        let amount = due.amount;
+        if(amountPaid >= amount){
+          amountPaid -= amount;
+          booking.paymentAmount += amount;
+          booking.amountDue -= amount;
+          await booking.save();
+          dues.shift();
+        }else{
+          amount -= amountPaid;
+          booking.paymentAmount += amountPaid;
+          booking.amountDue -= amountPaid;
+          await booking.save();
+          due.amount = amount;
+          newDues.push(due);
+          dues.shift();
+          amountPaid = 0;
+        }
+      }
+    }
+    while(dues.length > 0){
+      let due = dues.shift();
+      newDues.push(due);
+    }
+    if(!salonFound && amountPaid > 0){
+      let err = new Error("No dues found for this salon");
+      err.status = "success"
+      err.code = 200;
+      throw err;
+    }
+    userData.dues = newDues;
+    let newUserData = await userData.save();
+    res.status(200).json(wrapperMessage("success", "Dues cleared successfully", newUserData));
+  }catch(err){
+    console.log(err);
+    res.status(err.code || 500).json(wrapperMessage(err.status || "failed", err.message));
+  }
+});
 module.exports = router;

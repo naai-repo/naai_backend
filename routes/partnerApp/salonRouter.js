@@ -560,6 +560,7 @@ router.get("/delete/test/:id", async (req, res) => {
 });
 
 // salon walkin customer
+
 router.post("/customerList", async (req, res) => {
   try {
     let salonId = req.body.salonId;
@@ -680,6 +681,3 @@ router.post("/customers/filter", async (req, res) => {
     res.status(err.code || 500).json(wrapperMessage("failed", err.message));
   }
 });
-
-
-module.exports = router;
