@@ -343,9 +343,6 @@ router.post("/filter", async (req, res) => {
     let distance = isNaN(Number(req.query.distance))
       ? null
       : Number(req.query.distance);
-    let distance = isNaN(Number(req.query.distance))
-      ? null
-      : Number(req.query.distance);
     let end = 0;
     let category = req.query.category;
     let queryObject = [];
