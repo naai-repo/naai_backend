@@ -4,6 +4,7 @@ const Salon = require("../../model/partnerApp/Salon");
 const Booking = require("../../model/partnerApp/Booking");
 const Artist = require("../../model/partnerApp/Artist");
 const User = require("../../model/customerApp/User");
+const User = require("../../model/customerApp/User");
 const wrapperMessage = require("../../helper/wrapperMessage");
 const Service = require("../../model/partnerApp/Service");
 const jwtVerify = require("../../middleware/jwtVerification");
@@ -281,10 +282,15 @@ router.post("/topSalons", async (req, res) => {
     }
 
     let salonsData = await FilterUtils.getScore(
+      
       "relevance",
+     
       salons,
+     
       "desc",
+     
       []
+    
     );
     salons = salonsData.salons;
     end = salonsData.end;
@@ -337,6 +343,9 @@ router.post("/filter", async (req, res) => {
     let distance = isNaN(Number(req.query.distance))
       ? null
       : Number(req.query.distance);
+    let distance = isNaN(Number(req.query.distance))
+      ? null
+      : Number(req.query.distance);
     let end = 0;
     let category = req.query.category;
     let queryObject = [];
@@ -349,7 +358,7 @@ router.post("/filter", async (req, res) => {
         category: { $regex: ele, $options: "i" },
       }));
       queryObject.push({ $or: serviceTitleMatch });
-      queryObject.push({ $or: categoryMatch });
+      queryObject.push({ $or: categoryMatch  });
       let serviceArr = await Service.find({
         $or: queryObject,
         $nor: [{ salonId: null }],
@@ -560,6 +569,7 @@ router.get("/delete/test/:id", async (req, res) => {
 });
 
 // salon walkin customer
+
 router.post("/customerList", async (req, res) => {
   try {
     let salonId = req.body.salonId;
@@ -596,7 +606,7 @@ router.post("/addCustomer", async (req, res) => {
     });
 
     const user = new User(customer);
-
+    
     const foundWalkinUser = salonData.WalkinUsers.includes(
       user.phoneNumber.toString()
     );
@@ -680,6 +690,5 @@ router.post("/customers/filter", async (req, res) => {
     res.status(err.code || 500).json(wrapperMessage("failed", err.message));
   }
 });
-
 
 module.exports = router;

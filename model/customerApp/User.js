@@ -91,6 +91,24 @@ const UserSchema = new mongoose.Schema(
       {
         type: mongoose.Schema.ObjectId,
       }
+    ],
+    dues: [
+      {
+        bookingId: {
+          type: mongoose.Schema.ObjectId,
+          ref: 'Booking'
+        },
+        salonId: {
+          type: mongoose.Schema.ObjectId,
+          ref: 'Salon'
+        },
+        amount: {
+          type: Number
+        },
+        bookingDate: {
+          type: Date
+        },
+      }
     ]
   },
   {

@@ -29,6 +29,10 @@ const bookingSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    amountDue: {
+      type: Number,
+      default: 0,
+    },
     paymentId: {
       type: String,
     },
@@ -41,18 +45,22 @@ const bookingSchema = new mongoose.Schema(
     paymentStatus: {
       type: String,
     },
-    bill:{
+    bill: {
       cashDiscount: {
         type: Number,
-        default: 0
+        default: 0,
       },
       percentageDiscount: {
         type: Number,
-        default: 0
+        default: 0,
       },
       percentageDiscountAmount: {
         type: Number,
-        default: 0
+        default: 0,
+      },
+      duesCleared : {
+        type: Number,
+        default: 0,
       }
     },
     payments: [
@@ -79,7 +87,7 @@ const bookingSchema = new mongoose.Schema(
           enum: ["cash", "card", "upi", "wallet"],
           lowercase: true,
         },
-      }
+      },
     ],
     timeSlot: {
       start: {
@@ -100,7 +108,7 @@ const bookingSchema = new mongoose.Schema(
       },
       couponCode: {
         type: String,
-        default: ""
+        default: "",
       },
       discount: {
         type: Number,
@@ -113,7 +121,7 @@ const bookingSchema = new mongoose.Schema(
       couponDiscount: {
         type: Number,
         default: 0,
-      }
+      },
     },
     artistServiceMap: [
       {
@@ -155,11 +163,11 @@ const bookingSchema = new mongoose.Schema(
         },
         servicePrice: {
           type: Number,
-          required: true,   
+          required: true,
         },
         discountedPrice: {
           type: Number,
-          required: true,   
+          required: true,
         },
         timeSlot: {
           start: {
@@ -177,8 +185,8 @@ const bookingSchema = new mongoose.Schema(
         },
         tax: {
           type: Number,
-          default: 0
-        }
+          default: 0,
+        },
       },
     ],
   },
