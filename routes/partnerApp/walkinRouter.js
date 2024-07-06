@@ -95,6 +95,9 @@ router.get("/users/list", async (req, res) => {
             phoneNumber:1,
             gender: 1,
             dues: 1,
+            birthDate: 1,
+            aniversary: 1,
+            email: 1,
           }
         }
       ];
@@ -138,6 +141,9 @@ router.get("/users/list", async (req, res) => {
             phoneNumber:1,
             gender: 1,
             dues: 1,
+            birthDate: 1,
+            aniversary: 1,
+            email:1,
           }
         }
       ];
