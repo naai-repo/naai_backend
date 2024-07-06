@@ -4,7 +4,6 @@ const Salon = require("../../model/partnerApp/Salon");
 const Booking = require("../../model/partnerApp/Booking");
 const Artist = require("../../model/partnerApp/Artist");
 const User = require("../../model/customerApp/User");
-const User = require("../../model/customerApp/User");
 const wrapperMessage = require("../../helper/wrapperMessage");
 const Service = require("../../model/partnerApp/Service");
 const jwtVerify = require("../../middleware/jwtVerification");
