@@ -681,3 +681,5 @@ router.post("/customers/filter", async (req, res) => {
     res.status(err.code || 500).json(wrapperMessage("failed", err.message));
   }
 });
+
+module.exports = router;
