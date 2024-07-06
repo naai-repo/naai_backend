@@ -597,7 +597,7 @@ router.post("/addCustomer", async (req, res) => {
     });
 
     const user = new User(customer);
-
+    
     const foundWalkinUser = salonData.WalkinUsers.includes(
       user.phoneNumber.toString()
     );
