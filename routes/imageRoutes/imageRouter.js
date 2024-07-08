@@ -171,6 +171,77 @@ router.get("/artist/:id/image/delete", async (req, res) => {
   }
 });
 
+
+// Uploading salon logo
+router.post("/salon/:id/logo", upload.single("logo"), async (req, res) => {
+  try {
+    const imageName = randomImageName();
+    let salon = await Salon.findOne({ _id: req.params.id });
+    if (!salon) {
+      let err = new Error("No such Salon found!");
+      err.code = 404;
+      throw err;
+    }
+    if (salon.logo.key !== "") {
+      const params = {
+        Bucket: bucketName,
+        Key: salon.logo.key,
+      };
+      const command = new DeleteObjectCommand(params);
+      await s3.send(command);
+    }
+    const buffer = await sharp(req.file.buffer)
+      .resize({ height: 700, width: 700, fit: "contain" })
+      .toBuffer();
+    const putObjParams = {
+      Bucket: bucketName,
+      Key: `salons/${req.params.id}/logo/` + imageName,
+      Body: buffer,
+      ContentType: req.file.mimetype,
+    };
+    const putCommand = new PutObjectCommand(putObjParams);
+    let data = await s3.send(putCommand);
+
+    let imgUrl = `https://${bucketName}.s3.${bucketRegion}.amazonaws.com/salons/${req.params.id}/logo/${imageName}`;
+    salon.logo.url = imgUrl;
+    salon.logo.key = `salons/${req.params.id}/logo/` + imageName;
+    await salon.save();
+    res
+      .status(200)
+      .json(wrapperMessage("success", "Salon Logo updated successfully.", imgUrl));
+  } catch (err) {
+    console.log(err);
+    res.status(err.code || 500).json(wrapperMessage("failed", err.message));
+  }
+});
+
+// Salon logo Deletion
+router.get("/salon/:id/logo/delete", async (req, res) => {
+  try {
+    let salon = await Salon.findOne({ _id: req.params.id });
+    if (!salon) {
+      let err = new Error("No such Salon found!");
+      err.code = 404;
+      throw err;
+    }
+    const params = {
+      Bucket: bucketName,
+      Key: salon.logo.key,
+    };
+    const command = new DeleteObjectCommand(params);
+    await s3.send(command);
+    salon.logo.key = "";
+    salon.logo.url = "";
+    await salon.save();
+    res
+      .status(200)
+      .json(wrapperMessage("success", "Salon Logo deleted Successfully!"));
+  } catch (err) {
+    console.log(err);
+    res.status(err.code || 500).json(wrapperMessage("failed", err.message));
+  }
+});
+
 // Upload Salons images
 router.post(
   "/salon/:id/image",
