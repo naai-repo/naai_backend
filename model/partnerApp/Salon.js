@@ -107,6 +107,16 @@ const SalonSchema = new mongoose.Schema(
         default: "",
       },
     },
+    logo: {
+      key: {
+        type: String,
+        default: "",
+      },
+      url: {
+        type: String,
+        default: "",
+      }
+    },
     images: [
       {
         key: {
@@ -127,6 +137,27 @@ const SalonSchema = new mongoose.Schema(
         default: "",
       },
     },
+    tagsForUsers: [
+      {
+        title: {
+          type: String
+        },
+        color: {
+          type: String
+        }
+      }
+    ],
+    userTags: [
+      {
+        userId: {
+          type: mongoose.Schema.ObjectId,
+          ref: "User",
+        },
+        tags: [
+          {type: String}
+        ]
+      }
+    ],
     subscription: {
       planId: {
         type: mongoose.Schema.ObjectId,

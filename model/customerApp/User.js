@@ -117,7 +117,11 @@ const UserSchema = new mongoose.Schema(
           type: Date
         },
       }
-    ]
+    ],
+    convertedAt: {
+      type: String,
+      default: ""
+    }
   },
   {
     timestamps: true,
