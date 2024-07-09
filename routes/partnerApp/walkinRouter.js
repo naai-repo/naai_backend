@@ -268,6 +268,7 @@ router.post("/add/booking", async (req, res) => {
           variableType: variable.variableType || "none",
           variableName: variable.variableName || "none",
         },
+        qty: service.qty,
         servicePrice: service.basePrice,
         discountedPrice: service.price,
         timeSlot: {
