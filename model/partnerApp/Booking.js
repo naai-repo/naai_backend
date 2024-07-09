@@ -161,6 +161,10 @@ const bookingSchema = new mongoose.Schema(
             lowercase: true,
           },
         },
+        qty: {
+          type: Number,
+          default: 1,
+        },
         servicePrice: {
           type: Number,
           required: true,
