@@ -11,7 +11,6 @@ const {
   GetObjectCommand,
   DeleteObjectCommand,
 } = require("@aws-sdk/client-s3");
-const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 const User = require("../../model/customerApp/User");
 const Artist = require("../../model/partnerApp/Artist");
 const wrapperMessage = require("../../helper/wrapperMessage");
