@@ -45,6 +45,9 @@ const CouponsRouter = require("./routes/couponRoutes/coupon.routes");
 // POS System
 const PosRouter = require("./routes/posRoutes/pos.routes");
 
+// Promotions System
+const PromotionRouter = require("./routes/promotionRoutes/promotion.routes");
+
 // set the view engine to ejs
 app.set("view engine", "ejs");
 app.use("/public", express.static("public"));
@@ -103,6 +106,9 @@ app.use("/coupons", CouponsRouter);
 
 // POS Routes
 app.use("/pos", PosRouter);
+
+// Promotion Routes
+app.use("/promotion", PromotionRouter);
 
 app.get("/", async (req, res) => {
   res.sendFile(__dirname + "/index.html");
