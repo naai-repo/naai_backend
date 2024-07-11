@@ -167,10 +167,11 @@ router.get("/users/list", async (req, res) => {
 
 router.post("/add/booking", async (req, res) => {
   try {
-    let { salon, customer, selectedServices, bill, payments, coupon } =
+    let { salon, excludeGst, customer, selectedServices, bill, payments, coupon } =
       req.body;
     let data = {
       salon,
+      excludeGst,
       customer,
       selectedServices,
       bill,
@@ -309,6 +310,7 @@ router.post("/add/booking", async (req, res) => {
         couponDiscount: coupon.couponDiscount || null,
       },
       artistServiceMap: artistServiceMap,
+      excludeGst: excludeGst
     });
     let saveBooking = await walkinBooking.save();
     if (bill.amountDue > 0) {
