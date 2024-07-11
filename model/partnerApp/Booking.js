@@ -193,6 +193,10 @@ const bookingSchema = new mongoose.Schema(
         },
       },
     ],
+    excludeGst: {
+      type: Boolean,
+      default: false,
+    }
   },
   {
     timestamps: true,
