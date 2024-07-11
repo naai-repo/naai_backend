@@ -48,6 +48,9 @@ const PosRouter = require("./routes/posRoutes/pos.routes");
 // Promotions System
 const PromotionRouter = require("./routes/promotionRoutes/promotion.routes");
 
+// URL Shortner
+const UrlController = require("./controllers/urlController/url.controller");
+
 // set the view engine to ejs
 app.set("view engine", "ejs");
 app.use("/public", express.static("public"));
@@ -115,6 +118,9 @@ app.get("/", async (req, res) => {
   // res.send("Welcome to backend");
 });
 
+// URL Shortner
+app.post("/url/shorten", UrlController.ShortenUrl);
+app.get("/:key", UrlController.RedirectUrl);
 
 // Deep linking routes
 app.get("/salon/:id", (req, res) => {
