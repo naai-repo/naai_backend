@@ -16,9 +16,10 @@ require('../../helper/googleOAuth');
 router.post("/login", (req, res) => {
   let { phoneNumber } = req.body;
   // checking if partner already exists
-
+ console.log(phoneNumber)
   Partner.find({ phoneNumber })
     .then((result) => {
+      console.log(result)
       if (result.length) {
         // User Already exists
         sendOTPVerification(result[0], res);
