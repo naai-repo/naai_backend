@@ -23,7 +23,9 @@ const PartnerRouter = require("./routes/partnerApp/partnerRouter");
 const OtpRouter = require("./routes/partnerApp/otpRouter");
 const InventoryRouter = require("./routes/partnerApp/inventoryRouter");
 const PlanRouter = require("./routes/partnerApp/planRouter");
+const SubscriptionRouter =require('./routes/subscriptionRoutes/subscription.routes') 
 const WalkinRouter = require("./routes/partnerApp/walkinRouter")
+
 
 // Customer App
 const UserRouter = require("./routes/customerApp/userRouter");
@@ -94,6 +96,9 @@ app.use("/customer/user/location", LocationRouter);
 
 // Plan Routes
 app.use("/plan", PlanRouter);
+
+//subscription routes
+app.use('/subscription',SubscriptionRouter)
 
 // Scheduling Appointments
 app.use("/appointments", SchedulingRouter);

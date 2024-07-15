@@ -95,6 +95,7 @@ const UserSchema = new mongoose.Schema(
         type: Date
       },
     },
+    subscriptions: [{ type: mongoose.Schema.Types.ObjectId, ref: "Subscription" }],
     walkinSalons: [
       {
         type: mongoose.Schema.ObjectId,
