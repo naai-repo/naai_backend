@@ -31,6 +31,7 @@ const SalonSchema = new mongoose.Schema(
       lowercase: true,
       required: true,
     },
+    smsCredits: { type: Number, default: 0 }, 
     timing: {
       opening: {
         type: String,
@@ -194,6 +195,7 @@ const SalonSchema = new mongoose.Schema(
       default: false,
     },
   },
+
   {
     timestamps: true,
     toJSON: { getters: true, virtuals: false },
