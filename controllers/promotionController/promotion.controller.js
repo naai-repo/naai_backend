@@ -34,8 +34,8 @@ const s3 = new S3Client({
   region: bucketRegion,
 });
 
-const MESSAGE_LENGTH = 160;
-const VAR_LENGTH = 30;
+const MESSAGE_LENGTH = 1000;
+const VAR_LENGTH = 50;
 
 const uploadImagesTos3 = async (files, salonId) => {
   return new Promise(async (resolve, reject) => {

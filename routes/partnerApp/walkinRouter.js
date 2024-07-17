@@ -365,6 +365,11 @@ router.post("/clear/dues", async (req, res) => {
       } else {
         salonFound = true;
         let booking = await Booking.findOne({ _id: due.bookingId });
+        if(!booking){
+          let err = new Error("Booking not found");
+          err.code = 404;
+          throw err;
+        }
         let amount = due.amount;
         if (amountPaid >= amount) {
           amountPaid -= amount;
