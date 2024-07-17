@@ -430,17 +430,17 @@ router.post("/addStaff", async (req, res) => {
     let partnerData = await Partner.findOne({ phoneNumber: staffNumber });
     if (partnerData) {
       if (partnerData.salonId.toString() === salonId.toString()) {
-        res.status(200).json(wrapperMessage("success", "This Staff is already associated with the salon!", partnerData));
+        res.status(200).json(wrapperMessage("success", "This Staff is already associated with the salon!", {data: partnerData, newPartner: false}));
         return;
       } else if (partnerData.salonId.toString() !== process.env.NULL_OBJECT_ID) {
-        res.status(200).json(wrapperMessage("success", "This Staff is already associated with another salon!", partnerData));
+        res.status(200).json(wrapperMessage("success", "This Staff is already associated with another salon!", {data: partnerData, newPartner: false}));
         return;
       }else{
         partnerData.salonId = salonId;
         partnerData.name = staffName;
         partnerData.gender = staffGender;
         await partnerData.save();
-        res.status(200).json(wrapperMessage("success", "Staff Added", partnerData));
+        res.status(200).json(wrapperMessage("success", "Staff Added", {data: partnerData, newPartner: true}));
         return;
       }
     }
@@ -451,7 +451,7 @@ router.post("/addStaff", async (req, res) => {
       salonId: salonId,
     });
     await newPartnerData.save();
-    res.status(200).json(wrapperMessage("success", "Staff Added", newPartnerData));
+    res.status(200).json(wrapperMessage("success", "Staff Added", {data: newPartnerData, newPartner: true}));
   } catch (err) {
     console.log(err);
     res.status(err.code || 500).json(wrapperMessage("failed", err.message));
