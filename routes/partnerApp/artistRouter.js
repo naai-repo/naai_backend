@@ -426,7 +426,7 @@ router.post("/addStaff", async (req, res) => {
       err.code = 404;
       throw err;
     }
-
+      
     let partnerData = await Partner.findOne({ phoneNumber: staffNumber });
     if (partnerData) {
       if (partnerData.salonId.toString() === salonId.toString()) {

@@ -274,20 +274,20 @@ router.post("/book", jwtVerify, async (req, res) => {
     let time = timeSlot[0].split(":");
     let couponApplied = {};
     let couponData = {};
-    if(coupon){
-      couponData = await Coupons.findOne({code : coupon.toLowerCase()});
+    if (coupon) {
+      couponData = await Coupons.findOne({ code: coupon.toLowerCase() });
     }
-    if(!couponData){
+    if (!couponData) {
       let err = new Error("No such coupon found!");
       err.code = 404;
       throw err;
-    }else{
+    } else {
       couponApplied = {
         couponId: couponData._id,
         couponCode: couponData.code,
         discount: couponData.discount,
         max_value: couponData.max_value,
-      }
+      };
     }
     let data = {
       salonId: salonId,
@@ -302,7 +302,7 @@ router.post("/book", jwtVerify, async (req, res) => {
         time[0],
         time[1]
       ),
-      coupon: couponApplied
+      coupon: couponApplied,
     };
     let artistServiceMap = [];
     let timeSlotOrder = timeSlots.filter((timeSlot) => timeSlot.key === key);
@@ -350,7 +350,7 @@ router.post("/book", jwtVerify, async (req, res) => {
     let lastTime = timeSlot[0];
     let randomServices = randomArr.map((obj) => obj.service?._id?.toString());
     let totalTime = 0;
-    for(let object of timeSlotOrder) {
+    for (let object of timeSlotOrder) {
       let objService = await getServiceDetails(object.service._id);
       if (object.artist === "000000000000000000000000") {
         let obj = {
@@ -379,9 +379,9 @@ router.post("/book", jwtVerify, async (req, res) => {
         serviceName: objService.title,
         serviceCategory: objService.category,
         artistId: object.artist,
-        artistName: await getArtistName(object.artist)
+        artistName: await getArtistName(object.artist),
       };
-      
+
       if (randomServices.includes(obj.serviceId.toString())) {
         obj.chosenBy = "algo";
       } else {
@@ -418,7 +418,7 @@ router.post("/book", jwtVerify, async (req, res) => {
       };
       artistServiceMap.push(obj);
       lastTime = endTime;
-    };
+    }
 
     data = {
       ...data,
@@ -801,27 +801,27 @@ async function updateInventoryOnServiceCompletion(serviceIds) {
 }
 
 router.get("/booking/info", async (req, res) => {
-  try{
+  try {
     const bookingId = req.query.id;
-    if(!bookingId){
-      let err =  new Error("Booking Id is required!");
+    if (!bookingId) {
+      let err = new Error("Booking Id is required!");
       err.code = 400;
       throw err;
     }
 
-    const booking = await Booking.findOne({_id: bookingId});
-    if(!booking){
+    const booking = await Booking.findOne({ _id: bookingId });
+    if (!booking) {
       let err = new Error("No such booking found!");
       err.code = 404;
       throw err;
     }
 
     res.status(200).json(wrapperMessage("success", "Booking fetched", booking));
-  }catch(err){
+  } catch (err) {
     console.log(err);
     res.status(err.code || 500).json(wrapperMessage("failed", err.message));
   }
-})
+});
 
 // route to get all the bookings of a salon between start and end date
 router.get("/bookings/forStats", async (req, res) => {
@@ -830,21 +830,35 @@ router.get("/bookings/forStats", async (req, res) => {
     const startDate = req.query.startDate;
     const endDate = req.query.endDate;
 
-    if (!salonId || !startDate || !endDate) {
-      let err = new Error("Salon Id, Start Date and End Date are required!");
+    if (!salonId) {
+      let err = new Error("Salon Id is required!");
       err.code = 400;
       throw err;
     }
 
-    const bookings = await Booking.find({
-      salonId: salonId,
-      bookingDate: {
-        $gte: new Date(startDate),
-        $lte: new Date(endDate),
-      },
-    });
+    let bookings;
 
-    res.status(200).json(wrapperMessage("success", "Bookings fetched", bookings));
+    if (!startDate && !endDate) {
+      bookings = await Booking.find({
+        salonId: salonId,
+      });
+    } else if (startDate && endDate) {
+      bookings = await Booking.find({
+        salonId: salonId,
+        bookingDate: {
+          $gte: new Date(startDate),
+          $lte: new Date(endDate),
+        },
+      });
+    } else {
+      let err = new Error("Start and End Date are required!");
+      err.code = 400;
+      throw err;
+    }
+
+    res
+      .status(200)
+      .json(wrapperMessage("success", "Bookings fetched", bookings));
   } catch (err) {
     console.log(err);
     res.status(err.code || 500).json(wrapperMessage("failed", err.message));
