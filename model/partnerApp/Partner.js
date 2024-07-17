@@ -1,6 +1,10 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 
+function toLower(val) {
+  return val.toLowerCase();
+}
+
 // Schema for Partners
 const PartnerSchema = new mongoose.Schema(
   {
@@ -28,6 +32,17 @@ const PartnerSchema = new mongoose.Schema(
         },
         message: (val) => `${val.value} has to be 10 digits`,
       },
+    },
+    salonId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Salon",
+      default: process.env.NULL_OBJECT_ID,
+    },
+    gender: {
+      type: String,
+      enum: ["male", "female", "other", "prefer not to say"],
+      set: toLower,
+      default: "prefer not to say",
     },
     admin: {
       type: Boolean,

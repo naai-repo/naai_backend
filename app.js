@@ -53,6 +53,9 @@ const PromotionRouter = require("./routes/promotionRoutes/promotion.routes");
 // URL Shortner
 const UrlController = require("./controllers/urlController/url.controller");
 
+// Attendance Router
+const AttendanceRouter = require("./routes/attendanceAndLeaves/attendance.routes");
+
 // set the view engine to ejs
 app.set("view engine", "ejs");
 app.use("/public", express.static("public"));
@@ -117,6 +120,9 @@ app.use("/pos", PosRouter);
 
 // Promotion Routes
 app.use("/promotion", PromotionRouter);
+
+// Attendance Routes
+app.use("/attendance", AttendanceRouter);
 
 app.get("/", async (req, res) => {
   res.sendFile(__dirname + "/index.html");
