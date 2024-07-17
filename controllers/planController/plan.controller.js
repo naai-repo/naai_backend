@@ -3,6 +3,7 @@ const wrapperMessage = require("../../helper/wrapperMessage");
 const User = require("../../model/customerApp/User");
 const Salon = require("../../model/partnerApp/Salon");
 
+
 exports.createPlan = async (req, res, next) => {
   try {
     const { title, subtitle, durationInMonths, price, commission, type } =

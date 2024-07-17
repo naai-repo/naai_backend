@@ -22,6 +22,9 @@ const bucketName = process.env.S3_BUCKET_NAME;
 const bucketRegion = process.env.S3_BUCKET_REGION;
 const bucketAccessKey = process.env.S3_BUCKET_ACCESS_KEY;
 const bucketSecretKey = process.env.S3_BUCKET_SECRET_ACCESS_KEY;
+const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
+const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
+const region = process.env.AWS_REGION;
 
 const s3 = new S3Client({
   credentials: {
@@ -185,3 +188,70 @@ exports.SendWhatsappPromos = async (req, res, next) => {
     res.status(err.status || 500).json(wrapperMessage("failed", err.message));
   }
 };
+
+
+
+
+
+//////////////////////
+
+
+const AWS = require('aws-sdk');
+
+AWS.config.update({
+    accessKeyId: accessKeyId,
+    secretAccessKey: secretAccessKey,
+    region: region
+  });
+// const sqs = new AWS.SQS({ region: 'ap-south-1' });
+// AWS.config.update({ region: 'ap-south-1' });
+const sqs = new AWS.SQS();
+const queueUrl = 'https://sqs.ap-south-1.amazonaws.com/172024021636/smsqueue';
+
+async function sendMessageToSqs(customers) {
+  const params = {
+    MessageBody: JSON.stringify(customers),
+    QueueUrl: queueUrl
+  };
+console.log(params)
+  try {
+    await sqs.sendMessage(params).promise();
+    console.log(`Message sent to SQS for`);
+  } catch (error) {
+    console.error(`Failed to send message to SQS for`, error);
+  }
+}
+
+exports.sendCustomersToQueueForSms = async (req, res) =>{
+
+  const customers = req.body.customers;
+
+  if (!customers || !Array.isArray(customers)) {
+    return res.status(400).json({ error: 'Invalid input. Please provide an array of customers.' });
+  }
+
+  try {
+    await sendMessageToSqs(customers);
+    res.status(200).json({ message: 'All messages sent to SQS' });
+  } catch (error) {
+    console.error('Error sending messages to SQS:', error);
+    res.status(500).json({ error: 'Failed to send messages to SQS' });
+  }
+
+ 
+
+}
+
+// Example customer data
+
+
+// Send messages to S
+
+
+
+
+
+
+
+
+

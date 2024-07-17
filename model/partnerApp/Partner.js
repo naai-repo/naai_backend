@@ -56,6 +56,10 @@ const PartnerSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Plan",
     },
+    commission: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Commission",
+    },
   },
   {
     timestamps: true,
