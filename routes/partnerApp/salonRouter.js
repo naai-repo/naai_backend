@@ -10,6 +10,7 @@ const jwtVerify = require("../../middleware/jwtVerification");
 const CommonUtils = require("../../helper/commonUtils");
 const FilterUtils = require("../../helper/filterUtils");
 const ObjectId = mongoose.Types.ObjectId;
+const Commission = require('../../model/partnerApp/comission')
 
 // User ID : 64f786e3b23d28509e6791e0
 // saloon ID : 64f786e3b23d28509e6791e1
@@ -686,5 +687,28 @@ router.post("/customers/filter", async (req, res) => {
     res.status(err.code || 500).json(wrapperMessage("failed", err.message));
   }
 });
+
+
+router.post('/:salonId/addComission', async (req, res) => {
+  const salonId = req.params.salonId;
+  const commissionData = req.body;
+
+  try {
+      const salon = await Salon.findById(salonId);
+      if (!salon) {
+          return res.status(404).json({ error: 'Salon not found' });
+      }
+      const newCommission = new Commission({
+          salon: salonId,
+          ...commissionData
+      });
+      await newCommission.save();
+      res.status(201).json({ message: 'Commission added successfully', commission: newCommission });
+  } catch (error) {
+      console.error('Error adding commission:', error);
+      res.status(500).json({ error: 'Failed to add commission' });
+  }
+});
+
 
 module.exports = router;

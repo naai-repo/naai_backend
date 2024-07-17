@@ -23,7 +23,9 @@ const PartnerRouter = require("./routes/partnerApp/partnerRouter");
 const OtpRouter = require("./routes/partnerApp/otpRouter");
 const InventoryRouter = require("./routes/partnerApp/inventoryRouter");
 const PlanRouter = require("./routes/partnerApp/planRouter");
+const SubscriptionRouter =require('./routes/subscriptionRoutes/subscription.routes') 
 const WalkinRouter = require("./routes/partnerApp/walkinRouter")
+
 
 // Customer App
 const UserRouter = require("./routes/customerApp/userRouter");
@@ -44,6 +46,15 @@ const CouponsRouter = require("./routes/couponRoutes/coupon.routes");
 
 // POS System
 const PosRouter = require("./routes/posRoutes/pos.routes");
+
+// Promotions System
+const PromotionRouter = require("./routes/promotionRoutes/promotion.routes");
+
+// URL Shortner
+const UrlController = require("./controllers/urlController/url.controller");
+
+// Attendance Router
+const AttendanceRouter = require("./routes/attendanceAndLeaves/attendance.routes");
 
 // set the view engine to ejs
 app.set("view engine", "ejs");
@@ -89,6 +100,9 @@ app.use("/customer/user/location", LocationRouter);
 // Plan Routes
 app.use("/plan", PlanRouter);
 
+//subscription routes
+app.use('/subscription',SubscriptionRouter)
+
 // Scheduling Appointments
 app.use("/appointments", SchedulingRouter);
 
@@ -104,11 +118,20 @@ app.use("/coupons", CouponsRouter);
 // POS Routes
 app.use("/pos", PosRouter);
 
+// Promotion Routes
+app.use("/promotion", PromotionRouter);
+
+// Attendance Routes
+app.use("/attendance", AttendanceRouter);
+
 app.get("/", async (req, res) => {
   res.sendFile(__dirname + "/index.html");
   // res.send("Welcome to backend");
 });
 
+// URL Shortner
+app.post("/url/shorten", UrlController.ShortenUrl);
+app.get("/:key", UrlController.RedirectUrl);
 
 // Deep linking routes
 app.get("/salon/:id", (req, res) => {

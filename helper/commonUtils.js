@@ -1,5 +1,9 @@
 const axios = require("axios");
 const Service = require("../model/partnerApp/Service");
+
+const R = 6378.1; // Earth's radius in km
+const toRadians = (degree) => degree * (Math.PI / 180);
+
 class CommonUtils {
   static isEmail(email) {
     return /^\S+@\S+\.\S+$/i.test(email);
@@ -73,6 +77,21 @@ class CommonUtils {
       console.log(err);
     }
   }
+
+  // Function to calculate distance between two points using haversine formula
+
+  static haversine (lat1, lon1, lat2, lon2) { 
+    const dLat = toRadians(lat2 - lat1);
+    const dLon = toRadians(lon2 - lon1);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const distance = R * c;
+  
+    return distance;
+  };
 }
 
 module.exports = CommonUtils;
