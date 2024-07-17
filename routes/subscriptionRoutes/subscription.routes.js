@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const SubscriptionController = require("../../controllers/subscriptionController/subscription.controller");
 
-router.post('/createMembershipforSalon', SubscriptionController.createMembershipForSalon);
-router.post('/assignMembershipToUser', SubscriptionController.subscribeMembershipToUser);
+
+router.get('/purchaseSubscription', SubscriptionController.purchaseSubscription);
+router.get('/getAllSubscriptions', SubscriptionController.getAllSubscriptions);
 module.exports = router;

@@ -159,30 +159,6 @@ const SalonSchema = new mongoose.Schema(
         ]
       }
     ],
-    subscription: {
-      planId: {
-        type: mongoose.Schema.ObjectId,
-        default: process.env.NULL_OBJECT_ID,
-      },
-      planName: {
-        type: String,
-        default: "",
-      },
-      startDate: {
-        type: Date,
-        default: Date.now,
-      },
-      endDate: {
-        type: Date,
-        default: Date.now,
-      },
-      renewed: {
-        type: Boolean,
-        default: false,
-      },
-      features: [],
-    },
-    subscriptions: [{ type: mongoose.Schema.Types.ObjectId, ref: "Subscription" }], // Reference to Subscriptions
     memberships: [{ type: mongoose.Schema.Types.ObjectId, ref: "Membership" }] 
     ,
     WalkinUsers: [
