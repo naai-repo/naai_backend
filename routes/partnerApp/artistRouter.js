@@ -9,6 +9,7 @@ const Service = require("../../model/partnerApp/Service");
 const CommonUtils = require("../../helper/commonUtils");
 const FilterUtils = require("../../helper/filterUtils");
 const { getArtistsListGivingService } = require("../../helper/serviceHelper");
+const Partner = require("../../model/partnerApp/Partner");
 const ObjectId = mongoose.Types.ObjectId;
 
 // User ID : 64f786e3b23d28509e6791e0
@@ -410,10 +411,10 @@ router.post("/addStaff", async (req, res) => {
   try {
     let staffNumber = req.body.staffNumber;
     let staffName = req.body.staffName;
-    let staffTargetGender = req.body.staffTargetGender;
+    let staffGender = req.body.staffGender;
     let salonId = req.body.salonId;
 
-    if (!staffNumber || !staffName || !staffTargetGender || !salonId) {
+    if (!staffNumber || !staffName || !staffGender || !salonId) {
       let err = new Error("Please provide all the required fields!");
       err.code = 400;
       throw err;
@@ -425,39 +426,32 @@ router.post("/addStaff", async (req, res) => {
       err.code = 404;
       throw err;
     }
-
-    let artistData = await Artist.findOne({ phoneNumber: staffNumber });
-    if (artistData) {
-      if (artistData.salonId.toString() === salonId.toString()) {
-        res.status(200).json(wrapperMessage("success", "This artist is already associated with the salon!", artistData));
-      } else if (artistData.salonId.toString() !== process.env.NULL_OBJECT_ID) {
-        res.status(200).json(wrapperMessage("success", "This artist is already associated with another salon!", artistData));
+      
+    let partnerData = await Partner.findOne({ phoneNumber: staffNumber });
+    if (partnerData) {
+      if (partnerData.salonId.toString() === salonId.toString()) {
+        res.status(200).json(wrapperMessage("success", "This Staff is already associated with the salon!", partnerData));
+        return;
+      } else if (partnerData.salonId.toString() !== process.env.NULL_OBJECT_ID) {
+        res.status(200).json(wrapperMessage("success", "This Staff is already associated with another salon!", partnerData));
+        return;
       }else{
-        artistData.salonId = salonId;
-        artistData.name = staffName;
-        artistData.targetGender = staffTargetGender;
-        artistData.location= salonData.location;
-        artistData.timing = {
-          start: salonData.timing.opening,
-          end: salonData.timing.closing,
-        }
-        await artistData.save();
-        res.status(200).json(wrapperMessage("success", "Staff Added", artistData));
+        partnerData.salonId = salonId;
+        partnerData.name = staffName;
+        partnerData.gender = staffGender;
+        await partnerData.save();
+        res.status(200).json(wrapperMessage("success", "Staff Added", partnerData));
+        return;
       }
     }
-    let newArtistData = new Artist({
+    let newPartnerData = new Partner({
       name: staffName,
       phoneNumber: staffNumber,
-      targetGender: staffTargetGender,
+      gender: staffGender,
       salonId: salonId,
-      location: salonData.location,
-      timing: {
-        start: salonData.timing.opening,
-        end: salonData.timing.closing,
-      }
     });
-    await newArtistData.save();
-    res.status(200).json(wrapperMessage("success", "Staff Added", newArtistData));
+    await newPartnerData.save();
+    res.status(200).json(wrapperMessage("success", "Staff Added", newPartnerData));
   } catch (err) {
     console.log(err);
     res.status(err.code || 500).json(wrapperMessage("failed", err.message));
