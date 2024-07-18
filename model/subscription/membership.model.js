@@ -1,19 +1,34 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const membershipSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  description: { type: String, required: true },
-  validity: {
-    type: { type: String, enum: ['15_days', 'monthly', 'quarterly', 'yearly'], required: true },
-    duration: { type: Number, required: true } // Duration in days
+  salon: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Salon',
+      required: true,
   },
-  cost: { type: Number, required: true },
-  services: [String], // List of services included
-  salon: { type: mongoose.Schema.Types.ObjectId, ref: "Salon", required: true } // Reference to Salon
-}, { timestamps: true });
+  subscription: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Subscription',
+      required: true,
+  },
+  startDate: {
+      type: Date,
+      default: Date.now,
+  },
+  endDate: {
+      type: Date,
+      required: true,
+  },
+  isActive: {
+      type: Boolean,
+      default: true,
+  },
+});
 
-const Membership = mongoose.model("Membership", membershipSchema);
+membershipSchema.pre('save', async function (next) {
+  const subscription = await mongoose.model('Subscription').findById(this.subscription);
+  this.endDate = new Date(this.startDate.getTime() + (subscription.duration * 24 * 60 * 60 * 1000));
+  next();
+});
 
-module.exports = Membership;
-
-// salon id is mandatory cause when you r creating a membership it must associated with salon/ salonId
+module.exports = mongoose.model('Membership', membershipSchema);
