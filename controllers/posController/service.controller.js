@@ -56,11 +56,7 @@ exports.searchSingleSalonServices = async (req, res, next) => {
     let services = await Service.find({
       $and: [{ salonId: salonId }, { $or: queryObject }],
     }).skip(skip).limit(limit);
-    if (services.length === 0) {
-      let err = new Error("No services found!");
-      err.code = 404;
-      throw err;
-    }
+
     res
       .status(200)
       .json(

@@ -45,6 +45,15 @@ const CouponsRouter = require("./routes/couponRoutes/coupon.routes");
 // POS System
 const PosRouter = require("./routes/posRoutes/pos.routes");
 
+// Promotions System
+const PromotionRouter = require("./routes/promotionRoutes/promotion.routes");
+
+// URL Shortner
+const UrlController = require("./controllers/urlController/url.controller");
+
+// Attendance Router
+const AttendanceRouter = require("./routes/attendanceAndLeaves/attendance.routes");
+
 // set the view engine to ejs
 app.set("view engine", "ejs");
 app.use("/public", express.static("public"));
@@ -104,11 +113,20 @@ app.use("/coupons", CouponsRouter);
 // POS Routes
 app.use("/pos", PosRouter);
 
+// Promotion Routes
+app.use("/promotion", PromotionRouter);
+
+// Attendance Routes
+app.use("/attendance", AttendanceRouter);
+
 app.get("/", async (req, res) => {
   res.sendFile(__dirname + "/index.html");
   // res.send("Welcome to backend");
 });
 
+// URL Shortner
+app.post("/url/shorten", UrlController.ShortenUrl);
+app.get("/:key", UrlController.RedirectUrl);
 
 // Deep linking routes
 app.get("/salon/:id", (req, res) => {

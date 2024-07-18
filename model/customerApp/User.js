@@ -27,6 +27,14 @@ const UserSchema = new mongoose.Schema(
         message: (val) => `${val.value} has to be 10 digits`,
       },
     },
+    birthDate:{
+      type: String,
+      default: ""
+    },
+    aniversary:{
+      type: String,
+      default: ""
+    },
     userType: {
       type: String,
       enum: ["walkin", "app"],
@@ -87,6 +95,7 @@ const UserSchema = new mongoose.Schema(
         type: Date
       },
     },
+    subscriptions: [{ type: mongoose.Schema.Types.ObjectId, ref: "Subscription" }],
     walkinSalons: [
       {
         type: mongoose.Schema.ObjectId,
@@ -109,7 +118,11 @@ const UserSchema = new mongoose.Schema(
           type: Date
         },
       }
-    ]
+    ],
+    convertedAt: {
+      type: String,
+      default: ""
+    }
   },
   {
     timestamps: true,

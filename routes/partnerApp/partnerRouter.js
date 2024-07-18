@@ -374,6 +374,23 @@ router.get("/delete/Artist/:id", async (req, res) => {
   }
 })
 
+router.get("/phoneNumber/:phoneNumber", async (req, res) => {
+  try{  
+    let {phoneNumber} = req.params;
+    let partner = await Partner.findOne({phoneNumber});
+    if(!partner){
+      let err = new Error("No such partner exists!");
+      err.code = 404;
+      throw err;
+    }
+    res.status(200).json(wrapperMessage("success", "Partner Found", partner));
+
+  }catch(err){
+    console.log(err);
+    res.status(err.code || 500).json(wrapperMessage(err.status || "failed", err.message));
+  }
+});
+
 // Google OAuth
 
 router.get('/auth/google',

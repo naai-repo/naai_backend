@@ -31,6 +31,7 @@ const SalonSchema = new mongoose.Schema(
       lowercase: true,
       required: true,
     },
+    smsCredits: { type: Number, default: 0 }, 
     timing: {
       opening: {
         type: String,
@@ -107,6 +108,16 @@ const SalonSchema = new mongoose.Schema(
         default: "",
       },
     },
+    logo: {
+      key: {
+        type: String,
+        default: "",
+      },
+      url: {
+        type: String,
+        default: "",
+      }
+    },
     images: [
       {
         key: {
@@ -127,29 +138,29 @@ const SalonSchema = new mongoose.Schema(
         default: "",
       },
     },
-    subscription: {
-      planId: {
-        type: mongoose.Schema.ObjectId,
-        default: process.env.NULL_OBJECT_ID,
-      },
-      planName: {
-        type: String,
-        default: "",
-      },
-      startDate: {
-        type: Date,
-        default: Date.now,
-      },
-      endDate: {
-        type: Date,
-        default: Date.now,
-      },
-      renewed: {
-        type: Boolean,
-        default: false,
-      },
-      features: [],
-    },
+    tagsForUsers: [
+      {
+        title: {
+          type: String
+        },
+        color: {
+          type: String
+        }
+      }
+    ],
+    userTags: [
+      {
+        userId: {
+          type: mongoose.Schema.ObjectId,
+          ref: "User",
+        },
+        tags: [
+          {type: String}
+        ]
+      }
+    ],
+    memberships: [{ type: mongoose.Schema.Types.ObjectId, ref: "Membership" }] 
+    ,
     WalkinUsers: [
       {
         type: String,
@@ -160,6 +171,7 @@ const SalonSchema = new mongoose.Schema(
       default: false,
     },
   },
+
   {
     timestamps: true,
     toJSON: { getters: true, virtuals: false },
