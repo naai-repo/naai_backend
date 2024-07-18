@@ -1,6 +1,8 @@
+const CommonUtils = require("../../helper/commonUtils");
 const wrapperMessage = require("../../helper/wrapperMessage");
 const Attendance = require("../../model/attendance/Attendance.model");
 const Partner = require("../../model/partnerApp/Partner");
+const Salon = require("../../model/partnerApp/Salon");
 
 exports.MarkAttendanceAdmin = async (req, res, next) => {
     try {
@@ -49,7 +51,7 @@ exports.MarkAttendanceAdmin = async (req, res, next) => {
 
 exports.MarkAttendancePunchIn = async (req, res, next) => {
     try {
-        const { salonId, staffId, date, punchIn } = req.body;
+        const { salonId, staffId, date, punchIn, coords } = req.body;
 
         if(!salonId || !staffId || !date || !punchIn) {
             let err = new Error("Please provide all the required fields");
@@ -64,7 +66,21 @@ exports.MarkAttendancePunchIn = async (req, res, next) => {
             throw err;
         }
 
+        let salonData = await Salon.findOne({_id: salonId});
+        if(!salonData) {
+            let err = new Error("Salon not found. Please check the salonId");
+            err.code = 404;
+            throw err;
+        }
+
         // Use Haversine formula to find the distance between the salon and the staff
+        let distance = CommonUtils.haversine(coords.lat, coords.long, salonData.location.coordinates[1], salonData.location.coordinates[0]);
+        
+        if(distance > 0.5) {
+            let err = new Error(`You are ${distance*1000} meters away from the salon. Please try again when you are near the salon`);
+            err.code = 400;
+            throw err;
+        }
 
         let existingAttendance = await Attendance.findOne({salonId : salonId, staffId: staffId, date: date});
         if(existingAttendance){
