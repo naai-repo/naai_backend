@@ -518,6 +518,7 @@ router.post("/getSalonDataForDashboard", async (req, res) => {
               bookingMode: "$bookingMode",
               bookingId: "$_id",
               userId: "$userId",
+              userName:"$userName",
               bookingStatus: "$bookingStatus",
             },
           },
