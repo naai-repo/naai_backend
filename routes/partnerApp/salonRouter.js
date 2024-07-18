@@ -494,6 +494,8 @@ router.post("/getSalonDataForDashboard", async (req, res) => {
   try {
     let salonId = req.body.salonId;
     let startDate = req.body.startDate;
+    let endDate = new Date(startDate);
+    endDate.setDate(endDate.getDate()+1);
     let data = await Booking.aggregate([
       {
         $match: {
@@ -501,7 +503,7 @@ router.post("/getSalonDataForDashboard", async (req, res) => {
           // Adjust
           bookingDate: {
             $gte: new Date(startDate),
-            //  $lt: new ISODate("2024-05-01T00:00:00.000Z")
+            $lt: endDate
           },
         },
       },
@@ -567,13 +569,9 @@ router.get("/delete/test/:id", async (req, res) => {
 });
 
 // salon walkin customer
-
 router.post("/customerList", async (req, res) => {
   try {
-    let salonId = req.body.salonId;
-    let page = parseInt(req.query.page) || 1;
-    let limit = parseInt(req.query.limit) || 10;
-    let skip = (page - 1) * limit;
+    const salonId = req.body.salonId;
     const salonData = await Salon.findOne({ _id: salonId });
 
     if (!salonData) {
@@ -582,9 +580,14 @@ router.post("/customerList", async (req, res) => {
       throw err;
     }
 
-    const paginatedUsers = salonData.WalkinUsers.slice(skip, skip + limit);
+    const query = { phoneNumber: { $in: salonData.WalkinUsers } };
+    const users = await User.find(query);
 
-    const users = await User.find({ phoneNumber: { $in: paginatedUsers } });
+    if (users.length === 0) {
+      let err = new Error("No users found!");
+      err.code = 404;
+      throw err;
+    }
 
     res.status(200).json(wrapperMessage("success", "Salon users", users));
   } catch (err) {
