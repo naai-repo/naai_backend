@@ -493,6 +493,8 @@ router.post("/getSalonDataForDashboard", async (req, res) => {
   try {
     let salonId = req.body.salonId;
     let startDate = req.body.startDate;
+    let endDate = new Date(startDate);
+    endDate.setDate(endDate.getDate()+1);
     let data = await Booking.aggregate([
       {
         $match: {
@@ -500,7 +502,7 @@ router.post("/getSalonDataForDashboard", async (req, res) => {
           // Adjust
           bookingDate: {
             $gte: new Date(startDate),
-            //  $lt: new ISODate("2024-05-01T00:00:00.000Z")
+            $lt: endDate
           },
         },
       },
@@ -565,13 +567,9 @@ router.get("/delete/test/:id", async (req, res) => {
 });
 
 // salon walkin customer
-
 router.post("/customerList", async (req, res) => {
   try {
-    let salonId = req.body.salonId;
-    let page = parseInt(req.query.page) || 1;
-    let limit = parseInt(req.query.limit) || 10;
-    let skip = (page - 1) * limit;
+    const salonId = req.body.salonId;
     const salonData = await Salon.findOne({ _id: salonId });
 
     if (!salonData) {
@@ -580,9 +578,14 @@ router.post("/customerList", async (req, res) => {
       throw err;
     }
 
-    const paginatedUsers = salonData.WalkinUsers.slice(skip, skip + limit);
+    const query = { phoneNumber: { $in: salonData.WalkinUsers } };
+    const users = await User.find(query);
 
-    const users = await User.find({ phoneNumber: { $in: paginatedUsers } });
+    if (users.length === 0) {
+      let err = new Error("No users found!");
+      err.code = 404;
+      throw err;
+    }
 
     res.status(200).json(wrapperMessage("success", "Salon users", users));
   } catch (err) {
@@ -623,66 +626,6 @@ router.post("/addCustomer", async (req, res) => {
       .status(200)
       .json(wrapperMessage("success", "user created successfully", user));
   } catch (err) {
-    res.status(err.code || 500).json(wrapperMessage("failed", err.message));
-  }
-});
-
-router.post("/customers/search", async (req, res) => {
-  try {
-    const salonId = req.body.salonId;
-    const search = req.body.search;
-    let page = parseInt(req.query.page) || 1;
-    let limit = parseInt(req.query.limit) || 10;
-    let skip = (page - 1) * limit;
-
-    const salon = await Salon.findOne({ _id: salonId });
-    if (!salon) {
-      let err = new Error("No such salon exists!");
-      err.code = 404;
-      throw err;
-    }
-
-    let users = [];
-
-    if (isNaN(Number(search))) {
-      users = await User.find({walkinSalons: salonId,
-        name: { $regex: search, $options: "i" },}).skip(skip).limit(limit);
-    } else {
-      const searchUsers = salon.WalkinUsers.filter((number) =>
-        number.includes(search)
-      );
-      const paginatedUsers = searchUsers.slice(skip, skip + limit);
-      users = await User.find({ phoneNumber: { $in: paginatedUsers } });
-    }
-    res
-      .status(200)
-      .json(wrapperMessage("success", "user created successfully", users));
-  } catch (err) {
-    res.status(err.code || 500).json(wrapperMessage("failed", err.message));
-  }
-});
-
-router.post("/customers/filter", async (req, res) => {
-  try {
-    let salonId = req.body.salonId;
-    let filter = req.body.filter;
-    let page = parseInt(req.query.page) || 1;
-    let limit = parseInt(req.query.limit) || 10;
-    let skip = (page - 1) * limit;
-
-    if (!filter) {
-      let error = new Error("Invalid filter selected!");
-      error.code = 400;
-      throw error;
-    }
-    
-    const filterCriteria = { walkinSalons: salonId, gender: filter.gender };
-
-    const users = await User.find(filterCriteria).skip(skip).limit(limit);
-
-    res.status(200).json(wrapperMessage("success", "Salon users", users));
-  } catch (err) {
-    console.error(err);
     res.status(err.code || 500).json(wrapperMessage("failed", err.message));
   }
 });
