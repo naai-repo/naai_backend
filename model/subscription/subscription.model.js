@@ -1,14 +1,69 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const subscriptionSchema = new mongoose.Schema({
-  user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }, // Reference to User
-  membership: { type: mongoose.Schema.Types.ObjectId, ref: "Membership", required: true }, // Reference to Membership
-  startDate: { type: Date, default: Date.now },
-  endDate: { type: Date, required: true },
-  active: { type: Boolean, default: true },
-  paid: { type: Boolean, default: true },
-}, { timestamps: true });
+    name: {
+        type: String,
+        required: true,
+    },
+    template_name: {
+        type: String,
+        required: true,
+    },
+    duration: {
+        type: Number,  // Duration in days
+        required: true,
+    },
+    price: {
+        type: Number,
+        required: true,
+    },
+    template_price: {
+        type: Number,
+        required: true,
+    },
+    description: {
+        type: String,
+    },
+    features: [{
+        type: String,
+    }],
+    status: {
+        type: String,
+        enum: ['active', 'inactive'],
+        default: 'active',
+    },
+    supportLevel: {
+        type: String,
+        enum: ['basic', 'premium'],
+    },
+    addOnOptions: [{
+        type: String,
+    }],
+    billingCycle: {
+        type: String,
+        enum: ['monthly', 'quarterly' , 'yearly'],
+        default: 'monthly',
+    },
+    cancellationPolicy: {
+        type: String,
+    },
+    termsAndConditions: {
+        type: String,
+    },
+    
+    createdAt: {
+        type: Date,
+        default: Date.now,
+    },
+    updatedAt: {
+        type: Date,
+        default: Date.now,
+    },
+});
 
-const Subscription = mongoose.model("Subscription", subscriptionSchema);
+subscriptionSchema.pre('save', function (next) {
+    this.updatedAt = Date.now();
+    next();
+});
 
-module.exports = Subscription;
+module.exports = mongoose.model('Subscription', subscriptionSchema);

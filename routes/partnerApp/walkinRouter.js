@@ -283,6 +283,7 @@ router.post("/add/booking", async (req, res) => {
 
     let walkinBooking = new Booking({
       userId: customer.id,
+      userName: userData.name,
       bookingType: uniqueArtists.size > 1 ? "multiple" : "single",
       bookingMode: "walkin",
       salonId: salon,
