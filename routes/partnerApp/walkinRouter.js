@@ -227,7 +227,7 @@ router.post("/add/booking", async (req, res) => {
     payments.forEach((payment) => {
       paymentsArray.push({
         paymentId: payment.id,
-        paymentAmount: payment.amount.toFixed(2),
+        paymentAmount: Number(payment.amount).toFixed(2),
         paymentStatus: payment.amount <= 0 ? "refund" : "completed",
         paymentDate: billDate,
         paymentMode: payment.type,
@@ -367,9 +367,8 @@ router.post("/clear/dues", async (req, res) => {
         salonFound = true;
         let booking = await Booking.findOne({ _id: due.bookingId });
         if(!booking){
-          let err = new Error("Booking not found");
-          err.code = 404;
-          throw err;
+          dues.shift();
+          continue;
         }
         let amount = due.amount;
         if (amountPaid >= amount) {
