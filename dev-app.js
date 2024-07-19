@@ -104,6 +104,9 @@ app.use("/appointments", SchedulingRouter);
 // Sales Routes
 app.use("/sales", SalesRouter);
 
+//subscription routes
+app.use('/subscription',SubscriptionRouter)
+
 // Referral System Routes
 app.use("/referral", ReferralRouter);
 
