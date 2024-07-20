@@ -380,7 +380,7 @@ router.get("/phoneNumber/:phoneNumber", async (req, res) => {
     let partner = await Partner.findOne({phoneNumber});
     if(!partner){
       let err = new Error("No such partner exists!");
-      err.code = 404;
+      err.code = 200;
       throw err;
     }
     res.status(200).json(wrapperMessage("success", "Partner Found", partner));
