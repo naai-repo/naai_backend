@@ -12,6 +12,10 @@ const membershipSchema = new mongoose.Schema({
       ref: 'Subscription',
       required: true,
   },
+  pricePaid:{
+    type:Number,
+    required:true
+  },
   startDate: {
       type: Date,
       default: Date.now,
