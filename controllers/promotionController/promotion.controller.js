@@ -262,7 +262,8 @@ exports.sendCustomersToQueueForSms = async (req, res) =>{
 
 }
 
-// Example customer data
+
+
 
 
 // Send messages to S
