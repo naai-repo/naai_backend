@@ -28,7 +28,7 @@ exports.purchaseSubscription = async (req, res) => {
           subscription: subscription._id,
           startDate: new Date(),
           endDate:endDate,
-          durationInDays:subscription.duration
+          duration:subscription.duration
       });
 
       salon.memberships.push(membership._id);
