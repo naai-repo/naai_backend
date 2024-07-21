@@ -24,9 +24,11 @@ exports.purchaseSubscription = async (req, res) => {
 
       const membership = new Membership({
           salon: salon._id,
+          name:subscription.name,
           subscription: subscription._id,
           startDate: new Date(),
-          endDate:endDate
+          endDate:endDate,
+          durationInDays:subscription.duration
       });
 
       salon.memberships.push(membership._id);
