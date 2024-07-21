@@ -289,9 +289,11 @@ router.post("/book", jwtVerify, async (req, res) => {
         max_value: couponData.max_value,
       };
     }
+    let user =  await User.findOne({ _id: userId });
     let data = {
       salonId: salonId,
       userId: userId,
+      userName:user.name,
       paymentId: "12345",
       paymentStatus: "pending",
       bookingStatus: "pending",

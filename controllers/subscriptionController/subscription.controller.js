@@ -5,83 +5,79 @@ const Subscription = require('../../model/subscription/subscription.model');
 const wrapperMessage = require("../../helper/wrapperMessage");
 const Salon = require('../../model/partnerApp/Salon');
 const Membership = require('../../model/subscription/membership.model');
+const TopUpPackage = require('../../model/subscription/topup.model');
 
 // Function to create a new membership for a salon
-exports.createMembershipForSalon = async(req, res) => {
+exports.purchaseSubscription = async (req, res) => {
+  const { salonId, subscriptionId } = req.body;
+
   try {
-    let {name, description, validityType, duration, cost, services, salonId} = req.body;
-    const salon = await Salon.findById(salonId);
-    if (!salon) {
-      throw new Error('Salon not found');
-    }
+      const salon = await Salon.findById(salonId);
+      const subscription = await Subscription.findById(subscriptionId);
 
-    const newMembership = new Membership({
-      name,
-      description,
-      validity: { type: validityType, duration },
-      cost,
-      services,
-      salon: salonId
-    });
+      if (!salon || !subscription) {
+          return res.status(404).json({ error: 'Invalid salon or subscription' });
+      }
+      const durationInMilliseconds = subscription.duration * 24 * 60 * 60 * 1000; // Convert days to milliseconds
+      let endDate = new Date(new Date().getTime() + durationInMilliseconds);
 
-    const savedMembership = await newMembership.save();
 
-    // Add the membership to the salon's memberships array
-    salon.memberships.push(savedMembership._id);
-    await salon.save();
-    res
-    .status(200)
-    .json(wrapperMessage("success", "membership added to salon successfully", salon));
+      const membership = new Membership({
+          salon: salon._id,
+          subscription: subscription._id,
+          startDate: new Date(),
+          endDate:endDate
+      });
 
-    console.log('Membership saved and associated with salon:', savedMembership);
+      salon.memberships.push(membership._id);
+      // salon.smsCredits += subscription.smsCredits;/later on
+
+      await membership.save();
+      await salon.save();
+
+      return res.status(201).json(membership); // Return the created membership
   } catch (error) {
-    console.error('Error creating membership:', error);
+      console.error(error);
+      return res.status(500).json({ error: 'Internal Server Error' });
   }
 }
 
-// Example usage
-// createMembershipForSalon('Monthly Membership', 'Monthly access to all services', 'monthly', 30, 50, ['Hair Cut', 'Shampoo'], '60b6c0f1fcd6a050a87b4f15');
 
-
-
-
-//assign membership to user
-
-
-
-exports.subscribeMembershipToUser = async (req, res)  => {
+exports.getAllSubscriptions =  async (req, res) => {
   try {
-
-    let {userId, membershipId} = req.body
-    const membership = await Membership.findById(membershipId);
-    if (!membership) {
-      throw new Error('Membership not found');
-    }
-
-    const endDate = new Date();
-    endDate.setDate(endDate.getDate() + membership.validity.duration);
-
-    const newSubscription = new Subscription({
-      user: userId,
-      membership: membershipId,
-      endDate: endDate,
-      active: true
-    });
-
-    const savedSubscription = await newSubscription.save();
-
-    // Add the subscription to the user's subscriptions array
-    const user = await User.findById(userId);
-    user.subscriptions.push(savedSubscription._id);
-    await user.save();
-    res
-    .status(200)
-    .json(wrapperMessage("success", "User subscribed to membership:'", user));
-
+      const subscriptions = await Subscription.find();
+      res.json(subscriptions);
   } catch (error) {
-    console.error('Error subscribing user to membership:', error);
+      console.error('Error fetching subscriptions:', error);
+      res.status(500).json({ message: 'Server error' });
   }
+};
+
+
+exports.TopUp =  async (req, res) => {
+    try {
+        const { salonId, packageId } = req.body;
+
+        const topUpPackage = await TopUpPackage.findById(packageId);
+        if (!topUpPackage) {
+            return res.status(404).send({ error: 'Top-up package not found' });
+        }
+
+        const salon = await Salon.findById(salonId);
+        if (!salon) {
+            return res.status(404).send({ error: 'Salon not found' });
+        }
+
+        salon.smsCredits += topUpPackage.credits;
+        await salon.save();
+
+        res.status(201).send({ message: 'SMS Top-up successful', salon });
+    } catch (error) {
+        res.status(500).send({ error: 'An error occurred while purchasing the SMS top-up package' });
+    }
 }
+
 
 // Example usage
 // subscribeUserToMembership('60b6c0f1fcd6a050a87b4f12', '60b6c0f1fcd6a050a87b4f11');
+

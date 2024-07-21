@@ -428,6 +428,7 @@ router.post("/addStaff", async (req, res) => {
     }
       
     let partnerData = await Partner.findOne({ phoneNumber: staffNumber });
+    let artistData = await Artist.findOne({phoneNumber: staffNumber});
     if (partnerData) {
       if (partnerData.salonId.toString() === salonId.toString()) {
         res.status(200).json(wrapperMessage("success", "This Staff is already associated with the salon!", {data: partnerData, newPartner: false}));
@@ -440,6 +441,23 @@ router.post("/addStaff", async (req, res) => {
         partnerData.name = staffName;
         partnerData.gender = staffGender;
         await partnerData.save();
+        if(artistData){
+          artistData.salonId = salonId;
+          artistData.name = staffName;
+          artistData.rating = 0;
+          artistData.services = [];
+          artistData.targetGender = "not specified";
+          artistData.location = salonData.location;
+          artistData.timing = {
+            start: salonData.timing.opening,
+            end: salonData.timing.closing,
+          },
+          artistData.offDay = [];
+          artistData.availability = true;
+          artistData.live = false;
+          artistData.bookings = 0;
+          await artistData.save();
+        }
         res.status(200).json(wrapperMessage("success", "Staff Added", {data: partnerData, newPartner: true}));
         return;
       }

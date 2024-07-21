@@ -227,7 +227,7 @@ router.post("/add/booking", async (req, res) => {
     payments.forEach((payment) => {
       paymentsArray.push({
         paymentId: payment.id,
-        paymentAmount: payment.amount,
+        paymentAmount: Number(payment.amount).toFixed(2),
         paymentStatus: payment.amount <= 0 ? "refund" : "completed",
         paymentDate: billDate,
         paymentMode: payment.type,
@@ -270,8 +270,8 @@ router.post("/add/booking", async (req, res) => {
           variableName: variable.variableName || "none",
         },
         qty: service.qty,
-        servicePrice: service.basePrice,
-        discountedPrice: service.price,
+        servicePrice: service.basePrice.toFixed(2),
+        discountedPrice: service.price.toFixed(2),
         timeSlot: {
           start: timeStr,
           end: timeStr,
@@ -283,18 +283,19 @@ router.post("/add/booking", async (req, res) => {
 
     let walkinBooking = new Booking({
       userId: customer.id,
+      userName: userData.name,
       bookingType: uniqueArtists.size > 1 ? "multiple" : "single",
       bookingMode: "walkin",
       salonId: salon,
-      amount: bill.originalAmount,
-      amountDue: bill.amountDue,
+      amount: bill.originalAmount.toFixed(2),
+      amountDue: bill.amountDue.toFixed(2),
       bill: {
         cashDiscount: bill.cashDisc,
         percentageDiscount: bill.percentDisc,
         percentageDiscountAmount: bill.percentCashDisc,
-        duesCleared: bill.duesCleared,
+        duesCleared: bill.duesCleared.toFixed(2),
       },
-      paymentAmount: paymentAmount,
+      paymentAmount: paymentAmount.toFixed(2),
       bookingStatus: "completed",
       payments: paymentsArray,
       timeSlot: {
@@ -365,6 +366,10 @@ router.post("/clear/dues", async (req, res) => {
       } else {
         salonFound = true;
         let booking = await Booking.findOne({ _id: due.bookingId });
+        if(!booking){
+          dues.shift();
+          continue;
+        }
         let amount = due.amount;
         if (amountPaid >= amount) {
           amountPaid -= amount;
