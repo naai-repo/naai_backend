@@ -187,7 +187,7 @@ router.post("/:id/update", async (req, res) => {
 
 router.get("/single/:id", async (req, res) => {
   try {
-    let data = await Salon.findOne({ _id: req.params.id }).populate('memberships').exec()
+    let data = await Salon.findOne({ _id: req.params.id }).populate('activeSubscriptions').exec()
     if (!data) {
       let err = new Error("No such salon exists!");
       err.code = 404;

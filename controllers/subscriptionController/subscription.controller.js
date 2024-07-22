@@ -4,46 +4,55 @@ const User = require('../../model/customerApp/User');
 const Subscription = require('../../model/subscription/subscription.model');
 const wrapperMessage = require("../../helper/wrapperMessage");
 const Salon = require('../../model/partnerApp/Salon');
-const Membership = require('../../model/subscription/membership.model');
+const ActiveSubscription = require('../../model/subscription/activeSubscription.model');
 const TopUpPackage = require('../../model/subscription/topup.model');
 
 // Function to create a new membership for a salon
-exports.purchaseSubscription = async (req, res) => {
-  const { salonId, subscriptionId } = req.body;
+exports.purchaseSubscription =  async (req, res) => {
+    const { salonId, subscriptionId } = req.body;
 
-  try {
-      const salon = await Salon.findById(salonId);
-      const subscription = await Subscription.findById(subscriptionId);
+    try {
+        const salon = await Salon.findById(salonId);
+        const subscription = await Subscription.findById(subscriptionId);
 
-      if (!salon || !subscription) {
-          return res.status(404).json({ error: 'Invalid salon or subscription' });
-      }
-      const durationInMilliseconds = subscription.duration * 24 * 60 * 60 * 1000; // Convert days to milliseconds
-      let endDate = new Date(new Date().getTime() + durationInMilliseconds);
+        if (!salon || !subscription) {
+            return res.status(404).json({ error: 'Invalid salon or subscription' });
+        }
 
 
-      const membership = new Membership({
-          salon: salon._id,
-          name:subscription.name,
-          subscription: subscription._id,
-          startDate: new Date(),
-          endDate:endDate,
-          duration:subscription.duration
-      });
+        const existingActiveSubscription = await ActiveSubscription.findOne({
+            salon: salon._id,
+            subscription: subscription._id,
+            endDate: { $gt: new Date() } // Ensure it's still active
+        });
 
-      salon.memberships.push(membership._id);
-      // salon.smsCredits += subscription.smsCredits;/later on
+        if (existingActiveSubscription) {
+            return res.status(400).json({ error: 'Salon already has an active subscription for this plan' });
+        }
 
-      await membership.save();
-      await salon.save();
+        const durationInMilliseconds = subscription.duration * 24 * 60 * 60 * 1000; // Convert days to milliseconds
+        const endDate = new Date(Date.now() + durationInMilliseconds);
 
-      return res.status(201).json(membership); // Return the created membership
-  } catch (error) {
-      console.error(error);
-      return res.status(500).json({ error: 'Internal Server Error' });
-  }
-}
+        const activeSubscription = new ActiveSubscription({
+            salon: salon._id,
+            subscription: subscription._id,
+            startDate: new Date(),
+            endDate: endDate,
+            duration: subscription.duration,
+            status: 'active',
+        });
 
+        salon.activeSubscriptions.push(activeSubscription._id);
+
+        await activeSubscription.save();
+        await salon.save();
+
+        return res.status(201).json(activeSubscription); // Return the created active subscription
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+};
 
 exports.getAllSubscriptions =  async (req, res) => {
   try {
