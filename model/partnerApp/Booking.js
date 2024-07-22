@@ -6,6 +6,10 @@ const bookingSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    userName: {
+      type: String,
+      default:''
+    },
     bookingType: {
       type: String,
       required: true,
@@ -161,6 +165,10 @@ const bookingSchema = new mongoose.Schema(
             lowercase: true,
           },
         },
+        qty: {
+          type: Number,
+          default: 1,
+        },
         servicePrice: {
           type: Number,
           required: true,
@@ -189,6 +197,10 @@ const bookingSchema = new mongoose.Schema(
         },
       },
     ],
+    excludeGst: {
+      type: Boolean,
+      default: false,
+    }
   },
   {
     timestamps: true,

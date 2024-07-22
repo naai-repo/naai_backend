@@ -11,8 +11,8 @@ router.post("/add/user", async (req, res) => {
     const phoneNumber = req.body.phoneNumber;
     const salonId = req.body.salonId;
     let user = await User.findOne({ phoneNumber: phoneNumber });
-    let salon = await Salon.findOne({_id: salonId});
-    if(!salon){
+    let salon = await Salon.findOne({ _id: salonId });
+    if (!salon) {
       let err = new Error("Salon not found");
       err.code = 404;
       throw err;
@@ -24,11 +24,11 @@ router.post("/add/user", async (req, res) => {
         phoneNumber: user.phoneNumber,
         userType: user.userType,
       };
-      if(!user.walkinSalons.includes(salonId)){
+      if (!user.walkinSalons.includes(salonId)) {
         user.walkinSalons.push(salonId);
         await user.save();
       }
-      if(!salon.WalkinUsers.includes(phoneNumber.toString())){
+      if (!salon.WalkinUsers.includes(phoneNumber.toString())) {
         salon.WalkinUsers.push(phoneNumber.toString());
         await salon.save();
       }
@@ -71,80 +71,91 @@ router.get("/users/list", async (req, res) => {
     const number = req.query.number;
     const salonId = req.query.salonId;
     let aggregation = [];
-    if(number.length === 10){
+    if (number.length === 10) {
       aggregation = [
         {
           $addFields: {
             stringPhoneNumber: {
-              $toString: "$phoneNumber"
-            }
-          }
+              $toString: "$phoneNumber",
+            },
+          },
         },
         {
           $match: {
             stringPhoneNumber: {
-              $regex: `^${number}`
-            }
-          }
+              $regex: `^${number}`,
+            },
+          },
         },
         {
           $project: {
             id: "$_id",
             _id: 0,
             name: 1,
-            phoneNumber:1,
+            phoneNumber: 1,
             gender: 1,
             dues: 1,
-          }
-        }
+            birthDate: 1,
+            aniversary: 1,
+            email: 1,
+          },
+        },
       ];
-    }else{
+    } else {
       aggregation = [
         {
           $addFields: {
             stringPhoneNumber: {
-              $toString: "$phoneNumber"
+              $toString: "$phoneNumber",
             },
             userGoesToSalon: {
               $cond: [
                 {
-                  $setIsSubset: [[{$toObjectId : salonId}], {$ifNull: ["$walkinSalons", []]}]
+                  $setIsSubset: [
+                    [{ $toObjectId: salonId }],
+                    { $ifNull: ["$walkinSalons", []] },
+                  ],
                 },
                 true,
-                false
-              ]
-            }
-          }
+                false,
+              ],
+            },
+          },
         },
         {
           $match: {
-            $and : [
+            $and: [
               {
-                stringPhoneNumber : {
-                  $regex: `${number}`
-                }
+                stringPhoneNumber: {
+                  $regex: `${number}`,
+                },
               },
               {
-                userGoesToSalon: true
-              }
-            ]
-          }
+                userGoesToSalon: true,
+              },
+            ],
+          },
         },
         {
           $project: {
             id: "$_id",
             _id: 0,
             name: 1,
-            phoneNumber:1,
+            phoneNumber: 1,
             gender: 1,
             dues: 1,
-          }
-        }
+            birthDate: 1,
+            aniversary: 1,
+            email: 1,
+          },
+        },
       ];
     }
     let data = await User.aggregate(aggregation);
-    if(data.length === 0){
-      res.status(200).json(wrapperMessage("success", "No user found with this number", []));
+    if (data.length === 0) {
+      res
+        .status(200)
+        .json(wrapperMessage("success", "No user found with this number", []));
       return;
     }
     res.status(200).json(wrapperMessage("success", "", data));
@@ -155,90 +166,98 @@ router.get("/users/list", async (req, res) => {
 });
 
 router.post("/add/booking", async (req, res) => {
-  try{
-    let {salon, customer, selectedServices, bill, payments, coupon} = req.body;
+  try {
+    let { salon, excludeGst, customer, selectedServices, bill, payments, coupon } =
+      req.body;
     let data = {
       salon,
-      customer, 
+      excludeGst,
+      customer,
       selectedServices,
       bill,
       payments,
-      coupon
-    }
+      coupon,
+    };
 
     let userData = await User.findOne({ _id: customer.id });
     let salonData = await Salon.findOne({ _id: salon });
-    if(!salonData){
+    if (!salonData) {
       let err = new Error("Salon not found");
       err.code = 404;
       throw err;
     }
-    if(!userData){
+    if (!userData) {
       let err = new Error("User not found");
       err.code = 404;
       throw err;
     }
 
-    if(salonData.WalkinUsers.indexOf(userData.phoneNumber.toString()) === -1){
-      console.log("Saved salonData")
+    if (salonData.WalkinUsers.indexOf(userData.phoneNumber.toString()) === -1) {
+      console.log("Saved salonData");
       salonData.WalkinUsers.push(userData.phoneNumber.toString());
       await salonData.save();
     }
-    if(userData.walkinSalons.indexOf(salon.toString()) === -1){
-      console.log("Saved userData")
+    if (userData.walkinSalons.indexOf(salon.toString()) === -1) {
+      console.log("Saved userData");
       userData.walkinSalons.push(salon.toString());
       await userData.save();
     }
 
     let uniqueArtists = new Set();
-    selectedServices.forEach(service => {
+    selectedServices.forEach((service) => {
       uniqueArtists.add(service.artistId.toString());
     });
 
     let paymentAmount = 0;
-    payments.forEach(payment => {
+    payments.forEach((payment) => {
       paymentAmount += Number(payment.amount);
     });
-    
+
     let billDate = new Date();
 
-    let date = billDate.toLocaleString("en-in", {timeZone: "Asia/Kolkata", hourCycle: "h24"});
+    let date = billDate.toLocaleString("en-in", {
+      timeZone: "Asia/Kolkata",
+      hourCycle: "h24",
+    });
     date = date.split(", ")[1];
     let time = date.split(":");
     let timeStr = `${time[0]}:${time[1]}`;
 
     let paymentsArray = [];
-    payments.forEach(payment => {
+    payments.forEach((payment) => {
       paymentsArray.push({
         paymentId: payment.id,
-        paymentAmount: payment.amount,
+        paymentAmount: Number(payment.amount).toFixed(2),
         paymentStatus: payment.amount <= 0 ? "refund" : "completed",
         paymentDate: billDate,
-        paymentMode: payment.type
+        paymentMode: payment.type,
       });
-    })
+    });
 
     let artistServiceMap = [];
-    for(let service of selectedServices){
+    for (let service of selectedServices) {
       let artistData = await Artist.findOne({ _id: service.artistId });
       let serviceData = await Service.findOne({ _id: service.serviceId });
-      if(!artistData){
-          let err = new Error("Artist not found");
-          err.code = 404;
-          throw err;
+      if (!artistData) {
+        let err = new Error("Artist not found");
+        err.code = 404;
+        throw err;
       }
-      if(!serviceData){
-          let err = new Error("Service not found");
-          err.code = 404;
-          throw err;
+      if (!serviceData) {
+        let err = new Error("Service not found");
+        err.code = 404;
+        throw err;
       }
       let variable = [];
-      if(service.variableId && service.variableId !== ""){
-        variable = serviceData.variables.filter(variable => variable._id.toString() === service.variableId.toString());
+      if (service.variableId && service.variableId !== "") {
+        variable = serviceData.variables.filter(
+          (variable) =>
+            variable._id.toString() === service.variableId.toString()
+        );
         variable = variable[0];
         console.log(variable);
       }
-  
+
       artistServiceMap.push({
         artistId: service.artistId,
         artistName: artistData.name,
@@ -250,36 +269,38 @@ router.post("/add/booking", async (req, res) => {
           variableType: variable.variableType || "none",
           variableName: variable.variableName || "none",
         },
-        servicePrice: service.basePrice,
-        discountedPrice: service.price,
+        qty: service.qty,
+        servicePrice: service.basePrice.toFixed(2),
+        discountedPrice: service.price.toFixed(2),
         timeSlot: {
           start: timeStr,
           end: timeStr,
         },
         chosenBy: "user",
         tax: service.tax || 0,
-      })
+      });
     }
 
     let walkinBooking = new Booking({
       userId: customer.id,
+      userName: userData.name,
       bookingType: uniqueArtists.size > 1 ? "multiple" : "single",
       bookingMode: "walkin",
       salonId: salon,
-      amount: bill.originalAmount,
-      amountDue: bill.amountDue,
+      amount: bill.originalAmount.toFixed(2),
+      amountDue: bill.amountDue.toFixed(2),
       bill: {
         cashDiscount: bill.cashDisc,
         percentageDiscount: bill.percentDisc,
         percentageDiscountAmount: bill.percentCashDisc,
-        duesCleared: bill.duesCleared,
+        duesCleared: bill.duesCleared.toFixed(2),
       },
-      paymentAmount: paymentAmount,
+      paymentAmount: paymentAmount.toFixed(2),
       bookingStatus: "completed",
       payments: paymentsArray,
       timeSlot: {
         start: timeStr,
-        end: timeStr
+        end: timeStr,
       },
       bookingDate: billDate,
       coupon: {
@@ -290,21 +311,24 @@ router.post("/add/booking", async (req, res) => {
         couponDiscount: coupon.couponDiscount || null,
       },
       artistServiceMap: artistServiceMap,
-    })
+      excludeGst: excludeGst
+    });
     let saveBooking = await walkinBooking.save();
-    if(bill.amountDue > 0){
+    if (bill.amountDue > 0) {
       let dues = userData.dues;
       dues.push({
         bookingId: saveBooking._id,
         salonId: salon,
         amount: bill.amountDue,
-        bookingDate: billDate
+        bookingDate: billDate,
       });
       userData.dues = dues;
       await userData.save();
     }
-    res.status(200).json(wrapperMessage("success","Booking added for POS", {walkinBooking, saveBooking}));
-  }catch(err){
+    res
+      .status(200)
+      .json(wrapperMessage("success", "Booking added for POS", saveBooking));
+  } catch (err) {
     console.log(err);
     res.status(err.code || 500).json(wrapperMessage("failed", err.message));
   }
@@ -315,41 +339,45 @@ router.post("/add/booking", async (req, res) => {
 // Route for Clearing Out the Dues
 
 router.post("/clear/dues", async (req, res) => {
-  try{
-    let {userId, salonId, amountPaid} = req.body;
+  try {
+    let { userId, salonId, amountPaid } = req.body;
     amountPaid = Number(amountPaid);
     let userData = await User.findOne({ _id: userId });
-    if(!userData){
+    if (!userData) {
       let err = new Error("User not found");
       err.code = 404;
       throw err;
     }
-    if(amountPaid === 0){
+    if (amountPaid === 0) {
       let err = new Error("No Dues Paid");
-      err.status = "success"
+      err.status = "success";
       err.code = 200;
       throw err;
     }
     let dues = userData.dues;
     let salonFound = false;
     let newDues = [];
-    while(amountPaid > 0 && dues.length > 0){
+    while (amountPaid > 0 && dues.length > 0) {
       let due = dues[0];
-      if(due.salonId.toString() !== salonId.toString()){
+      if (due.salonId.toString() !== salonId.toString()) {
         newDues.push(due);
         dues.shift();
         continue;
-      }else{
+      } else {
         salonFound = true;
         let booking = await Booking.findOne({ _id: due.bookingId });
+        if(!booking){
+          dues.shift();
+          continue;
+        }
         let amount = due.amount;
-        if(amountPaid >= amount){
+        if (amountPaid >= amount) {
           amountPaid -= amount;
           booking.paymentAmount += amount;
           booking.amountDue -= amount;
           await booking.save();
           dues.shift();
-        }else{
+        } else {
           amount -= amountPaid;
           booking.paymentAmount += amountPaid;
           booking.amountDue -= amountPaid;
@@ -361,22 +389,97 @@ router.post("/clear/dues", async (req, res) => {
         }
       }
     }
-    while(dues.length > 0){
+    while (dues.length > 0) {
       let due = dues.shift();
       newDues.push(due);
     }
-    if(!salonFound && amountPaid > 0){
+    if (!salonFound && amountPaid > 0) {
       let err = new Error("No dues found for this salon");
-      err.status = "success"
+      err.status = "success";
       err.code = 200;
       throw err;
     }
     userData.dues = newDues;
     let newUserData = await userData.save();
-    res.status(200).json(wrapperMessage("success", "Dues cleared successfully", newUserData));
-  }catch(err){
+    res
+      .status(200)
+      .json(
+        wrapperMessage("success", "Dues cleared successfully", newUserData)
+      );
+  } catch (err) {
     console.log(err);
-    res.status(err.code || 500).json(wrapperMessage(err.status || "failed", err.message));
+    res
+      .status(err.code || 500)
+      .json(wrapperMessage(err.status || "failed", err.message));
+  }
+});
+
+router.post("/add/tags", async (req, res) => {
+  try {
+    let userId = req.body.userId;
+    let tags = req.body.tags;
+    let salonId = req.body.salonId;
+    if (!userId || !tags || !salonId) {
+      let err = new Error("Invalid Request");
+      err.code = 400;
+      throw err;
+    }
+
+    let salonData = await Salon.findOne({ _id: salonId });
+    if (!salonData) {
+      let err = new Error("Salon not found");
+      err.code = 404;
+      throw err;
+    }
+    let tagsForUsers = salonData.tagsForUsers;
+    for (let tag of tags) {
+      let tagFound = tagsForUsers.filter(
+        (t) => t.title.toLowerCase() === tag.toLowerCase()
+      );
+      if (tagFound.length === 0) {
+        let err = new Error(`Invalid Tag ${tag}`);
+        err.code = 400;
+        throw err;
+      }
+    }
+    let userTags = salonData.userTags;
+    if (userTags.length === 0) {
+      let newUserTag = {
+        userId: userId,
+        tags: tags,
+      };
+      userTags.push(newUserTag);
+      await salonData.save();
+    } else {
+      let index = -1;
+      for (let i = 0; i < userTags.length; i++) {
+        if (userTags[i].userId.toString() === userId.toString()) {
+          index = i;
+          break;
+        }
+      }
+      if (index !== -1) {
+        userTags[index].tags = tags;
+        await salonData.save();
+      } else {
+        let newUserTag = {
+          userId: userId,
+          tags: tags,
+        };
+        userTags.push(newUserTag);
+        await salonData.save();
+      }
+    }
+    res
+      .status(200)
+      .json(
+        wrapperMessage("success", "User tags added successfully", salonData)
+      );
+  } catch (err) {
+    console.log(err);
+    res
+      .status(err.code || 500)
+      .json(wrapperMessage(err.status || "failed", err.message));
   }
 });
 module.exports = router;

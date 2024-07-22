@@ -9,6 +9,7 @@ const Service = require("../../model/partnerApp/Service");
 const CommonUtils = require("../../helper/commonUtils");
 const FilterUtils = require("../../helper/filterUtils");
 const { getArtistsListGivingService } = require("../../helper/serviceHelper");
+const Partner = require("../../model/partnerApp/Partner");
 const ObjectId = mongoose.Types.ObjectId;
 
 // User ID : 64f786e3b23d28509e6791e0
@@ -183,7 +184,7 @@ router.post("/remove/:serviceId/services", async (req, res) => {
 router.post("/:id/update", async (req, res) => {
   try {
     let data = await Artist.updateOne({ _id: req.params.id }, req.body);
-    let artistData =  await Artist.findOne({ _id: req.params.id }); 
+    let artistData = await Artist.findOne({ _id: req.params.id });
     res.json(wrapperMessage("success", "", artistData));
   } catch (err) {
     console.log(err);
@@ -200,7 +201,7 @@ router.get("/single/:id", async (req, res) => {
       throw err;
     }
     let salonData;
-    if(data.salonId != process.env.NULL_OBJECT_ID){
+    if (data.salonId != process.env.NULL_OBJECT_ID) {
       salonData = await Salon.findOne({ _id: data.salonId });
       if (!salonData) {
         let err = new Error("This artist is associated with an unknown salon!");
@@ -400,6 +401,75 @@ router.post("/filter", async (req, res) => {
       data.push(artists[itr]);
     }
     res.status(200).json(wrapperMessage("success", "", data));
+  } catch (err) {
+    console.log(err);
+    res.status(err.code || 500).json(wrapperMessage("failed", err.message));
+  }
+});
+
+router.post("/addStaff", async (req, res) => {
+  try {
+    let staffNumber = req.body.staffNumber;
+    let staffName = req.body.staffName;
+    let staffGender = req.body.staffGender;
+    let salonId = req.body.salonId;
+
+    if (!staffNumber || !staffName || !staffGender || !salonId) {
+      let err = new Error("Please provide all the required fields!");
+      err.code = 400;
+      throw err;
+    }
+
+    let salonData = await Salon.findOne({ _id: salonId });
+    if (!salonData) {
+      let err = new Error("No such salon found!");
+      err.code = 404;
+      throw err;
+    }
+      
+    let partnerData = await Partner.findOne({ phoneNumber: staffNumber });
+    let artistData = await Artist.findOne({phoneNumber: staffNumber});
+    if (partnerData) {
+      if (partnerData.salonId.toString() === salonId.toString()) {
+        res.status(200).json(wrapperMessage("success", "This Staff is already associated with the salon!", {data: partnerData, newPartner: false}));
+        return;
+      } else if (partnerData.salonId.toString() !== process.env.NULL_OBJECT_ID) {
+        res.status(200).json(wrapperMessage("success", "This Staff is already associated with another salon!", {data: partnerData, newPartner: false}));
+        return;
+      }else{
+        partnerData.salonId = salonId;
+        partnerData.name = staffName;
+        partnerData.gender = staffGender;
+        await partnerData.save();
+        if(artistData){
+          artistData.salonId = salonId;
+          artistData.name = staffName;
+          artistData.rating = 0;
+          artistData.services = [];
+          artistData.targetGender = "not specified";
+          artistData.location = salonData.location;
+          artistData.timing = {
+            start: salonData.timing.opening,
+            end: salonData.timing.closing,
+          },
+          artistData.offDay = [];
+          artistData.availability = true;
+          artistData.live = false;
+          artistData.bookings = 0;
+          await artistData.save();
+        }
+        res.status(200).json(wrapperMessage("success", "Staff Added", {data: partnerData, newPartner: true}));
+        return;
+      }
+    }
+    let newPartnerData = new Partner({
+      name: staffName,
+      phoneNumber: staffNumber,
+      gender: staffGender,
+      salonId: salonId,
+    });
+    await newPartnerData.save();
+    res.status(200).json(wrapperMessage("success", "Staff Added", {data: newPartnerData, newPartner: true}));
   } catch (err) {
     console.log(err);
     res.status(err.code || 500).json(wrapperMessage("failed", err.message));

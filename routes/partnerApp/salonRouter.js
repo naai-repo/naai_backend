@@ -10,6 +10,7 @@ const jwtVerify = require("../../middleware/jwtVerification");
 const CommonUtils = require("../../helper/commonUtils");
 const FilterUtils = require("../../helper/filterUtils");
 const ObjectId = mongoose.Types.ObjectId;
+const Commission = require('../../model/partnerApp/comission')
 
 // User ID : 64f786e3b23d28509e6791e0
 // saloon ID : 64f786e3b23d28509e6791e1
@@ -186,7 +187,7 @@ router.post("/:id/update", async (req, res) => {
 
 router.get("/single/:id", async (req, res) => {
   try {
-    let data = await Salon.findOne({ _id: req.params.id });
+    let data = await Salon.findOne({ _id: req.params.id }).populate('memberships').exec()
     if (!data) {
       let err = new Error("No such salon exists!");
       err.code = 404;
@@ -519,6 +520,7 @@ router.post("/getSalonDataForDashboard", async (req, res) => {
               bookingMode: "$bookingMode",
               bookingId: "$_id",
               userId: "$userId",
+              userName:"$userName",
               bookingStatus: "$bookingStatus",
             },
           },
@@ -636,5 +638,88 @@ router.post("/addCustomer", async (req, res) => {
     res.status(err.code || 500).json(wrapperMessage("failed", err.message));
   }
 });
+
+router.post("/customers/search", async (req, res) => {
+  try {
+    const salonId = req.body.salonId;
+    const search = req.body.search;
+    let page = parseInt(req.query.page) || 1;
+    let limit = parseInt(req.query.limit) || 10;
+    let skip = (page - 1) * limit;
+
+    const salon = await Salon.findOne({ _id: salonId });
+    if (!salon) {
+      let err = new Error("No such salon exists!");
+      err.code = 404;
+      throw err;
+    }
+
+    let users = [];
+
+    if (isNaN(Number(search))) {
+      users = await User.find({walkinSalons: salonId,
+        name: { $regex: search, $options: "i" },}).skip(skip).limit(limit);
+    } else {
+      const searchUsers = salon.WalkinUsers.filter((number) =>
+        number.includes(search)
+      );
+      const paginatedUsers = searchUsers.slice(skip, skip + limit);
+      users = await User.find({ phoneNumber: { $in: paginatedUsers } });
+    }
+    res
+      .status(200)
+      .json(wrapperMessage("success", "user created successfully", users));
+  } catch (err) {
+    res.status(err.code || 500).json(wrapperMessage("failed", err.message));
+  }
+});
+
+router.post("/customers/filter", async (req, res) => {
+  try {
+    let salonId = req.body.salonId;
+    let filter = req.body.filter;
+    let page = parseInt(req.query.page) || 1;
+    let limit = parseInt(req.query.limit) || 10;
+    let skip = (page - 1) * limit;
+
+    if (!filter) {
+      let error = new Error("Invalid filter selected!");
+      error.code = 400;
+      throw error;
+    }
+    
+    const filterCriteria = { walkinSalons: salonId, gender: filter.gender };
+
+    const users = await User.find(filterCriteria).skip(skip).limit(limit);
+
+    res.status(200).json(wrapperMessage("success", "Salon users", users));
+  } catch (err) {
+    console.error(err);
+    res.status(err.code || 500).json(wrapperMessage("failed", err.message));
+  }
+});
+
+
+router.post('/:salonId/addComission', async (req, res) => {
+  const salonId = req.params.salonId;
+  const commissionData = req.body;
+
+  try {
+      const salon = await Salon.findById(salonId);
+      if (!salon) {
+          return res.status(404).json({ error: 'Salon not found' });
+      }
+      const newCommission = new Commission({
+          salon: salonId,
+          ...commissionData
+      });
+      await newCommission.save();
+      res.status(201).json({ message: 'Commission added successfully', commission: newCommission });
+  } catch (error) {
+      console.error('Error adding commission:', error);
+      res.status(500).json({ error: 'Failed to add commission' });
+  }
+});
+
 
 module.exports = router;
