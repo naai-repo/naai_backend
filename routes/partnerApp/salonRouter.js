@@ -600,6 +600,12 @@ router.post("/addCustomer", async (req, res) => {
     let customer = req.body.customer;
     const salonData = await Salon.findOne({ _id: salonId });
 
+    if (!salonData) {
+      let err = new Error("No such salon exists!");
+      err.code = 404;
+      throw err;
+    }
+
     const foundUser = await User.findOne({
       phoneNumber: customer.phoneNumber,
     });
@@ -619,7 +625,8 @@ router.post("/addCustomer", async (req, res) => {
     salonData.WalkinUsers.push(user.phoneNumber.toString());
 
     if (!foundUser) {
-      user.save();
+      user.walkinSalons.push(new ObjectId(salonId))
+     await user.save();
     }
     await salonData.save();
     res
