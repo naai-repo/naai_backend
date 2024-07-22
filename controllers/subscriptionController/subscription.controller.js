@@ -38,7 +38,14 @@ exports.purchaseSubscription =  async (req, res) => {
             subscription: subscription._id,
             startDate: new Date(),
             endDate: endDate,
+            name:subscription.name,
             duration: subscription.duration,
+            template_name:subscription.template_name,
+            duration:subscription.duration,
+            price: subscription.price,
+            template_price: subscription.template_price,
+            description: subscription.description,
+            features: subscription.features,
             status: 'active',
         });
 
