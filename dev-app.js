@@ -59,6 +59,12 @@ const AttendanceRouter = require("./routes/attendanceAndLeaves/attendance.routes
 // Leave Router
 const LeaveRouter = require("./routes/attendanceAndLeaves/leave.routes");
 
+// Features and Pages Router
+const FeatureRouter = require("./routes/featuresAndPages/feature.routes");
+
+// Access Control Router
+const AccessRouter = require("./routes/accessControl/accessRole.routes");
+
 // set the view engine to ejs
 app.set("view engine", "ejs");
 app.use("/public", express.static("public"));
@@ -129,6 +135,12 @@ app.use("/attendance", AttendanceRouter);
 
 // Leave Routes
 app.use("/leave", LeaveRouter);
+
+// Features and Pages Routes
+app.use("/feature", FeatureRouter);
+
+// Access Control Routes
+app.use("/access", AccessRouter);
 
 app.get("/", async (req, res) => {
   res.sendFile(__dirname + "/index.html");
