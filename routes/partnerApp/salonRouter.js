@@ -723,7 +723,7 @@ router.post('/:salonId/addComission', async (req, res) => {
 });
 
 router.post("/apply-commission", async (req, res) => {
-  const { commissionId, partnerId=null,artistId=null } = req.body;
+  const { commissionId, partnerId } = req.body;
   try {
     // Fetch the specified Commission Template
     const commission = await Commission.findById(commissionId);
@@ -736,21 +736,21 @@ router.post("/apply-commission", async (req, res) => {
     // if (!partner) {
     //   return res.status(404).json({ message: "Partner not found" });
     // }
-    const artist = await Artist.findById(artistId);
+    const partner = await Partner.findById(partnerId);
     if (!artist) {
       return res.status(404).json({ message: "Artist not found" });
     }
 
-    commission.artistId = artistId;
+    commission.partnerId = partnerId;
    
     // Apply the Commission Template to the Artist
     await commission.save();
-    artist.commission = commissionId;
-    await artist.save();
+    partner.commission = commissionId;
+    await partner.save();
 
     res.status(200).json({
       message: "Commission template applied to the artist",
-      artist,
+      partner,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });

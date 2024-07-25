@@ -8,20 +8,13 @@ const SalarySchema = new mongoose.Schema(
       ref: "Partner",
       default: null,
     },
-    artistId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Artist",
-      default: null,
-    },
+
     salonId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Salon",
       default: null,
     },
-  staffId: {
-        type: Number,
-        default:0
-    },
+
     earnings: [
       {
         type: {
