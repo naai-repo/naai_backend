@@ -33,6 +33,10 @@ const PartnerSchema = new mongoose.Schema(
         message: (val) => `${val.value} has to be 10 digits`,
       },
     },
+    salary: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Salary",
+    },
     salonId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Salon",

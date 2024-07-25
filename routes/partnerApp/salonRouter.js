@@ -10,7 +10,8 @@ const jwtVerify = require("../../middleware/jwtVerification");
 const CommonUtils = require("../../helper/commonUtils");
 const FilterUtils = require("../../helper/filterUtils");
 const ObjectId = mongoose.Types.ObjectId;
-const Commission = require('../../model/partnerApp/comission')
+const Commission = require('../../model/partnerApp/comission');
+const comission = require("../../model/partnerApp/comission");
 
 // User ID : 64f786e3b23d28509e6791e0
 // saloon ID : 64f786e3b23d28509e6791e1
@@ -720,6 +721,46 @@ router.post('/:salonId/addComission', async (req, res) => {
       res.status(500).json({ error: 'Failed to add commission' });
   }
 });
+
+router.post("/apply-commission", async (req, res) => {
+  const { commissionId, partnerId=null,artistId=null } = req.body;
+  try {
+    // Fetch the specified Commission Template
+    const commission = await Commission.findById(commissionId);
+    if (!commission) {
+      return res.status(404).json({ message: "Commission template not found" });
+    }
+
+    // Fetch the specified Partner
+    // const partner = await Partner.findById(partnerId);
+    // if (!partner) {
+    //   return res.status(404).json({ message: "Partner not found" });
+    // }
+    const artist = await Artist.findById(artistId);
+    if (!artist) {
+      return res.status(404).json({ message: "Artist not found" });
+    }
+
+    commission.artistId = artistId;
+   
+    // Apply the Commission Template to the Artist
+    await commission.save();
+    artist.commission = commissionId;
+    await artist.save();
+
+    res.status(200).json({
+      message: "Commission template applied to the artist",
+      artist,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Start the server
+
+
+
 
 
 module.exports = router;
