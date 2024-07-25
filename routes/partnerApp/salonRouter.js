@@ -11,7 +11,7 @@ const CommonUtils = require("../../helper/commonUtils");
 const FilterUtils = require("../../helper/filterUtils");
 const ObjectId = mongoose.Types.ObjectId;
 const Commission = require('../../model/partnerApp/comission');
-const comission = require("../../model/partnerApp/comission");
+
 
 // User ID : 64f786e3b23d28509e6791e0
 // saloon ID : 64f786e3b23d28509e6791e1
