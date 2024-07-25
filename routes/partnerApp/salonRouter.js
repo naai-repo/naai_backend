@@ -750,7 +750,7 @@ router.post("/apply-commission", async (req, res) => {
     await partner.save();
 
     res.status(200).json({
-      message: "Commission template applied to the artist",
+      message: "Commission template applied to the partner",
       partner,
     });
   } catch (error) {

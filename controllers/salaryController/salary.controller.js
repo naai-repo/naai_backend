@@ -41,7 +41,7 @@ const Salary = require('../../model/salary/salary.model');
       }
   
       // Check if the partner exists
-      const partner = await Partner.findById(artistId);
+      const partner = await Partner.findById(partnerId);
       if (!partner) {
         return res.status(404).json({ message: "Partner not found" });
       }
