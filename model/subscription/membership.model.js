@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
 const membershipSchema = new mongoose.Schema({
+  name:String,
   salon: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Salon',
@@ -23,11 +24,17 @@ const membershipSchema = new mongoose.Schema({
       type: Boolean,
       default: true,
   },
+  duration: {
+    type: Number,  // Duration in days
+    required: true,
+},
+  
 });
 
 membershipSchema.pre('save', async function (next) {
-  const subscription = await mongoose.model('Subscription').findById(this.subscription);
-  this.endDate = new Date(this.startDate.getTime() + (subscription.duration * 24 * 60 * 60 * 1000));
+    console.log(this.subscription)
+//   const subscription = await mongoose.model('Subscription').findById(this.subscription);
+//   this.endDate = new Date(this.startDate.getTime() + (subscription.duration * 24 * 60 * 60 * 1000));
   next();
 });
 
