@@ -24,6 +24,7 @@ const OtpRouter = require("./routes/partnerApp/otpRouter");
 const InventoryRouter = require("./routes/partnerApp/inventoryRouter");
 const PlanRouter = require("./routes/partnerApp/planRouter");
 const SubscriptionRouter =require('./routes/subscriptionRoutes/subscription.routes') 
+const salaryRouter = require('./routes/salaryRoutes/salary.routes')
 const WalkinRouter = require("./routes/partnerApp/walkinRouter")
 
 
@@ -114,6 +115,9 @@ app.use("/plan", PlanRouter);
 
 //subscription routes
 app.use('/subscription',SubscriptionRouter)
+
+//salary routes
+app.use('/salary',salaryRouter)
 
 // Scheduling Appointments
 app.use("/appointments", SchedulingRouter);
