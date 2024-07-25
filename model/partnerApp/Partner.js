@@ -60,6 +60,10 @@ const PartnerSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Commission",
     },
+    access: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "AccessRole",
+    },
   },
   {
     timestamps: true,
