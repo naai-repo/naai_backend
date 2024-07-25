@@ -225,6 +225,8 @@ console.log(params)
 exports.sendCustomersToQueueForSms = async (req, res) =>{
 
   const customers = req.body.customers;
+  let phoneNumbers = customers.map(c => c.phoneNumber);
+  let template = customers[0].template
   const salonId = req.body.salonId;
   const smsCost = req.body.smsCost;
 
@@ -251,14 +253,33 @@ exports.sendCustomersToQueueForSms = async (req, res) =>{
 
     await salon.save();
 
-    await sendMessageToSqs(customers);
-    res.status(200).json({ message: 'All messages sent to SQS' });
+        let body = {
+          Text: template,
+          Numbers: phoneNumbers,
+          SenderId: 611441,
+          DRNotifyUrl: "https://www.domainname.com/notifyurl",
+          DRNotifyHttpMethod: "POST",
+          Tool: "API",
+        }
+    
+        // Sends SMS OTP to user.
+        const data = await axios.post(
+          `https://restapi.smscountry.com/v0.1/Accounts/${process.env.AUTH_KEY}/BulkSMSes/`,
+          body,
+          {
+            auth: {
+              username: process.env.AUTH_KEY,
+              password: process.env.AUTH_TOKEN,
+            },
+          })
+          res.status(200).json({ message: 'All sms sent' , data})
+
+    
   } catch (error) {
-    console.error('Error sending messages to SQS:', error);
-    res.status(500).json({ error: 'Failed to send messages to SQS' });
+    console.error('Error sending messages:', error);
+    res.status(500).json({ error: 'Failed to send messages' });
   }
 
- 
 
 }
 
