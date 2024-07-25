@@ -742,10 +742,6 @@ router.post("/apply-commission", async (req, res) => {
       return res.status(404).json({ message: "partner not found" });
     }
 
-    commission.partnerId = partnerId;
-   
-    // Apply the Commission Template to the Artist
-    await commission.save();
     partner.commission = commissionId;
     await partner.save();
 
@@ -755,6 +751,23 @@ router.post("/apply-commission", async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+
+router.get('/commissions/:salonId', async (req, res) => {
+  try {
+      const { salonId } = req.params;
+      const commissions = await Commission.find({ salon: salonId })
+      // const commissions = await Commission.find({ salon: salonId }).populate('salon').populate('partnerId');
+      
+      if (!commissions.length) {
+          return res.status(404).json({ message: 'No commissions found for the given salon ID' });
+      }
+      
+      res.status(200).json(commissions);
+  } catch (error) {
+      res.status(500).json({ message: 'Server error', error });
   }
 });
 
