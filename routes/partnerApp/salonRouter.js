@@ -737,8 +737,8 @@ router.post("/apply-commission", async (req, res) => {
     //   return res.status(404).json({ message: "Partner not found" });
     // }
     const partner = await Partner.findById(partnerId);
-    if (!artist) {
-      return res.status(404).json({ message: "Artist not found" });
+    if (!partner) {
+      return res.status(404).json({ message: "partner not found" });
     }
 
     commission.partnerId = partnerId;
