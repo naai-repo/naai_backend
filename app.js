@@ -66,6 +66,9 @@ const FeatureRouter = require("./routes/featuresAndPages/feature.routes");
 // Access Control Router
 const AccessRouter = require("./routes/accessControl/accessRole.routes");
 
+// Membership Router
+const MembershipRouter = require("./routes/membershipRoutes/membership.routes");
+
 // set the view engine to ejs
 app.set("view engine", "ejs");
 app.use("/public", express.static("public"));
@@ -145,6 +148,9 @@ app.use("/feature", FeatureRouter);
 
 // Access Control Routes
 app.use("/access", AccessRouter);
+
+// Membership Routes
+app.use("/membership", MembershipRouter);
 
 app.get("/", async (req, res) => {
   res.sendFile(__dirname + "/index.html");
