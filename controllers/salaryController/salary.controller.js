@@ -74,7 +74,7 @@ const Partner = require('../../model/partnerApp/Partner')
       
   
       res.status(200).json({
-        message: "Salary template applied to the artist",
+        message: "Salary template applied to the partner",
         salary,
       });
     } catch (err) {
