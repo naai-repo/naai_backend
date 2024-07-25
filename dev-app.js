@@ -23,7 +23,9 @@ const PartnerRouter = require("./routes/partnerApp/partnerRouter");
 const OtpRouter = require("./routes/partnerApp/otpRouter");
 const InventoryRouter = require("./routes/partnerApp/inventoryRouter");
 const PlanRouter = require("./routes/partnerApp/planRouter");
+const SubscriptionRouter =require('./routes/subscriptionRoutes/subscription.routes') 
 const WalkinRouter = require("./routes/partnerApp/walkinRouter")
+
 
 // Customer App
 const UserRouter = require("./routes/customerApp/userRouter");
@@ -53,6 +55,15 @@ const UrlController = require("./controllers/urlController/url.controller");
 
 // Attendance Router
 const AttendanceRouter = require("./routes/attendanceAndLeaves/attendance.routes");
+
+// Leave Router
+const LeaveRouter = require("./routes/attendanceAndLeaves/leave.routes");
+
+// Features and Pages Router
+const FeatureRouter = require("./routes/featuresAndPages/feature.routes");
+
+// Access Control Router
+const AccessRouter = require("./routes/accessControl/accessRole.routes");
 
 // set the view engine to ejs
 app.set("view engine", "ejs");
@@ -98,6 +109,9 @@ app.use("/customer/user/location", LocationRouter);
 // Plan Routes
 app.use("/plan", PlanRouter);
 
+//subscription routes
+app.use('/subscription',SubscriptionRouter)
+
 // Scheduling Appointments
 app.use("/appointments", SchedulingRouter);
 
@@ -118,6 +132,15 @@ app.use("/promotion", PromotionRouter);
 
 // Attendance Routes
 app.use("/attendance", AttendanceRouter);
+
+// Leave Routes
+app.use("/leave", LeaveRouter);
+
+// Features and Pages Routes
+app.use("/feature", FeatureRouter);
+
+// Access Control Routes
+app.use("/access", AccessRouter);
 
 app.get("/", async (req, res) => {
   res.sendFile(__dirname + "/index.html");

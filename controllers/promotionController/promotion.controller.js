@@ -34,8 +34,8 @@ const s3 = new S3Client({
   region: bucketRegion,
 });
 
-const MESSAGE_LENGTH = 160;
-const VAR_LENGTH = 30;
+const MESSAGE_LENGTH = 1000;
+const VAR_LENGTH = 50;
 
 const uploadImagesTos3 = async (files, salonId) => {
   return new Promise(async (resolve, reject) => {
@@ -225,12 +225,32 @@ console.log(params)
 exports.sendCustomersToQueueForSms = async (req, res) =>{
 
   const customers = req.body.customers;
+  const salonId = req.body.salonId;
+  const smsCost = req.body.smsCost;
+
 
   if (!customers || !Array.isArray(customers)) {
     return res.status(400).json({ error: 'Invalid input. Please provide an array of customers.' });
   }
 
   try {
+    const salon = await Salon.findById(salonId);
+
+    if (!salon) {
+        throw new Error('Salon not found');
+    }
+
+  
+    if (salon.smsCredits < smsCost) {
+        throw new Error('Not enough smsCredits');
+    }
+
+
+    salon.smsCredits -= smsCost;
+
+
+    await salon.save();
+
     await sendMessageToSqs(customers);
     res.status(200).json({ message: 'All messages sent to SQS' });
   } catch (error) {
@@ -242,7 +262,8 @@ exports.sendCustomersToQueueForSms = async (req, res) =>{
 
 }
 
-// Example customer data
+
+
 
 
 // Send messages to S

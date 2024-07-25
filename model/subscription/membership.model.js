@@ -1,19 +1,68 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
-const membershipSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  description: { type: String, required: true },
-  validity: {
-    type: { type: String, enum: ['15_days', 'monthly', 'quarterly', 'yearly'], required: true },
-    duration: { type: Number, required: true } // Duration in days
-  },
-  cost: { type: Number, required: true },
-  services: [String], // List of services included
-  salon: { type: mongoose.Schema.Types.ObjectId, ref: "Salon", required: true } // Reference to Salon
-}, { timestamps: true });
+const subscriptionSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: true,
+    },
+    template_name: {
+        type: String,
+        required: true,
+    },
+    duration: {
+        type: Number,  // Duration in days
+        required: true,
+    },
+    price: {
+        type: Number,
+        required: true,
+    },
+    template_price: {
+        type: Number,
+        required: true,
+    },
+    description: {
+        type: String,
+    },
+    features: [{
+        type: String,
+    }],
+    status: {
+        type: String,
+        enum: ['active', 'inactive'],
+        default: 'active',
+    },
+    supportLevel: {
+        type: String,
+        enum: ['basic', 'premium'],
+    },
+    addOnOptions: [{
+        type: String,
+    }],
+    billingCycle: {
+        type: String,
+        enum: ['monthly', 'quarterly', 'yearly'],
+        default: 'monthly',
+    },
+    cancellationPolicy: {
+        type: String,
+    },
+    termsAndConditions: {
+        type: String,
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now,
+    },
+    updatedAt: {
+        type: Date,
+        default: Date.now,
+    },
+});
 
-const Membership = mongoose.model("Membership", membershipSchema);
+subscriptionSchema.pre('save', function (next) {
+    this.updatedAt = Date.now();
+    next();
+});
 
-module.exports = Membership;
-
-// salon id is mandatory cause when you r creating a membership it must associated with salon/ salonId
+module.exports = mongoose.model('Subscription', subscriptionSchema);

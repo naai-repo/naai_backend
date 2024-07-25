@@ -1,25 +1,52 @@
 const mongoose = require('mongoose');
 
-const subscriptionSchema = new mongoose.Schema({
-    name: {
-        type: String,
+const activeSubscriptionSchema = new mongoose.Schema({
+    salon: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Salon',
         required: true,
     },
-    template_name: {
-        type: String,
+    subscription: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Subscription',
+        required: true,
+    },
+    startDate: {
+        type: Date,
+        required: true,
+    },
+    endDate: {
+        type: Date,
         required: true,
     },
     duration: {
-        type: Number,  // Duration in days
+        type: Number,
         required: true,
+    },
+    status: {
+        type: String,
+        enum: ['active', 'expired'],
+        default: 'active',
+    },
+    name: {
+        type: String,
+        // required: true,
+    },
+    template_name: {
+        type: String,
+        // required: true,
+    },
+    duration: {
+        type: Number,  // Duration in days
+        // required: true,
     },
     price: {
         type: Number,
-        required: true,
+        // required: true,
     },
     template_price: {
         type: Number,
-        required: true,
+        // required: true,
     },
     description: {
         type: String,
@@ -51,19 +78,9 @@ const subscriptionSchema = new mongoose.Schema({
         type: String,
     },
     
-    createdAt: {
-        type: Date,
-        default: Date.now,
-    },
-    updatedAt: {
-        type: Date,
-        default: Date.now,
-    },
+
+}, {
+    timestamps: true,
 });
 
-subscriptionSchema.pre('save', function (next) {
-    this.updatedAt = Date.now();
-    next();
-});
-
-module.exports = mongoose.model('Subscription', subscriptionSchema);
+module.exports = mongoose.model('ActiveSubscription', activeSubscriptionSchema);
