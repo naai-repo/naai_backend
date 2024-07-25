@@ -3,6 +3,7 @@
 const User = require('../../model/customerApp/User');
 
 const Salary = require('../../model/salary/salary.model');
+const Partner = require('../../model/partnerApp/Partner')
 
 
 
@@ -45,7 +46,6 @@ const Salary = require('../../model/salary/salary.model');
       if (!partner) {
         return res.status(404).json({ message: "Partner not found" });
       }
-  
       // Check if a salary is already attached to the partner
       const existingSalary = await Salary.findOne({ partnerId });
       if (existingSalary) {
