@@ -24,6 +24,7 @@ const OtpRouter = require("./routes/partnerApp/otpRouter");
 const InventoryRouter = require("./routes/partnerApp/inventoryRouter");
 const PlanRouter = require("./routes/partnerApp/planRouter");
 const SubscriptionRouter =require('./routes/subscriptionRoutes/subscription.routes') 
+const salaryRouter = require('./routes/salaryRoutes/salary.routes')
 const WalkinRouter = require("./routes/partnerApp/walkinRouter")
 
 
@@ -64,6 +65,9 @@ const FeatureRouter = require("./routes/featuresAndPages/feature.routes");
 
 // Access Control Router
 const AccessRouter = require("./routes/accessControl/accessRole.routes");
+
+// Membership Router
+const MembershipRouter = require("./routes/membershipRoutes/membership.routes");
 
 // set the view engine to ejs
 app.set("view engine", "ejs");
@@ -112,6 +116,9 @@ app.use("/plan", PlanRouter);
 //subscription routes
 app.use('/subscription',SubscriptionRouter)
 
+//salary routes
+app.use('/salary',salaryRouter)
+
 // Scheduling Appointments
 app.use("/appointments", SchedulingRouter);
 
@@ -141,6 +148,9 @@ app.use("/feature", FeatureRouter);
 
 // Access Control Routes
 app.use("/access", AccessRouter);
+
+// Membership Routes
+app.use("/membership", MembershipRouter);
 
 app.get("/", async (req, res) => {
   res.sendFile(__dirname + "/index.html");

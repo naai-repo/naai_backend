@@ -15,8 +15,20 @@ const commissionSchema = new Schema({
     salon: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Salon',
-        required: true,
-        index: true 
+        default:null,
+    
+    },
+    partnerId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Partner',
+        default:null,
+
+    },
+    artistId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Artist',
+        default:null,
+
     },
     name:{ type: String, required: true },
     brackets: [commissionBracketSchema],
