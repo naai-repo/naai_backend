@@ -3,6 +3,7 @@ const router = require("express").Router();
 const Salon = require("../../model/partnerApp/Salon");
 const Booking = require("../../model/partnerApp/Booking");
 const Artist = require("../../model/partnerApp/Artist");
+const Partner = require("../../model/partnerApp/Partner");
 const User = require("../../model/customerApp/User");
 const wrapperMessage = require("../../helper/wrapperMessage");
 const Service = require("../../model/partnerApp/Service");
@@ -723,7 +724,7 @@ router.post('/:salonId/addComission', async (req, res) => {
 });
 
 router.post("/apply-commission", async (req, res) => {
-  const { commissionId, partnerId=null,artistId=null } = req.body;
+  const { commissionId, partnerId } = req.body;
   try {
     // Fetch the specified Commission Template
     const commission = await Commission.findById(commissionId);
@@ -736,24 +737,37 @@ router.post("/apply-commission", async (req, res) => {
     // if (!partner) {
     //   return res.status(404).json({ message: "Partner not found" });
     // }
-    const artist = await Artist.findById(artistId);
-    if (!artist) {
-      return res.status(404).json({ message: "Artist not found" });
+    const partner = await Partner.findById(partnerId);
+    if (!partner) {
+      return res.status(404).json({ message: "partner not found" });
     }
 
-    commission.artistId = artistId;
-   
-    // Apply the Commission Template to the Artist
-    await commission.save();
-    artist.commission = commissionId;
-    await artist.save();
+    partner.commission = commissionId;
+    await partner.save();
 
     res.status(200).json({
-      message: "Commission template applied to the artist",
-      artist,
+      message: "Commission template applied to the partner",
+      partner,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+
+router.get('/commissions/:salonId', async (req, res) => {
+  try {
+      const { salonId } = req.params;
+      const commissions = await Commission.find({ salon: salonId })
+      // const commissions = await Commission.find({ salon: salonId }).populate('salon').populate('partnerId');
+      
+      if (!commissions.length) {
+          return res.status(404).json({ message: 'No commissions found for the given salon ID' });
+      }
+      
+      res.status(200).json(commissions);
+  } catch (error) {
+      res.status(500).json({ message: 'Server error', error });
   }
 });
 

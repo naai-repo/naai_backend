@@ -24,12 +24,6 @@ const commissionSchema = new Schema({
         default:null,
 
     },
-    artistId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Artist',
-        default:null,
-
-    },
     name:{ type: String, required: true },
     brackets: [commissionBracketSchema],
     duration_type: { 

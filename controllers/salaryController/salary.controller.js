@@ -3,7 +3,8 @@
 const User = require('../../model/customerApp/User');
 
 const Salary = require('../../model/salary/salary.model');
-const Artist = require('../../model/partnerApp/Artist');
+const Partner = require('../../model/partnerApp/Partner')
+
 
 
   exports.createSalaryTemplate = async (req, res) => {
@@ -32,7 +33,7 @@ const Artist = require('../../model/partnerApp/Artist');
 
   exports.applySalary = async (req, res) => {
     try {
-      const { templateId, partnerId, salonId , staffId, artistId } = req.body;
+      const { templateId, partnerId, salonId} = req.body;
   
       // Check if the template exists
       const template = await Salary.findById(templateId);
@@ -41,23 +42,22 @@ const Artist = require('../../model/partnerApp/Artist');
       }
   
       // Check if the partner exists
-      const artist = await Artist.findById(artistId);
-      if (!artist) {
-        return res.status(404).json({ message: "Artist not found" });
+      const partner = await Partner.findById(partnerId);
+      if (!partner) {
+        return res.status(404).json({ message: "Partner not found" });
       }
-  
       // Check if a salary is already attached to the partner
-      const existingSalary = await Salary.findOne({ artistId });
+      const existingSalary = await Salary.findOne({ partnerId });
       if (existingSalary) {
         return res.status(400).json({
-          message: "Salary already attached to this Artist",
+          message: "Salary already attached to this Partner",
         });
 }
 
   
       // Create a new salary using the template
       const salary = new Salary({
-        artistId,
+        partnerId,
         salonId,
         earnings: template.earnings,
         deductions: template.deductions,
@@ -68,13 +68,13 @@ const Artist = require('../../model/partnerApp/Artist');
       await salary.save();
   
       // Update the partner to include the new salary
-      await Artist.findByIdAndUpdate(artistId, {
+      await Partner.findByIdAndUpdate(partnerId, {
         salary: salary._id,
       });
       
   
       res.status(200).json({
-        message: "Salary template applied to the artist",
+        message: "Salary template applied to the partner",
         salary,
       });
     } catch (err) {
