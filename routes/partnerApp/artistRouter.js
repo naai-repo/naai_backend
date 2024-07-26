@@ -412,6 +412,11 @@ router.post("/addStaff", async (req, res) => {
     let staffNumber = req.body.staffNumber;
     let staffName = req.body.staffName;
     let staffGender = req.body.staffGender;
+    let date_of_joining = req.body.date_of_joining;
+    let shift_timing = req.body.shift_timing;
+    let service_commission = req.body.service_commission;
+    let product_commission = req.body.product_commission;
+    let email = req.body.email;
     let salonId = req.body.salonId;
 
     if (!staffNumber || !staffName || !staffGender || !salonId) {
@@ -426,7 +431,7 @@ router.post("/addStaff", async (req, res) => {
       err.code = 404;
       throw err;
     }
-      
+    let email_partner = await Partner.findOne({email});
     let partnerData = await Partner.findOne({ phoneNumber: staffNumber });
     let artistData = await Artist.findOne({phoneNumber: staffNumber});
     if (partnerData) {
@@ -437,9 +442,19 @@ router.post("/addStaff", async (req, res) => {
         res.status(200).json(wrapperMessage("success", "This Staff is already associated with another salon!", {data: partnerData, newPartner: false}));
         return;
       }else{
+        if(email_partner && partnerData._id.toString() !== email_partner._id.toString()){
+          let err = new Error("This email is already associated with another account!");
+          err.code = 400;
+          throw err;
+        }
         partnerData.salonId = salonId;
         partnerData.name = staffName;
         partnerData.gender = staffGender;
+        partnerData.email = email;
+        partnerData.date_of_joining = date_of_joining;
+        partnerData.shift_timing = shift_timing;
+        partnerData.service_commission = service_commission;
+        partnerData.product_commission = product_commission;
         await partnerData.save();
         if(artistData){
           artistData.salonId = salonId;
@@ -449,10 +464,10 @@ router.post("/addStaff", async (req, res) => {
           artistData.targetGender = "not specified";
           artistData.location = salonData.location;
           artistData.timing = {
-            start: salonData.timing.opening,
-            end: salonData.timing.closing,
+            start: shift_timing.start_time || salonData.timing.opening,
+            end: shift_timing.end_time || salonData.timing.closing,
           },
-          artistData.offDay = [];
+          artistData.offDay = shift_timing.week_off_day === "none" ? [] : [shift_timing.week_off_day];
           artistData.availability = true;
           artistData.live = false;
           artistData.bookings = 0;
@@ -467,6 +482,11 @@ router.post("/addStaff", async (req, res) => {
       phoneNumber: staffNumber,
       gender: staffGender,
       salonId: salonId,
+      date_of_joining: date_of_joining || null,
+      shift_timing: shift_timing || null,
+      email: email || null,
+      service_commission: service_commission || null,
+      product_commission: product_commission || null,
     });
     await newPartnerData.save();
     res.status(200).json(wrapperMessage("success", "Staff Added", {data: newPartnerData, newPartner: true}));
