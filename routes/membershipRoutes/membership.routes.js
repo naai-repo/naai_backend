@@ -3,5 +3,7 @@ const MembershipController = require("../../controllers/membership/membership.co
 
 router.post("/create", MembershipController.CreateMembership);
 router.get("/get/:salonId", MembershipController.GetMembershipsForSalons);
+router.post("/edit/:membershipId", MembershipController.EditMembership);
+router.get("/delete/:membershipId", MembershipController.DeleteMembership);
 
 module.exports = router;
