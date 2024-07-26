@@ -68,6 +68,33 @@ const PartnerSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "AccessRole",
     },
+    date_of_joining: {
+      type: Date,
+      default: Date.now,
+    },
+    shift_timing: {
+      start_time: {
+        type: String,
+        default: "00:00",
+      },
+      end_time: {
+        type: String,
+        default: "00:00",
+      },
+      week_off_day: {
+        type: String,
+        enum: ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", null],
+        default: "sunday",
+      },
+    },
+    product_commission: {
+      type: Number,
+      default: null,
+    },
+    service_commission: {
+      type: Number,
+      default: null,
+    },
   },
   {
     timestamps: true,
