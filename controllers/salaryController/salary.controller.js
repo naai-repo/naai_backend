@@ -9,10 +9,11 @@ const Partner = require('../../model/partnerApp/Partner')
 
   exports.createSalaryTemplate = async (req, res) => {
     try {
-      const { earnings, deductions, paymentMethod, salonId } = req.body;
+      const { earnings, deductions, paymentMethod, salonId, startDate } = req.body;
   
       const salaryTemplate = new Salary({
         partnerId: null,
+        startDate, 
         salonId, salonId,
         earnings,
         deductions,
@@ -33,7 +34,7 @@ const Partner = require('../../model/partnerApp/Partner')
 
   exports.applySalary = async (req, res) => {
     try {
-      const { templateId, partnerId, salonId} = req.body;
+      const { templateId, partnerId, salonId, startDate} = req.body;
   
       // Check if the template exists
       const template = await Salary.findById(templateId);
@@ -57,6 +58,7 @@ const Partner = require('../../model/partnerApp/Partner')
   
       // Create a new salary using the template
       const salary = new Salary({
+        startDate,
         partnerId,
         salonId,
         earnings: template.earnings,
