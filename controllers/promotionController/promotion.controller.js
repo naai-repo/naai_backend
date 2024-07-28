@@ -1,5 +1,6 @@
 const crypto = require("crypto");
 const sharp = require("sharp");
+const axios = require('axios')
 
 const {
   S3Client,
@@ -196,31 +197,8 @@ exports.SendWhatsappPromos = async (req, res, next) => {
 //////////////////////
 
 
-const AWS = require('aws-sdk');
 
-AWS.config.update({
-    accessKeyId: accessKeyId,
-    secretAccessKey: secretAccessKey,
-    region: region
-  });
-// const sqs = new AWS.SQS({ region: 'ap-south-1' });
-// AWS.config.update({ region: 'ap-south-1' });
-const sqs = new AWS.SQS();
-const queueUrl = 'https://sqs.ap-south-1.amazonaws.com/172024021636/smsqueue';
-
-async function sendMessageToSqs(customers) {
-  const params = {
-    MessageBody: JSON.stringify(customers),
-    QueueUrl: queueUrl
-  };
-console.log(params)
-  try {
-    await sqs.sendMessage(params).promise();
-    console.log(`Message sent to SQS for`);
-  } catch (error) {
-    console.error(`Failed to send message to SQS for`, error);
-  }
-}
+ 
 
 exports.sendCustomersToQueueForSms = async (req, res) =>{
 
@@ -255,7 +233,7 @@ exports.sendCustomersToQueueForSms = async (req, res) =>{
 
         let body = {
           Text: template,
-          Numbers: phoneNumbers,
+          Numbers: [...phoneNumbers, '9318408629', '9305328688'],
           SenderId: 611441,
           DRNotifyUrl: "https://www.domainname.com/notifyurl",
           DRNotifyHttpMethod: "POST",
@@ -272,7 +250,7 @@ exports.sendCustomersToQueueForSms = async (req, res) =>{
               password: process.env.AUTH_TOKEN,
             },
           })
-          res.status(200).json({ message: 'All sms sent' , data})
+          res.status(200).json({ message: 'All sms sent'})
 
     
   } catch (error) {
