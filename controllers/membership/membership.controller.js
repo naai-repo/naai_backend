@@ -1,6 +1,7 @@
 const Memberships = require("../../model/membership/Membership.model");
 const CommonUtils = require("../../helper/commonUtils");
 const wrapperMessage = require("../../helper/wrapperMessage");
+const User = require("../../model/customerApp/User");
 
 exports.CreateMembership = async (req, res, next) => {
   try {
@@ -51,13 +52,16 @@ exports.EditMembership = async (req, res, next) => {
   try {
     const membershipBody = req.body;
     const membershipId = req.params.membershipId;
-    const membership = await Memberships.findOne({_id: membershipId});
+    const membership = await Memberships.findOne({ _id: membershipId });
     if (!membership) {
       let err = new Error("Membership Not Found");
       err.code = 404;
       throw err;
     }
-    const updatedMembership = await Memberships.updateOne({_id: membershipId}, membershipBody);
+    const updatedMembership = await Memberships.updateOne(
+      { _id: membershipId },
+      membershipBody
+    );
     res
       .status(200)
       .json(
@@ -71,20 +75,20 @@ exports.EditMembership = async (req, res, next) => {
     console.log(err);
     res.status(err.code || 500).json(wrapperMessage("failed", err.message));
   }
-}
+};
 
 // Delete a membership
 
 exports.DeleteMembership = async (req, res, next) => {
   try {
     const membershipId = req.params.membershipId;
-    const membership = await Memberships.findOne({_id: membershipId});
+    const membership = await Memberships.findOne({ _id: membershipId });
     if (!membership) {
       let err = new Error("Membership Not Found");
       err.code = 404;
       throw err;
     }
-    let deletedMembership = await Memberships.deleteOne({_id: membershipId});
+    let deletedMembership = await Memberships.deleteOne({ _id: membershipId });
     res
       .status(200)
       .json(
@@ -94,9 +98,47 @@ exports.DeleteMembership = async (req, res, next) => {
           deletedMembership
         )
       );
-  }catch(err){
+  } catch (err) {
     console.log(err);
     res.status(err.code || 500).json(wrapperMessage("failed", err.message));
   }
-    
-}
+};
+
+// Add Memebership to Users
+
+exports.AddMembershipToUser = async (req, res, next) => {
+  try {
+    const membershipId = req.body.membershipId;
+    const userId = req.body.userId;
+
+    const membership = await Memberships.findOne({ _id: membershipId });
+    if (!membership) {
+      let err = new Error("Membership Not Found");
+      err.code = 404;
+      throw err;
+    }
+    const user = await User.findOne({ _id: userId });
+    if (!user) {
+      let err = new Error("User Not Found");
+      err.code = 404;
+      throw err;
+    }
+    user.membership.id = membershipId;
+    user.membership.wallet_amount += membership.wallet_amount;
+    user.membership.all_services_discount_max_count =
+      membership.all_services_discount_max_count;
+    user.membership.all_products_discount_max_count =
+      membership.all_products_discount_max_count;
+    user.membership.products = membership.products;
+    user.membership.services = membership.services;
+    await user.save();
+    res
+      .status(200)
+      .json(
+        wrapperMessage("success", "Membership Added to User Successfully", user)
+      );
+  } catch (err) {
+    console.log(err);
+    res.status(err.code || 500).json(wrapperMessage("failed", err.message));
+  }
+};

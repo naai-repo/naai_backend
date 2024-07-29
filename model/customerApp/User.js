@@ -9,7 +9,7 @@ const UserSchema = new mongoose.Schema(
     },
     email: {
       type: String,
-      default: ""
+      default: "",
     },
     gender: {
       type: String,
@@ -27,13 +27,13 @@ const UserSchema = new mongoose.Schema(
         message: (val) => `${val.value} has to be 10 digits`,
       },
     },
-    birthDate:{
+    birthDate: {
       type: String,
-      default: ""
+      default: "",
     },
-    aniversary:{
+    aniversary: {
       type: String,
-      default: ""
+      default: "",
     },
     userType: {
       type: String,
@@ -85,44 +85,112 @@ const UserSchema = new mongoose.Schema(
     subscription: {
       plan: {
         type: mongoose.Schema.ObjectId,
-        ref: 'Plan'
+        ref: "Plan",
       },
       startDate: {
         type: Date,
-        default: Date.now
+        default: Date.now,
       },
       expiryDate: {
-        type: Date
+        type: Date,
       },
     },
-    subscriptions: [{ type: mongoose.Schema.Types.ObjectId, ref: "Subscription" }],
+    subscriptions: [
+      { type: mongoose.Schema.Types.ObjectId, ref: "Subscription" },
+    ],
     walkinSalons: [
       {
         type: mongoose.Schema.ObjectId,
-      }
+      },
     ],
     dues: [
       {
         bookingId: {
           type: mongoose.Schema.ObjectId,
-          ref: 'Booking'
+          ref: "Booking",
         },
         salonId: {
           type: mongoose.Schema.ObjectId,
-          ref: 'Salon'
+          ref: "Salon",
         },
         amount: {
-          type: Number
+          type: Number,
         },
         bookingDate: {
-          type: Date
+          type: Date,
         },
-      }
+      },
     ],
     convertedAt: {
       type: String,
-      default: ""
-    }
+      default: "",
+    },
+    membership: {
+      id: {
+        type: mongoose.Schema.ObjectId,
+        ref: "Membership",
+      },
+      wallet_amount: {
+        type: Number,
+        default: 0,
+      },
+      all_services_discount_max_count: {
+        type: Number,
+        default: null,
+      },
+      all_products_discount_max_count: {
+        type: Number,
+        default: null,
+      },
+      services: [
+        {
+          id: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Service",
+          },
+          allotted_count: {
+            type: Number,
+            required: true,
+          },
+          discount_type: {
+            type: Number,
+            required: true,
+          },
+          discount_type_value: {
+            type: Number,
+            required: true,
+          },
+          max_discount_amount: {
+            type: Number,
+            default: null,
+          },
+        },
+      ],
+      products: [
+        {
+          id: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Product",
+          },
+          allotted_count: {
+            type: Number,
+            required: true,
+          },
+          discount_type: {
+            type: Number,
+            required: true,
+          },
+          discount_type_value: {
+            type: Number,
+            required: true,
+          },
+          max_discount_amount: {
+            type: Number,
+            default: null,
+          },
+        },
+      ],
+    },
   },
   {
     timestamps: true,

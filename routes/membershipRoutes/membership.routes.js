@@ -5,5 +5,6 @@ router.post("/create", MembershipController.CreateMembership);
 router.get("/get/:salonId", MembershipController.GetMembershipsForSalons);
 router.post("/edit/:membershipId", MembershipController.EditMembership);
 router.get("/delete/:membershipId", MembershipController.DeleteMembership);
+router.post("/addMembership", MembershipController.AddMembershipToUser);
 
 module.exports = router;
