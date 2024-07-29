@@ -204,8 +204,11 @@ exports.sendCustomersToQueueForSms = async (req, res) =>{
 
   let customers = req.body.customers;
   console.log(customers)
+  console.log(customers[0].template)
+
   let phoneNumbers = customers.map(c => c.phoneNumber);
   let template = customers[0].template;
+
   const salonId = req.body.salonId;
   const smsCost = req.body.smsCost;
 
