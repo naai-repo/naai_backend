@@ -2,7 +2,6 @@ const mongoose = require("mongoose");
 
 // Schema for Salary
 const SalarySchema = new mongoose.Schema(
-
   {
     startDate: {
       type: Date,
@@ -13,23 +12,19 @@ const SalarySchema = new mongoose.Schema(
       ref: "Partner",
       default: null,
     },
-
     salonId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Salon",
       default: null,
     },
-
     earnings: [
       {
         type: {
           type: String,
           enum: ["Basic", "House Rent Allowance", "Bonus", "Other"],
-
         },
         value: {
           type: Number,
-       
         },
       },
     ],
@@ -38,11 +33,9 @@ const SalarySchema = new mongoose.Schema(
         type: {
           type: String,
           enum: ["Advance", "Provident Fund", "Income Tax", "Other"],
-      
         },
         value: {
           type: Number,
-    
         },
       },
     ],
@@ -55,6 +48,13 @@ const SalarySchema = new mongoose.Schema(
       enum: ["bank transfer", "cash", "cheque", "other"],
       default: "bank transfer",
     },
+    effectiveMonth: {
+      type: Number, // 1-12
+  
+    },
+    effectiveYear: {
+      type: Number, // 4-digit year
+    },
   },
   {
     timestamps: true,
@@ -62,3 +62,4 @@ const SalarySchema = new mongoose.Schema(
 );
 
 module.exports = mongoose.model("Salary", SalarySchema);
+

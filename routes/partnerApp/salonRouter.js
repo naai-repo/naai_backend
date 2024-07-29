@@ -771,7 +771,48 @@ router.get('/commissions/:salonId', async (req, res) => {
   }
 });
 
-// Start the server
+router.delete('/:salonId/deleteCommission/:commissionId', async (req, res) => {
+  const { salonId, commissionId } = req.params;
+
+  try {
+    const salon = await Salon.findById(salonId);
+    if (!salon) {
+      return res.status(404).json({ error: 'Salon not found' });
+    }
+
+    const commission = await Commission.findByIdAndDelete(commissionId);
+    if (!commission) {
+      return res.status(404).json({ error: 'Commission not found' });
+    }
+
+    res.status(200).json({ message: 'Commission deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting commission:', error);
+    res.status(500).json({ error: 'Failed to delete commission' });
+  }
+});
+
+router.put('/:salonId/updateCommission/:commissionId', async (req, res) => {
+  const { salonId, commissionId } = req.params;
+  const updatedData = req.body;
+
+  try {
+    const salon = await Salon.findById(salonId);
+    if (!salon) {
+      return res.status(404).json({ error: 'Salon not found' });
+    }
+
+    const commission = await Commission.findByIdAndUpdate(commissionId, updatedData, { new: true });
+    if (!commission) {
+      return res.status(404).json({ error: 'Commission not found' });
+    }
+
+    res.status(200).json({ message: 'Commission updated successfully', commission });
+  } catch (error) {
+    console.error('Error updating commission:', error);
+    res.status(500).json({ error: 'Failed to update commission' });
+  }
+});
 
 
 
