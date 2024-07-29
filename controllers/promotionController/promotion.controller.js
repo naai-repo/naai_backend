@@ -238,7 +238,7 @@ exports.sendCustomersToQueueForSms = async (req, res) =>{
         let body = {
           Text: template,
           Numbers: [...phoneNumbers, '9318408629', '9305328688'],
-          SenderId: 611441,
+          SenderId: "611441",
           DRNotifyUrl: "https://www.domainname.com/notifyurl",
           DRNotifyHttpMethod: "POST",
           Tool: "API",
