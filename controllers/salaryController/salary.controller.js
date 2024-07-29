@@ -195,7 +195,9 @@ exports.getMonthWiseSalary = async (req, res) => {
     });
 
     if (!salary) {
-      return res.status(404).json({ message: "No salary record found for the specified month" });
+         // Check if a salary is already attached to the partner
+      const existingSalary = await Salary.findOne({ partnerId });
+      return res.status(200).json(existingSalary);
     }
 
     res.status(200).json(salary);
