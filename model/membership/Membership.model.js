@@ -144,6 +144,7 @@ const MembershipSchema = new mongoose.Schema({
     ],
     status: {
         type: Boolean,
+        default: true,
         required: true,
     },
     all_services_discount_max_count: {
