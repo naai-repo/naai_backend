@@ -88,6 +88,26 @@ router.get("/users/list", async (req, res) => {
           },
         },
         {
+          $lookup: {
+            from: "memberships",
+            localField: "membership.id",
+            foreignField: "_id",
+            as: "membershipDetails",
+          },
+        },
+        {
+          $addFields: {
+            membershipDetails: { $arrayElemAt: ["$membershipDetails", 0] },
+          },
+        },
+        {
+          $addFields: {
+            membership: {
+              $mergeObjects: ["$membershipDetails", "$membership"],
+            },
+          },
+        },
+        {
           $project: {
             id: "$_id",
             _id: 0,
@@ -98,6 +118,7 @@ router.get("/users/list", async (req, res) => {
             birthDate: 1,
             aniversary: 1,
             email: 1,
+            membership: 1,
           },
         },
       ];
@@ -137,6 +158,26 @@ router.get("/users/list", async (req, res) => {
           },
         },
         {
+          $lookup: {
+            from: "memberships",
+            localField: "membership.id",
+            foreignField: "_id",
+            as: "membershipDetails",
+          },
+        },
+        {
+          $addFields: {
+            membershipDetails: { $arrayElemAt: ["$membershipDetails", 0] },
+          },
+        },
+        {
+          $addFields: {
+            membership: {
+              $mergeObjects: ["$membershipDetails", "$membership"],
+            },
+          },
+        },
+        {
           $project: {
             id: "$_id",
             _id: 0,
@@ -147,6 +188,7 @@ router.get("/users/list", async (req, res) => {
             birthDate: 1,
             aniversary: 1,
             email: 1,
+            membership:1
           },
         },
       ];
@@ -167,8 +209,15 @@ router.get("/users/list", async (req, res) => {
 
 router.post("/add/booking", async (req, res) => {
   try {
-    let { salon, excludeGst, customer, selectedServices, bill, payments, coupon } =
-      req.body;
+    let {
+      salon,
+      excludeGst,
+      customer,
+      selectedServices,
+      bill,
+      payments,
+      coupon,
+    } = req.body;
     let data = {
       salon,
       excludeGst,
@@ -311,7 +360,7 @@ router.post("/add/booking", async (req, res) => {
         couponDiscount: coupon.couponDiscount || null,
       },
       artistServiceMap: artistServiceMap,
-      excludeGst: excludeGst
+      excludeGst: excludeGst,
     });
     let saveBooking = await walkinBooking.save();
     if (bill.amountDue > 0) {
@@ -366,7 +415,7 @@ router.post("/clear/dues", async (req, res) => {
       } else {
         salonFound = true;
         let booking = await Booking.findOne({ _id: due.bookingId });
-        if(!booking){
+        if (!booking) {
           dues.shift();
           continue;
         }
