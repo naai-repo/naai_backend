@@ -12,6 +12,10 @@ const commissionBracketSchema = new Schema({
 
 // Define the schema for Commission
 const commissionSchema = new Schema({
+    startDate: {
+        type: Date,
+        default: Date.now,
+      },
     salon: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Salon',
