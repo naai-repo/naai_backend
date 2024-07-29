@@ -815,7 +815,4 @@ router.put('/:salonId/updateCommission/:commissionId', async (req, res) => {
 });
 
 
-
-
-
 module.exports = router;

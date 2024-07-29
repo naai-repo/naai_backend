@@ -202,9 +202,10 @@ exports.SendWhatsappPromos = async (req, res, next) => {
 
 exports.sendCustomersToQueueForSms = async (req, res) =>{
 
-  const customers = req.body.customers;
+  let customers = req.body.customers;
+  console.log(customers)
   let phoneNumbers = customers.map(c => c.phoneNumber);
-  let template = customers[0].template
+  let template = customers[0].template;
   const salonId = req.body.salonId;
   const smsCost = req.body.smsCost;
 
