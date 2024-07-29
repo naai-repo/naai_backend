@@ -14,6 +14,13 @@ const MembershipSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    apply_to: {
+        // 0 ->  apply to both, 
+        // 1 -> apply to walkin customers, 
+        // 2 -> apply to app customers
+        type: Number,
+        default: 1,
+    },
     validity_in_days: {
         type: Number,
         required: true,
