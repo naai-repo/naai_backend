@@ -254,6 +254,7 @@ exports.sendCustomersToQueueForSms = async (req, res) =>{
               password: process.env.AUTH_TOKEN,
             },
           })
+          console.log(data)
           res.status(200).json({ message: 'All sms sent'})
 
     
