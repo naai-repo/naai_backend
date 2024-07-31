@@ -7,29 +7,37 @@ var productItemSchema = new Schema({
         type: String,
         required: true
     },
-    number: {
+    HSNSAC : {
         type: String,
         required: true
     }, 
     usageUnit: {
-        type: String,
+        type: String,//[ml or gm]
         required: true
     },
-    usagePerAction: {
-        type: Number,
-        required: true
-    },
+    company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company' },
+    company:String,
+    volume:Number,
     description: String,
-    rate: Number,
-    stockQuantity: {type: Number, default: null},
-    unit:{},
-    shortName: String,    
+    price: Number,//procurement price
+    mrp:Number, //cost price
+    shortName: String,
+    manuFacturedAt:{
+        type:Date
+    },
+    isActive:{
+        type:Boolean,
+        default:true
+    },
+    expiryDate:{
+        type:Date
+    },
     tags:[],
     expiryInMonths:Number,
     _extras: {},
     totalQuantity: { type: Number, default: 0 },
     salon: { type: mongoose.Schema.Types.ObjectId, ref: 'Salon' },
-});
+},{timestamps:true});
 
 productItemSchema
     .path('name')

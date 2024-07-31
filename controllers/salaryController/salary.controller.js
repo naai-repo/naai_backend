@@ -195,13 +195,24 @@ exports.getMonthWiseSalary = async (req, res) => {
     });
 
     if (!salary) {
-         // Check if a salary is already attached to the partner
-      const existingSalary = await Salary.findOne({ partnerId });
-      return res.status(200).json(existingSalary);
+        
+      return res.status(500).json({ error: error.message, message:'salary not found' });
     }
 
     res.status(200).json(salary);
   } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+exports.getPartnerSalary = async (req, res) => {
+  const { partnerId } = req.params;
+
+try{
+
+  const salary = await Salary.findOne({ partnerId });
+  res.status(200).json(salary);
+}
+  catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
