@@ -197,7 +197,7 @@ exports.getMonthWiseSalary = async (req, res) => {
 
     if (!salary) {
         
-      return res.status(500).json({ error: error.message, message:'salary not found' });
+      return res.status(200).json({message:'salary not found' });
     }
 
     res.status(200).json(salary);
