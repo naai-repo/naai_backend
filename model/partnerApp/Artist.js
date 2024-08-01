@@ -43,6 +43,14 @@ const ArtistSchema = new mongoose.Schema(
       lowercase: true,
       required: true,
     },
+    commission: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Commission",
+    },
+    salary: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Salary",
+    },
     location: {
       type: {
         type: String,

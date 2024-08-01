@@ -23,7 +23,10 @@ const PartnerRouter = require("./routes/partnerApp/partnerRouter");
 const OtpRouter = require("./routes/partnerApp/otpRouter");
 const InventoryRouter = require("./routes/partnerApp/inventoryRouter");
 const PlanRouter = require("./routes/partnerApp/planRouter");
-const WalkinRouter = require("./routes/partnerApp/walkinRouter")
+const SubscriptionRouter =require('./routes/subscriptionRoutes/subscription.routes');
+const salaryRouter = require('./routes/salaryRoutes/salary.routes');
+const WalkinRouter = require("./routes/partnerApp/walkinRouter");
+
 
 // Customer App
 const UserRouter = require("./routes/customerApp/userRouter");
@@ -54,9 +57,18 @@ const UrlController = require("./controllers/urlController/url.controller");
 // Attendance Router
 const AttendanceRouter = require("./routes/attendanceAndLeaves/attendance.routes");
 
-//subscription router
+// Leave Router
+const LeaveRouter = require("./routes/attendanceAndLeaves/leave.routes");
 
-const SubscriptionRouter =require('./routes/subscriptionRoutes/subscription.routes') 
+// Features and Pages Router
+const FeatureRouter = require("./routes/featuresAndPages/feature.routes");
+
+// Access Control Router
+const AccessRouter = require("./routes/accessControl/accessRole.routes");
+
+// Membership Router
+const MembershipRouter = require("./routes/membershipRoutes/membership.routes");
+
 // set the view engine to ejs
 app.set("view engine", "ejs");
 app.use("/public", express.static("public"));
@@ -101,14 +113,17 @@ app.use("/customer/user/location", LocationRouter);
 // Plan Routes
 app.use("/plan", PlanRouter);
 
+//subscription routes
+app.use('/subscription',SubscriptionRouter);
+
+//salary routes
+app.use('/salary',salaryRouter)
+
 // Scheduling Appointments
 app.use("/appointments", SchedulingRouter);
 
 // Sales Routes
 app.use("/sales", SalesRouter);
-
-//subscription routes
-app.use('/subscription',SubscriptionRouter)
 
 // Referral System Routes
 app.use("/referral", ReferralRouter);
@@ -124,6 +139,18 @@ app.use("/promotion", PromotionRouter);
 
 // Attendance Routes
 app.use("/attendance", AttendanceRouter);
+
+// Leave Routes
+app.use("/leave", LeaveRouter);
+
+// Features and Pages Routes
+app.use("/feature", FeatureRouter);
+
+// Access Control Routes
+app.use("/access", AccessRouter);
+
+// Membership Routes
+app.use("/membership", MembershipRouter);
 
 app.get("/", async (req, res) => {
   res.sendFile(__dirname + "/index.html");

@@ -1,5 +1,6 @@
 const axios = require("axios");
 const Service = require("../model/partnerApp/Service");
+const Salon = require("../model/partnerApp/Salon");
 
 const R = 6378.1; // Earth's radius in km
 const toRadians = (degree) => degree * (Math.PI / 180);
@@ -57,7 +58,7 @@ class CommonUtils {
 
   static async updateDiscountedServicePrice(salonId, discount) {
     try {
-      let services = await Service.find({salonId});
+      let services = await Service.find({ salonId });
       let saveServicesPromiseArr = [];
       for (let service of services) {
         let cutPrice = service.cutPrice;
@@ -80,18 +81,36 @@ class CommonUtils {
 
   // Function to calculate distance between two points using haversine formula
 
-  static haversine (lat1, lon1, lat2, lon2) { 
+  static haversine(lat1, lon1, lat2, lon2) {
     const dLat = toRadians(lat2 - lat1);
     const dLon = toRadians(lon2 - lon1);
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) *
-      Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      Math.cos(toRadians(lat1)) *
+        Math.cos(toRadians(lat2)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     const distance = R * c;
-  
+
     return distance;
-  };
+  }
+
+  static checkIfSalonExists(salonId) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        let salon = await Salon.findOne({_id: salonId});
+        if (!salon) {
+          let err = new Error("Salon not found");
+          err.code = 404;
+          throw err;
+        }
+        resolve(salon);
+      } catch (err) {
+        reject(err);
+      }
+    });
+  }
 }
 
 module.exports = CommonUtils;

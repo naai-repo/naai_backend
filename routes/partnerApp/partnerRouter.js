@@ -391,6 +391,17 @@ router.get("/phoneNumber/:phoneNumber", async (req, res) => {
   }
 });
 
+router.get("/search/salonId/:salonId", async (req, res) => {  
+  try{
+    let {salonId} = req.params;
+    let partner = await Partner.find({salonId});
+    res.status(200).json(wrapperMessage("success", "Partners Found", partner));
+  }catch(err){
+    console.log(err);
+    res.status(err.code || 500).json(wrapperMessage("failed", err.message));
+  }
+});
+
 // Google OAuth
 
 router.get('/auth/google',

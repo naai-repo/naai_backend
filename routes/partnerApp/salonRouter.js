@@ -3,6 +3,7 @@ const router = require("express").Router();
 const Salon = require("../../model/partnerApp/Salon");
 const Booking = require("../../model/partnerApp/Booking");
 const Artist = require("../../model/partnerApp/Artist");
+const Partner = require("../../model/partnerApp/Partner");
 const User = require("../../model/customerApp/User");
 const wrapperMessage = require("../../helper/wrapperMessage");
 const Service = require("../../model/partnerApp/Service");
@@ -10,7 +11,8 @@ const jwtVerify = require("../../middleware/jwtVerification");
 const CommonUtils = require("../../helper/commonUtils");
 const FilterUtils = require("../../helper/filterUtils");
 const ObjectId = mongoose.Types.ObjectId;
-const Commission = require('../../model/partnerApp/comission')
+const Commission = require('../../model/partnerApp/comission');
+
 
 // User ID : 64f786e3b23d28509e6791e0
 // saloon ID : 64f786e3b23d28509e6791e1
@@ -187,7 +189,7 @@ router.post("/:id/update", async (req, res) => {
 
 router.get("/single/:id", async (req, res) => {
   try {
-    let data = await Salon.findOne({ _id: req.params.id }).populate('memberships').exec()
+    let data = await Salon.findOne({ _id: req.params.id }).populate('activeSubscriptions').exec()
     if (!data) {
       let err = new Error("No such salon exists!");
       err.code = 404;
@@ -602,6 +604,12 @@ router.post("/addCustomer", async (req, res) => {
     let customer = req.body.customer;
     const salonData = await Salon.findOne({ _id: salonId });
 
+    if (!salonData) {
+      let err = new Error("No such salon exists!");
+      err.code = 404;
+      throw err;
+    }
+
     const foundUser = await User.findOne({
       phoneNumber: customer.phoneNumber,
     });
@@ -621,7 +629,8 @@ router.post("/addCustomer", async (req, res) => {
     salonData.WalkinUsers.push(user.phoneNumber.toString());
 
     if (!foundUser) {
-      user.save();
+      user.walkinSalons.push(new ObjectId(salonId))
+     await user.save();
     }
     await salonData.save();
     res
@@ -711,6 +720,97 @@ router.post('/:salonId/addComission', async (req, res) => {
   } catch (error) {
       console.error('Error adding commission:', error);
       res.status(500).json({ error: 'Failed to add commission' });
+  }
+});
+
+router.post("/apply-commission", async (req, res) => {
+  const { commissionId, partnerId } = req.body;
+  try {
+    // Fetch the specified Commission Template
+    const commission = await Commission.findById(commissionId);
+    if (!commission) {
+      return res.status(404).json({ message: "Commission template not found" });
+    }
+
+    // Fetch the specified Partner
+    // const partner = await Partner.findById(partnerId);
+    // if (!partner) {
+    //   return res.status(404).json({ message: "Partner not found" });
+    // }
+    const partner = await Partner.findById(partnerId);
+    if (!partner) {
+      return res.status(404).json({ message: "partner not found" });
+    }
+
+    partner.commission = commissionId;
+    await partner.save();
+
+    res.status(200).json({
+      message: "Commission template applied to the partner",
+      partner,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+router.get('/commissions/:salonId', async (req, res) => {
+  try {
+      const { salonId } = req.params;
+      const commissions = await Commission.find({ salon: salonId })
+      // const commissions = await Commission.find({ salon: salonId }).populate('salon').populate('partnerId');
+      
+      if (!commissions.length) {
+          return res.status(404).json({ message: 'No commissions found for the given salon ID' });
+      }
+      
+      res.status(200).json(commissions);
+  } catch (error) {
+      res.status(500).json({ message: 'Server error', error });
+  }
+});
+
+router.delete('/:salonId/deleteCommission/:commissionId', async (req, res) => {
+  const { salonId, commissionId } = req.params;
+
+  try {
+    const salon = await Salon.findById(salonId);
+    if (!salon) {
+      return res.status(404).json({ error: 'Salon not found' });
+    }
+
+    const commission = await Commission.findByIdAndDelete(commissionId);
+    if (!commission) {
+      return res.status(404).json({ error: 'Commission not found' });
+    }
+
+    res.status(200).json({ message: 'Commission deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting commission:', error);
+    res.status(500).json({ error: 'Failed to delete commission' });
+  }
+});
+
+router.put('/:salonId/updateCommission/:commissionId', async (req, res) => {
+  const { salonId, commissionId } = req.params;
+  const updatedData = req.body;
+
+  try {
+    const salon = await Salon.findById(salonId);
+    if (!salon) {
+      return res.status(404).json({ error: 'Salon not found' });
+    }
+
+    const commission = await Commission.findByIdAndUpdate(commissionId, updatedData, { new: true });
+    if (!commission) {
+      return res.status(404).json({ error: 'Commission not found' });
+    }
+
+    res.status(200).json({ message: 'Commission updated successfully', commission });
+  } catch (error) {
+    console.error('Error updating commission:', error);
+    res.status(500).json({ error: 'Failed to update commission' });
   }
 });
 

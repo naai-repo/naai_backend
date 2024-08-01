@@ -3,5 +3,6 @@ const SubscriptionController = require("../../controllers/subscriptionController
 
 
 router.post('/purchaseSubscription', SubscriptionController.purchaseSubscription);
+
 router.get('/getAllSubscriptions', SubscriptionController.getAllSubscriptions);
 module.exports = router;

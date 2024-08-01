@@ -159,7 +159,8 @@ const SalonSchema = new mongoose.Schema(
         ]
       }
     ],
-    memberships: [{ type: mongoose.Schema.Types.ObjectId, ref: "Membership" }] 
+    memberships: [{ type: mongoose.Schema.Types.ObjectId, ref: "Membership" }],
+    activeSubscriptions: [{ type: mongoose.Schema.Types.ObjectId, ref: 'ActiveSubscription' }]
     ,
     WalkinUsers: [
       {

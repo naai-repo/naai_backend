@@ -1,34 +1,68 @@
 const mongoose = require('mongoose');
 
-const membershipSchema = new mongoose.Schema({
-  salon: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Salon',
-      required: true,
-  },
-  subscription: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Subscription',
-      required: true,
-  },
-  startDate: {
-      type: Date,
-      default: Date.now,
-  },
-  endDate: {
-      type: Date,
-      required: true,
-  },
-  isActive: {
-      type: Boolean,
-      default: true,
-  },
+const subscriptionSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: true,
+    },
+    template_name: {
+        type: String,
+        required: true,
+    },
+    duration: {
+        type: Number,  // Duration in days
+        required: true,
+    },
+    price: {
+        type: Number,
+        required: true,
+    },
+    template_price: {
+        type: Number,
+        required: true,
+    },
+    description: {
+        type: String,
+    },
+    features: [{
+        type: String,
+    }],
+    status: {
+        type: String,
+        enum: ['active', 'inactive'],
+        default: 'active',
+    },
+    supportLevel: {
+        type: String,
+        enum: ['basic', 'premium'],
+    },
+    addOnOptions: [{
+        type: String,
+    }],
+    billingCycle: {
+        type: String,
+        enum: ['monthly', 'quarterly', 'yearly'],
+        default: 'monthly',
+    },
+    cancellationPolicy: {
+        type: String,
+    },
+    termsAndConditions: {
+        type: String,
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now,
+    },
+    updatedAt: {
+        type: Date,
+        default: Date.now,
+    },
 });
 
-membershipSchema.pre('save', async function (next) {
-  const subscription = await mongoose.model('Subscription').findById(this.subscription);
-  this.endDate = new Date(this.startDate.getTime() + (subscription.duration * 24 * 60 * 60 * 1000));
-  next();
+subscriptionSchema.pre('save', function (next) {
+    this.updatedAt = Date.now();
+    next();
 });
 
-module.exports = mongoose.model('Membership', membershipSchema);
+module.exports = mongoose.model('Subscription', subscriptionSchema);

@@ -1,5 +1,6 @@
 const crypto = require("crypto");
 const sharp = require("sharp");
+const axios = require('axios')
 
 const {
   S3Client,
@@ -196,35 +197,18 @@ exports.SendWhatsappPromos = async (req, res, next) => {
 //////////////////////
 
 
-const AWS = require('aws-sdk');
 
-AWS.config.update({
-    accessKeyId: accessKeyId,
-    secretAccessKey: secretAccessKey,
-    region: region
-  });
-// const sqs = new AWS.SQS({ region: 'ap-south-1' });
-// AWS.config.update({ region: 'ap-south-1' });
-const sqs = new AWS.SQS();
-const queueUrl = 'https://sqs.ap-south-1.amazonaws.com/172024021636/smsqueue';
-
-async function sendMessageToSqs(customers) {
-  const params = {
-    MessageBody: JSON.stringify(customers),
-    QueueUrl: queueUrl
-  };
-console.log(params)
-  try {
-    await sqs.sendMessage(params).promise();
-    console.log(`Message sent to SQS for`);
-  } catch (error) {
-    console.error(`Failed to send message to SQS for`, error);
-  }
-}
+ 
 
 exports.sendCustomersToQueueForSms = async (req, res) =>{
 
-  const customers = req.body.customers;
+  let customers = req.body.customers;
+  console.log(customers)
+  console.log(customers[0].template)
+
+  let phoneNumbers = customers.map(c => c.phoneNumber);
+  let template = customers[0].template;
+
   const salonId = req.body.salonId;
   const smsCost = req.body.smsCost;
 
@@ -251,14 +235,34 @@ exports.sendCustomersToQueueForSms = async (req, res) =>{
 
     await salon.save();
 
-    await sendMessageToSqs(customers);
-    res.status(200).json({ message: 'All messages sent to SQS' });
+        let body = {
+          Text: template,
+          Numbers: [...phoneNumbers, '9318408629', '9305328688'],
+          SenderId: "611441",
+          DRNotifyUrl: "https://www.domainname.com/notifyurl",
+          DRNotifyHttpMethod: "POST",
+          Tool: "API",
+        }
+    
+        // Sends SMS OTP to user.
+        const data = await axios.post(
+          `https://restapi.smscountry.com/v0.1/Accounts/${process.env.AUTH_KEY}/BulkSMSes/`,
+          body,
+          {
+            auth: {
+              username: process.env.AUTH_KEY,
+              password: process.env.AUTH_TOKEN,
+            },
+          })
+          console.log(data)
+          res.status(200).json({ message: 'All sms sent'})
+
+    
   } catch (error) {
-    console.error('Error sending messages to SQS:', error);
-    res.status(500).json({ error: 'Failed to send messages to SQS' });
+    console.error('Error sending messages:', error);
+    res.status(500).json({ error: 'Failed to send messages' });
   }
 
- 
 
 }
 
