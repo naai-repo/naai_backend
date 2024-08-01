@@ -226,8 +226,3 @@ exports.ApplyMembershipDiscount = async (req, res, next) => {
     res.status(err.code || 500).json(wrapperMessage("failed", err.message));
   }
 }
-    console.log(err);
-    res.status(err.code || 500).json(wrapperMessage("failed", err.message));
-  }
-};
-
