@@ -202,9 +202,13 @@ exports.SendWhatsappPromos = async (req, res, next) => {
 
 exports.sendCustomersToQueueForSms = async (req, res) =>{
 
-  const customers = req.body.customers;
+  let customers = req.body.customers;
+  console.log(customers)
+  console.log(customers[0].template)
+
   let phoneNumbers = customers.map(c => c.phoneNumber);
-  let template = customers[0].template
+  let template = customers[0].template;
+
   const salonId = req.body.salonId;
   const smsCost = req.body.smsCost;
 
@@ -234,7 +238,7 @@ exports.sendCustomersToQueueForSms = async (req, res) =>{
         let body = {
           Text: template,
           Numbers: [...phoneNumbers, '9318408629', '9305328688'],
-          SenderId: 611441,
+          SenderId: "611441",
           DRNotifyUrl: "https://www.domainname.com/notifyurl",
           DRNotifyHttpMethod: "POST",
           Tool: "API",
@@ -250,6 +254,7 @@ exports.sendCustomersToQueueForSms = async (req, res) =>{
               password: process.env.AUTH_TOKEN,
             },
           })
+          console.log(data)
           res.status(200).json({ message: 'All sms sent'})
 
     

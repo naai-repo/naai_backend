@@ -1,13 +1,12 @@
 
 
-const User = require('../../model/customerApp/User');
 
+const User = require('../../model/customerApp/User');
 const Salary = require('../../model/salary/salary.model');
 const Partner = require('../../model/partnerApp/Partner')
 
 
-
-  exports.createSalaryTemplate = async (req, res) => {
+exports.createSalaryTemplate = async (req, res) => {
     try {
       const { earnings, deductions, paymentMethod, salonId, startDate } = req.body;
   
@@ -141,7 +140,85 @@ exports.calculateSalary = async (req, res) => {
             } catch (error) {
               res.status(500).json({ error: error.message });
             }
-          };
+  };
+
+
+
+// API to Save or Update Salary for a Specific Month
+exports.updateSalary =  async (req, res) => {
+  const { partnerId, salonId, earnings, deductions, paymentMethod, effectiveYear, effectiveMonth } = req.body;
+
+  try {
+    // Find existing salary record for the specific month and year
+    let salary = await Salary.findOne({
+      partnerId,
+      effectiveYear,
+      effectiveMonth
+    });
+
+    if (salary) {
+      // Update the existing salary record
+      salary.earnings = earnings;
+      salary.deductions = deductions;
+      salary.paymentMethod = paymentMethod;
+      await salary.save();
+    } else {
+      // Create a new salary record for the specific month
+      salary = new Salary({
+        partnerId,
+        salonId,
+        earnings,
+        deductions,
+        paymentMethod,
+        effectiveYear,
+        effectiveMonth,
+      });
+      await salary.save();
+    }
+
+    res.status(200).json({ message: "Salary updated successfully", salary });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// API to Fetch Monthly Salary for a Partner
+exports.getMonthWiseSalary = async (req, res) => {
+  const { partnerId } = req.params;
+  const { year, month } = req.query;
+  
+
+  try {
+    const salary = await Salary.findOne({
+      partnerId,
+      effectiveYear: year,
+      effectiveMonth: month,
+    });
+
+    if (!salary) {
+        
+      return res.status(200).json({message:'salary not found' });
+    }
+
+    res.status(200).json(salary);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+exports.getPartnerSalary = async (req, res) => {
+  const { partnerId } = req.params;
+
+try{
+
+  const salary = await Salary.findOne({ partnerId });
+  res.status(200).json(salary);
+}
+  catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
           
 
   
