@@ -2,26 +2,24 @@ const mongoose = require("mongoose");
 
 // Schema for Salary
 const SalarySchema = new mongoose.Schema(
+
   {
+    startDate: {
+      type: Date,
+      default: Date.now,
+    },
     partnerId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Partner",
       default: null,
     },
-    artistId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Artist",
-      default: null,
-    },
+
     salonId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Salon",
       default: null,
     },
-  staffId: {
-        type: Number,
-        default:0
-    },
+
     earnings: [
       {
         type: {
