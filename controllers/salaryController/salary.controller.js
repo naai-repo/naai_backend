@@ -219,24 +219,41 @@ try{
 };
 
 
+
+
+
           
 
   
   
+//
+exports.updateSalaryTemplate = async (req, res) => {
+  try {
+    const { salaryId } = req.params; // Get salaryId from URL parameters
+    const { earnings, deductions, paymentMethod, salonId, startDate } = req.body;
 
-//   curl -X POST http://localhost:3000/salary-template \
-//   -H "Content-Type: application/json" \
-//   -d '{
-//         "earnings": [
-//           { "type": "Basic", "value": 5000 },
-//           { "type": "House Rent Allowance", "value": 2000 },
-//           { "type": "Bonus", "value": 500 }
-//         ],
-//         "deductions": [
-//           { "type": "Advance", "value": 1000 },
-//           { "type": "Provident Fund", "value": 300 },
-//           { "type": "Income Tax", "value": 200 }
-//         ],
-//         "paymentMethod": "bank transfer"
-//       }'
+    // Find the salary template by ID
+    const salaryTemplate = await Salary.findById(salaryId);
 
+    if (!salaryTemplate) {
+      return res.status(404).json({ message: "Salary template not found." });
+    }
+
+    // Update the fields with new data
+    salaryTemplate.earnings = earnings || salaryTemplate.earnings;
+    salaryTemplate.deductions = deductions || salaryTemplate.deductions;
+    salaryTemplate.paymentMethod = paymentMethod || salaryTemplate.paymentMethod;
+    salaryTemplate.salonId = salonId || salaryTemplate.salonId;
+    salaryTemplate.startDate = startDate || salaryTemplate.startDate;
+
+    // Save the updated salary template
+    await salaryTemplate.save();
+
+    res.status(200).json({
+      message: "Salary template updated successfully.",
+      salaryTemplate,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

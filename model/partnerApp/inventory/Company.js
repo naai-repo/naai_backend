@@ -5,11 +5,14 @@ var mongoose = require('mongoose'),
 var companySchema = new Schema({
     name: {
         type: String,
-        required: true
+        required: true,
     },
     address:String,
     code:String,
-    contactNumber:Number,
+    contactNumber:{
+        type:Number,
+        unique:true
+    },
     startDate:Date,
     isActive:{
         type:Boolean,
@@ -18,22 +21,7 @@ var companySchema = new Schema({
     salon: { type: mongoose.Schema.Types.ObjectId, ref: 'Salon' },
 },{timestamps:true});
 
-companySchema
-    .path('name')
-    .validate(function (value, respond) {
-        var self = this;
-        this.constructor.findOne({name: value}, function (err, i) {
-            if (err) throw err;
-            if (i) {
-                if (self.name === i.name ){
-                    if(!self._id.equals( i._id))
-                        return respond(false);
-                    return respond(true);
-                }
-            }
-            respond(true);
-        });
-    }, 'Duplicate Company Name, please use another name.');
+
 
 
     
