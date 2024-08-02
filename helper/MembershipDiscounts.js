@@ -94,8 +94,11 @@ class MembershipDiscount {
       }
       newSelectedServices.push(service);
     }
-
-    return { customerCount, services: newSelectedServices };
+    let count = {
+      type_of_discount: "all_services_discount",
+      customerCount,
+    }
+    return { count, services: newSelectedServices };
   };
 
   static servicesDiscount = (selectedServices, membership) => {};
