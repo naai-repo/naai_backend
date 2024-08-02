@@ -138,3 +138,62 @@ exports.MarkAttendancePunchOut = async (req, res, next) => {
         res.status(err.code || 500).json(wrapperMessage(err.status || "failed", err.message));
     }
 }
+
+exports.getRangeAttendance = async (req, res, next) => {
+    try {
+        const { salonId, staffId, start, end } = req.query;
+
+        if(!salonId || !staffId || !start || !end) {
+            let err = new Error("Please provide all the required fields");
+            err.code = 400;
+            throw err;
+        }
+
+        let attendance = await Attendance.find({salonId: salonId, staffId: staffId, date: {$gte: start, $lte: end}});
+        res.status(200).json(wrapperMessage("success", "Attendance fetched successfully", attendance));
+    } catch (err) {
+        console.log(err)
+        res.status(err.code || 500).json(wrapperMessage(err.status || "failed", err.message));
+    }
+}
+
+exports.deleteAttendance = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+
+        if(!id) {
+            let err = new Error("Please provide all the required fields");
+            err.code = 400;
+            throw err;
+        }
+
+        let attendance = await Attendance.deleteOne({_id: id});
+        res.status(200).json(wrapperMessage("success", "Attendance deleted successfully", attendance));
+    } catch (err) {
+        console.log(err)
+        res.status(err.code || 500).json(wrapperMessage(err.status || "failed", err.message));
+    }
+}
+
+exports.updateAttendance = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+
+        if(!id) {
+            let err = new Error("Please provide all the required fields");
+            err.code = 400;
+            throw err;
+        }
+        let updatedAttendance = await Attendance.findOneAndUpdate({_id: id}, req.body, {new: true});
+        if(!updatedAttendance) {
+            let err = new Error("Attendance not found");
+            err.code = 404;
+            throw err;
+        }
+        
+        res.status(200).json(wrapperMessage("success", "Attendance updated successfully", updatedAttendance));
+    } catch (err) {
+        console.log(err)
+        res.status(err.code || 500).json(wrapperMessage(err.status || "failed", err.message));
+    }
+}

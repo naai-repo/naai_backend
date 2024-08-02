@@ -1,17 +1,16 @@
 
-
 const User = require('../../model/customerApp/User');
-
 const Salary = require('../../model/salary/salary.model');
-const Artist = require('../../model/partnerApp/Artist');
+const Partner = require('../../model/partnerApp/Partner')
 
 
-  exports.createSalaryTemplate = async (req, res) => {
+exports.createSalaryTemplate = async (req, res) => {
     try {
-      const { earnings, deductions, paymentMethod, salonId } = req.body;
+      const { earnings, deductions, paymentMethod, salonId, startDate } = req.body;
   
       const salaryTemplate = new Salary({
         partnerId: null,
+        startDate, 
         salonId, salonId,
         earnings,
         deductions,
@@ -32,7 +31,7 @@ const Artist = require('../../model/partnerApp/Artist');
 
   exports.applySalary = async (req, res) => {
     try {
-      const { templateId, partnerId, salonId , staffId, artistId } = req.body;
+      const { templateId, partnerId, salonId, startDate} = req.body;
   
       // Check if the template exists
       const template = await Salary.findById(templateId);
@@ -41,23 +40,23 @@ const Artist = require('../../model/partnerApp/Artist');
       }
   
       // Check if the partner exists
-      const artist = await Artist.findById(artistId);
-      if (!artist) {
-        return res.status(404).json({ message: "Artist not found" });
+      const partner = await Partner.findById(partnerId);
+      if (!partner) {
+        return res.status(404).json({ message: "Partner not found" });
       }
-  
       // Check if a salary is already attached to the partner
-      const existingSalary = await Salary.findOne({ artistId });
+      const existingSalary = await Salary.findOne({ partnerId });
       if (existingSalary) {
         return res.status(400).json({
-          message: "Salary already attached to this Artist",
+          message: "Salary already attached to this Partner",
         });
 }
 
   
       // Create a new salary using the template
       const salary = new Salary({
-        artistId,
+        startDate,
+        partnerId,
         salonId,
         earnings: template.earnings,
         deductions: template.deductions,
@@ -68,13 +67,13 @@ const Artist = require('../../model/partnerApp/Artist');
       await salary.save();
   
       // Update the partner to include the new salary
-      await Artist.findByIdAndUpdate(artistId, {
+      await Partner.findByIdAndUpdate(partnerId, {
         salary: salary._id,
       });
       
   
       res.status(200).json({
-        message: "Salary template applied to the artist",
+        message: "Salary template applied to the partner",
         salary,
       });
     } catch (err) {
@@ -139,25 +138,117 @@ exports.calculateSalary = async (req, res) => {
             } catch (error) {
               res.status(500).json({ error: error.message });
             }
-          };
+  };
+
+
+
+// API to Save or Update Salary for a Specific Month
+exports.updateSalary =  async (req, res) => {
+  const { partnerId, salonId, earnings, deductions, paymentMethod, effectiveYear, effectiveMonth } = req.body;
+
+  try {
+    // Find existing salary record for the specific month and year
+    let salary = await Salary.findOne({
+      partnerId,
+      effectiveYear,
+      effectiveMonth
+    });
+
+    if (salary) {
+      // Update the existing salary record
+      salary.earnings = earnings;
+      salary.deductions = deductions;
+      salary.paymentMethod = paymentMethod;
+      await salary.save();
+    } else {
+      // Create a new salary record for the specific month
+      salary = new Salary({
+        partnerId,
+        salonId,
+        earnings,
+        deductions,
+        paymentMethod,
+        effectiveYear,
+        effectiveMonth,
+      });
+      await salary.save();
+    }
+
+    res.status(200).json({ message: "Salary updated successfully", salary });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// API to Fetch Monthly Salary for a Partner
+exports.getMonthWiseSalary = async (req, res) => {
+  const { partnerId } = req.params;
+  const { year, month } = req.query;
+  
+
+  try {
+    const salary = await Salary.findOne({
+      partnerId,
+      effectiveYear: year,
+      effectiveMonth: month,
+    });
+
+    if (!salary) {
+        
+      return res.status(200).json({message:'salary not found' });
+    }
+
+    res.status(200).json(salary);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+exports.getPartnerSalary = async (req, res) => {
+  const { partnerId } = req.params;
+
+try{
+
+  const salary = await Salary.findOne({ partnerId });
+  res.status(200).json(salary);
+}
+  catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
           
 
   
   
+//
+exports.updateSalaryTemplate = async (req, res) => {
+  try {
+    const { salaryId } = req.params; // Get salaryId from URL parameters
+    const { earnings, deductions, paymentMethod, salonId, startDate } = req.body;
 
-//   curl -X POST http://localhost:3000/salary-template \
-//   -H "Content-Type: application/json" \
-//   -d '{
-//         "earnings": [
-//           { "type": "Basic", "value": 5000 },
-//           { "type": "House Rent Allowance", "value": 2000 },
-//           { "type": "Bonus", "value": 500 }
-//         ],
-//         "deductions": [
-//           { "type": "Advance", "value": 1000 },
-//           { "type": "Provident Fund", "value": 300 },
-//           { "type": "Income Tax", "value": 200 }
-//         ],
-//         "paymentMethod": "bank transfer"
-//       }'
+    // Find the salary template by ID
+    const salaryTemplate = await Salary.findById(salaryId);
 
+    if (!salaryTemplate) {
+      return res.status(404).json({ message: "Salary template not found." });
+    }
+
+    // Update the fields with new data
+    salaryTemplate.earnings = earnings || salaryTemplate.earnings;
+    salaryTemplate.deductions = deductions || salaryTemplate.deductions;
+    salaryTemplate.paymentMethod = paymentMethod || salaryTemplate.paymentMethod;
+    salaryTemplate.salonId = salonId || salaryTemplate.salonId;
+    salaryTemplate.startDate = startDate || salaryTemplate.startDate;
+
+    // Save the updated salary template
+    await salaryTemplate.save();
+
+    res.status(200).json({
+      message: "Salary template updated successfully.",
+      salaryTemplate,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

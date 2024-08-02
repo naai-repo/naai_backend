@@ -14,6 +14,13 @@ const MembershipSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    apply_to: {
+        // 0 ->  apply to both, 
+        // 1 -> apply to walkin customers, 
+        // 2 -> apply to app customers
+        type: Number,
+        default: 1,
+    },
     validity_in_days: {
         type: Number,
         required: true,
@@ -137,6 +144,7 @@ const MembershipSchema = new mongoose.Schema({
     ],
     status: {
         type: Boolean,
+        default: true,
         required: true,
     },
     all_services_discount_max_count: {
