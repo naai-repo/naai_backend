@@ -723,6 +723,32 @@ router.post('/:salonId/addComission', async (req, res) => {
   }
 });
 
+router.post('/updateCommission/:commissionId', async (req, res) => {
+  const { commissionId } = req.params;
+  const commissionData = req.body;
+
+  try {
+
+    // Find the commission to update
+    const commission = await Commission.findById(commissionId);
+    if (!commission) {
+      return res.status(404).json({ error: 'Commission not found' });
+    }
+
+    // Update commission fields with new data
+    Object.assign(commission, commissionData);
+
+    // Save the updated commission
+    await commission.save();
+
+    // Return the updated commission
+    res.status(200).json({ message: 'Commission updated successfully', commission });
+  } catch (error) {
+    console.error('Error updating commission:', error);
+    res.status(500).json({ error: 'Failed to update commission' });
+  }
+});
+
 router.post("/apply-commission", async (req, res) => {
   const { commissionId, partnerId } = req.body;
   try {
@@ -771,14 +797,10 @@ router.get('/commissions/:salonId', async (req, res) => {
   }
 });
 
-router.delete('/:salonId/deleteCommission/:commissionId', async (req, res) => {
-  const { salonId, commissionId } = req.params;
+router.delete('/deleteCommission/:commissionId', async (req, res) => {
+  const { commissionId } = req.params;
 
   try {
-    const salon = await Salon.findById(salonId);
-    if (!salon) {
-      return res.status(404).json({ error: 'Salon not found' });
-    }
 
     const commission = await Commission.findByIdAndDelete(commissionId);
     if (!commission) {
@@ -792,27 +814,6 @@ router.delete('/:salonId/deleteCommission/:commissionId', async (req, res) => {
   }
 });
 
-router.put('/:salonId/updateCommission/:commissionId', async (req, res) => {
-  const { salonId, commissionId } = req.params;
-  const updatedData = req.body;
-
-  try {
-    const salon = await Salon.findById(salonId);
-    if (!salon) {
-      return res.status(404).json({ error: 'Salon not found' });
-    }
-
-    const commission = await Commission.findByIdAndUpdate(commissionId, updatedData, { new: true });
-    if (!commission) {
-      return res.status(404).json({ error: 'Commission not found' });
-    }
-
-    res.status(200).json({ message: 'Commission updated successfully', commission });
-  } catch (error) {
-    console.error('Error updating commission:', error);
-    res.status(500).json({ error: 'Failed to update commission' });
-  }
-});
 
 
 module.exports = router;
