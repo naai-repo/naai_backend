@@ -7,46 +7,33 @@ var productItemSchema = new Schema({
         type: String,
         required: true
     },
-    number: {
+    HSNSAC : {
         type: String,
         required: true
     }, 
-    usageUnit: {
-        type: String,
-        required: true
-    },
-    usagePerAction: {
-        type: Number,
-        required: true
-    },
+    // company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company' },
+    company:String,
+    volume:Number,
     description: String,
-    rate: Number,
-    stockQuantity: {type: Number, default: null},
-    unit:{},
-    shortName: String,    
+    price: Number,//procurement price
+    mrp:Number, //cost price
+    shortName: String,
+    isActive:{
+        type:Boolean,
+        default:true
+    },
+    expDate:{
+        type:Date
+    },
+    mfgDate:{
+        type:Date
+    },
     tags:[],
-    expiryInMonths:Number,
     _extras: {},
-    totalQuantity: { type: Number, default: 0 },
+    quantity: { type: Number, default: 0 },
     salon: { type: mongoose.Schema.Types.ObjectId, ref: 'Salon' },
-});
+},{timestamps:true});
 
-productItemSchema
-    .path('name')
-    .validate(function (value, respond) {
-        var self = this;
-        this.constructor.findOne({name: value}, function (err, i) {
-            if (err) throw err;
-            if (i) {
-                if (self.name === i.name ){
-                    if(!self._id.equals( i._id))
-                        return respond(false);
-                    return respond(true);
-                }
-            }
-            respond(true);
-        });
-    }, 'Duplicate Item Name, please use another name.');
 
 
     
