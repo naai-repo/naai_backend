@@ -204,7 +204,7 @@ exports.ApplyMembershipDiscount = async (req, res, next) => {
     let data = {services : selectedServices};
     let totalBill = 0;
     selectedServices.forEach(service => {
-      totalBill += service.price + service.tax;
+      totalBill += service.qty*(service.price + service.tax);
     });
     if(totalBill >= user.membership?.min_bill_amount){
       if(user.membership?.discount_type === 0 || user.membership?.discount_type === 1){
