@@ -702,6 +702,9 @@ router.post("/customers/filter", async (req, res) => {
 });
 
 
+//get commisin by partnr id
+
+
 router.post('/:salonId/addComission', async (req, res) => {
   const salonId = req.params.salonId;
   const commissionData = req.body;
@@ -749,36 +752,93 @@ router.post('/updateCommission/:commissionId', async (req, res) => {
   }
 });
 
+// router.post("/apply-commission", async (req, res) => {
+//   const { commissionId, partnerId } = req.body;
+//   try {
+//     // Fetch the specified Commission Template
+//     const commission = await Commission.findById(commissionId);
+//     if (!commission) {
+//       return res.status(404).json({ message: "Commission template not found" });
+//     }
+
+    
+//     const partner = await Partner.findById(partnerId);
+//     if (!partner) {
+//       return res.status(404).json({ message: "partner not found" });
+//     }
+
+//     partner.commission = commissionId;
+//     await partner.save();
+
+//     res.status(200).json({
+//       message: "Commission template applied to the partner",
+//       partner,
+//     });
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// });
+
+
+
+
+
 router.post("/apply-commission", async (req, res) => {
-  const { commissionId, partnerId } = req.body;
+  const { commissionId, partnerId, salonId, startDate } = req.body;
   try {
-    // Fetch the specified Commission Template
-    const commission = await Commission.findById(commissionId);
-    if (!commission) {
+    // Check if the commission template exists
+    const commissionTemplate = await Commission.findById(commissionId);
+    if (!commissionTemplate) {
       return res.status(404).json({ message: "Commission template not found" });
     }
 
-    // Fetch the specified Partner
-    // const partner = await Partner.findById(partnerId);
-    // if (!partner) {
-    //   return res.status(404).json({ message: "Partner not found" });
-    // }
+    // Check if the partner exists
     const partner = await Partner.findById(partnerId);
     if (!partner) {
-      return res.status(404).json({ message: "partner not found" });
+      return res.status(404).json({ message: "Partner not found" });
     }
 
-    partner.commission = commissionId;
-    await partner.save();
+    // Check if a commission is already attached to the partner
+    const existingCommission = await Commission.findOne({ partnerId });
+    if (existingCommission) {
+      return res.status(400).json({
+        message: "Commission already attached to this partner",
+      });
+    }
+
+    // Create a new commission using the template
+    const newCommission = new Commission({
+      startDate: startDate || commissionTemplate.startDate,
+      salon: salonId,
+      partnerId,
+      name: commissionTemplate.name,
+      brackets: commissionTemplate.brackets.map(bracket => ({
+        revenue_from: bracket.revenue_from,
+        revenue_to: bracket.revenue_to,
+        type: bracket.type,
+        value: bracket.value
+      })),
+      duration_type: commissionTemplate.duration_type,
+      active: commissionTemplate.active,
+    });
+
+    // Save the new commission
+    await newCommission.save();
+
+    // Update the partner to include the new commission
+    await Partner.findByIdAndUpdate(partnerId, {
+      commission: newCommission._id,
+    });
 
     res.status(200).json({
       message: "Commission template applied to the partner",
-      partner,
+      commission: newCommission,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
+
 
 
 router.get('/commissions/:salonId', async (req, res) => {
@@ -813,6 +873,32 @@ router.delete('/deleteCommission/:commissionId', async (req, res) => {
     res.status(500).json({ error: 'Failed to delete commission' });
   }
 });
+
+
+router.get("/get-commission/:partnerId", async (req, res) => {
+  const { partnerId } = req.params;
+  try {
+    // Find the partner by ID and populate the commission details
+    const partner = await Partner.findById(partnerId).populate('commission');
+    if (!partner) {
+      return res.status(404).json({ message: "Partner not found" });
+    }
+
+    // Check if the partner has a commission
+    if (!partner.commission) {
+      return res.status(404).json({ message: "Commission not found for this partner" });
+    }
+
+    res.status(200).json({
+      message: "Commission details retrieved successfully",
+      commission: partner.commission,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+module.exports = router;
 
 
 
