@@ -215,6 +215,7 @@ router.post("/add/booking", async (req, res) => {
       customer,
       selectedServices,
       bill,
+      membershipDiscount,
       payments,
       coupon,
     } = req.body;
@@ -363,6 +364,10 @@ router.post("/add/booking", async (req, res) => {
       excludeGst: excludeGst,
     });
     let saveBooking = await walkinBooking.save();
+    if(membershipDiscount.count.type_of_discount){
+      userData.membership.all_services_discount_max_count = membershipDiscount.count.customerCount;
+      await userData.save();
+    }
     if (bill.amountDue > 0) {
       let dues = userData.dues;
       dues.push({
