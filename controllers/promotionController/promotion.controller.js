@@ -269,17 +269,17 @@ exports.sendCustomersToQueueForSms = async (req, res) =>{
 
 
 exports.saveSMSHIstory =  async (req, res) => {
-  const { customers, salonId, smsCost, smsResponse } = req.body;
-
-  if (!customers || !salonId || !smsCost) {
+  const { customersCount, salonId, smsCost, smsResponse, message } = req.body;
+  if (!customersCount || !salonId || !smsCost || !smsResponse || !message) {
     return res.status(400).json({ message: 'Missing required fields' });
   }
 
   try {
     const promotionHistory = new PromotionHistory({
       salonId,
-      customers,
+      customersCount,
       smsCost,
+      message,
       smsResponse, // Save the response here
     });
 
