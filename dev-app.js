@@ -102,7 +102,7 @@ app.use("/partner/service", ServiceRouter);
 app.use("/partner/artist", ArtistRouter);
 app.use("/partner/user", PartnerRouter);
 app.use("/partner/otp", OtpRouter);
-app.use("/partner/inventory", InventoryRouter);
+app.use("/salon/inventory", InventoryRouter);
 app.use("/partner/walkin", WalkinRouter);
 
 // Customer App Routes
