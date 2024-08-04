@@ -13,6 +13,7 @@ const Salon = require("../../model/partnerApp/Salon");
 const PromotionImages = require("../../model/promotions/PromotionImages");
 const User = require("../../model/customerApp/User");
 const sendMail = require("../../helper/sendMail");
+const PromotionHistory = require("../../model/promotions/promotionHistory");
 
 const randomImageName = (bytes = 32) =>
   crypto.randomBytes(bytes).toString("hex");
