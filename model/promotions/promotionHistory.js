@@ -6,19 +6,19 @@ const promotionHistorySchema = new mongoose.Schema({
     ref: 'Salon',
     required: true,
   },
-  customers: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Customer',
-  }],
+  message:{
+type:String
+  },
+  customersCount: {
+    type: Number
+  },
   smsCost: {
     type: Number,
     required: true,
   },
-  smsResponse: {
-    type: Object, // Adjust the type based on the structure of the response
-    required: false,
-  },
-  sentAt: {
+  status:{ },
+  smsResponse:{}
+  ,  sentAt: {
     type: Date,
     default: Date.now,
   },
