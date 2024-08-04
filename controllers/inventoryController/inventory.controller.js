@@ -221,6 +221,10 @@ exports.getCompaniesBySalonId = async (req, res) => {
 exports.addProduct = async (req, res) => {
     try {
         const productData = req.body;
+        if(productData){
+            delete productData._id;
+        }
+        console.log(productData)
         const newProduct = new Product(productData);
         await newProduct.save();
         res.status(201).json(newProduct);
