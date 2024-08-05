@@ -158,8 +158,22 @@ exports.calculateSalary = async (req, res) => {
     }
   };
 // API to Save or Update Salary for a Specific Month
-exports.updateSalary =  async (req, res) => {
-  const { partnerId, salonId, earnings, deductions, paymentMethod,name,  effectiveYear, effectiveMonth } = req.body;
+exports.updateSalary = async (req, res) => {
+  const { partnerId, salonId, earnings, deductions, paymentMethod, name, effectiveYear, effectiveMonth } = req.body;
+
+  // Validate required fields
+  const missingFields = [];
+  if (!partnerId) missingFields.push('partnerId');
+  if (!effectiveYear) missingFields.push('effectiveYear');
+  if (!effectiveMonth) missingFields.push('effectiveMonth');
+  if (earnings === undefined) missingFields.push('earnings');
+  if (deductions === undefined) missingFields.push('deductions');
+  if (!paymentMethod) missingFields.push('paymentMethod');
+  if (!name) missingFields.push('name');
+
+  if (missingFields.length > 0) {
+    return res.status(400).json({ message: `Please send all values: ${missingFields.join(', ')}` });
+  }
 
   try {
     // Find existing salary record for the specific month and year
@@ -174,6 +188,7 @@ exports.updateSalary =  async (req, res) => {
       salary.earnings = earnings;
       salary.deductions = deductions;
       salary.paymentMethod = paymentMethod;
+      salary.name = name; // Ensure name is updated
       await salary.save();
     } else {
       // Create a new salary record for the specific month
@@ -195,6 +210,7 @@ exports.updateSalary =  async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
 
 // API to Fetch Monthly Salary for a Partner
 exports.getMonthWiseSalary = async (req, res) => {
