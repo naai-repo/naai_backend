@@ -6,11 +6,12 @@ const Partner = require('../../model/partnerApp/Partner')
 
 exports.createSalaryTemplate = async (req, res) => {
     try {
-      const { earnings, deductions, paymentMethod, salonId, startDate } = req.body;
+      const { earnings,name, deductions, paymentMethod, salonId, startDate } = req.body;
   
       const salaryTemplate = new Salary({
         partnerId: null,
-        startDate, 
+        startDate,
+        name, 
         salonId, salonId,
         earnings,
         deductions,
@@ -58,6 +59,7 @@ exports.createSalaryTemplate = async (req, res) => {
         startDate,
         partnerId,
         salonId,
+        name:template.name,
         earnings: template.earnings,
         deductions: template.deductions,
         paymentMethod: template.paymentMethod,
@@ -140,11 +142,24 @@ exports.calculateSalary = async (req, res) => {
             }
   };
 
-
-
+ exports.getSalonWiseSalary =  async (req, res) => {
+    try {
+        const { salonId } = req.params;
+        const salaries = await Salary.find({ salonId: salonId, partnerId: null })
+        // const commissions = await Commission.find({ salon: salonId }).populate('salon').populate('partnerId');
+        
+        if (!salaries) {
+            return res.status(404).json({ message: 'No salaries found for the given salon ID' });
+        }
+        
+        res.status(200).json(salaries);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error });
+    }
+  };
 // API to Save or Update Salary for a Specific Month
 exports.updateSalary =  async (req, res) => {
-  const { partnerId, salonId, earnings, deductions, paymentMethod, effectiveYear, effectiveMonth } = req.body;
+  const { partnerId, salonId, earnings, deductions, paymentMethod,name,  effectiveYear, effectiveMonth } = req.body;
 
   try {
     // Find existing salary record for the specific month and year
@@ -166,6 +181,7 @@ exports.updateSalary =  async (req, res) => {
         partnerId,
         salonId,
         earnings,
+        name,
         deductions,
         paymentMethod,
         effectiveYear,
@@ -215,11 +231,6 @@ try{
     res.status(500).json({ error: error.message });
   }
 };
-
-
-          
-
-  
   
 //
 exports.updateSalaryTemplate = async (req, res) => {
