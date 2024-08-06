@@ -1,4 +1,5 @@
 const router = require("express").Router();
+const WalkinUtils = require("../../helper/walkinUtils/WalkinUtils");
 const wrapperMessage = require("../../helper/wrapperMessage");
 const User = require("../../model/customerApp/User");
 const Artist = require("../../model/partnerApp/Artist");
@@ -188,7 +189,7 @@ router.get("/users/list", async (req, res) => {
             birthDate: 1,
             aniversary: 1,
             email: 1,
-            membership:1
+            membership: 1,
           },
         },
       ];
@@ -285,51 +286,62 @@ router.post("/add/booking", async (req, res) => {
     });
 
     let artistServiceMap = [];
+    let membership = {};
+    let products = [];
     for (let service of selectedServices) {
-      let artistData = await Artist.findOne({ _id: service.artistId });
-      let serviceData = await Service.findOne({ _id: service.serviceId });
-      if (!artistData) {
-        let err = new Error("Artist not found");
-        err.code = 404;
-        throw err;
-      }
-      if (!serviceData) {
-        let err = new Error("Service not found");
-        err.code = 404;
-        throw err;
-      }
-      let variable = [];
-      if (service.variableId && service.variableId !== "") {
-        variable = serviceData.variables.filter(
-          (variable) =>
-            variable._id.toString() === service.variableId.toString()
-        );
-        variable = variable[0];
-        console.log(variable);
-      }
+      if (service.type === "service") {
+        let artistData = await Artist.findOne({ _id: service.artistId });
+        let serviceData = await Service.findOne({ _id: service.serviceId });
+        if (!artistData) {
+          let err = new Error("Artist not found");
+          err.code = 404;
+          throw err;
+        }
+        if (!serviceData) {
+          let err = new Error("Service not found");
+          err.code = 404;
+          throw err;
+        }
+        let variable = [];
+        if (service.variableId && service.variableId !== "") {
+          variable = serviceData.variables.filter(
+            (variable) =>
+              variable._id.toString() === service.variableId.toString()
+          );
+          variable = variable[0];
+          console.log(variable);
+        }
 
-      artistServiceMap.push({
-        artistId: service.artistId,
-        artistName: artistData.name,
-        serviceId: service.serviceId,
-        serviceCategory: serviceData.category,
-        serviceName: serviceData.serviceTitle,
-        variable: {
-          variableId: service.variableId || "none",
-          variableType: variable.variableType || "none",
-          variableName: variable.variableName || "none",
-        },
-        qty: service.qty,
-        servicePrice: service.basePrice.toFixed(2),
-        discountedPrice: service.price.toFixed(2),
-        timeSlot: {
-          start: timeStr,
-          end: timeStr,
-        },
-        chosenBy: "user",
-        tax: service.tax || 0,
-      });
+        artistServiceMap.push({
+          artistId: service.artistId,
+          artistName: artistData.name,
+          serviceId: service.serviceId,
+          serviceCategory: serviceData.category,
+          serviceName: serviceData.serviceTitle,
+          variable: {
+            variableId: service.variableId || "none",
+            variableType: variable.variableType || "none",
+            variableName: variable.variableName || "none",
+          },
+          qty: service.qty,
+          servicePrice: service.basePrice.toFixed(2),
+          discountedPrice: service.price.toFixed(2),
+          timeSlot: {
+            start: timeStr,
+            end: timeStr,
+          },
+          chosenBy: "user",
+          tax: service.tax || 0,
+        });
+      }else if(service.type === "membership"){
+        membership = await WalkinUtils.addMemberships(customer, service);
+      }else if(service.type === "product"){
+        products.push(WalkinUtils.addProducts(customer, service));
+      }
     }
+
+    products = await Promise.all(products);
+    console.log(products);
 
     let walkinBooking = new Booking({
       userId: customer.id,
@@ -344,7 +356,10 @@ router.post("/add/booking", async (req, res) => {
         percentageDiscount: bill.percentDisc,
         percentageDiscountAmount: bill.percentCashDisc,
         duesCleared: bill.duesCleared.toFixed(2),
+        roundOff: bill.roundOff.toFixed(2),
       },
+      membership: membership,
+      products: products,
       paymentAmount: paymentAmount.toFixed(2),
       bookingStatus: "completed",
       payments: paymentsArray,
@@ -364,8 +379,9 @@ router.post("/add/booking", async (req, res) => {
       excludeGst: excludeGst,
     });
     let saveBooking = await walkinBooking.save();
-    if(membershipDiscount.count.type_of_discount){
-      userData.membership.all_services_discount_max_count = membershipDiscount.count.customerCount;
+    if (membershipDiscount.count.type_of_discount) {
+      userData.membership.all_services_discount_max_count =
+        membershipDiscount.count.customerCount;
       await userData.save();
     }
     if (bill.amountDue > 0) {
