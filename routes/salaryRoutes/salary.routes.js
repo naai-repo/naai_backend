@@ -9,5 +9,6 @@ router.post('/applySalary', salaryController.applySalary);
 router.post('/update', salaryController.updateSalary);
 router.get('/monthly/:partnerId', salaryController.getMonthWiseSalary);
 router.get('/:partnerId', salaryController.getPartnerSalary);
+router.get('/salon/:salonId', salaryController.getSalonWiseSalary);
 
 module.exports = router;
