@@ -814,6 +814,17 @@ router.delete('/deleteCommission/:commissionId', async (req, res) => {
   }
 });
 
+router.post("/staff", async (req, res) => {
+  try{
+    const salonId = req.body.salonId;
+    const staff = await Partner.find({salonId});
+    res.status(200).json(wrapperMessage("success", "Staff Fetched Successfully", staff));
+  }catch(err){
+    console.log(err);
+    res.status(err.code || 500).json(wrapperMessage(err.status || "failed", err.message));
+  }
+})
+
 
 
 module.exports = router;

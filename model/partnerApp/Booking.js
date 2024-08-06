@@ -65,8 +65,86 @@ const bookingSchema = new mongoose.Schema(
       duesCleared : {
         type: Number,
         default: 0,
+      },
+      roundOff: {
+        type: Number,
+        default: 0,
       }
     },
+    membership: {
+      id: {
+        type: mongoose.Schema.ObjectId,
+        default: process.env.NULL_OBJECT_ID,
+        ref: "Membership",
+      },
+      name: {
+        type: String,
+        default: "",
+      },
+      cost: {
+        type: Number,
+        default: 0,
+      },
+      discountCost: {
+        type: Number,
+        default: 0,
+      },
+      tax: {
+        type: Number,
+        default: 0,
+      },
+      qty: {
+        type: Number,
+        default: 0,
+      },
+      staffId: {
+        type: mongoose.Schema.ObjectId,
+        default: process.env.NULL_OBJECT_ID,
+        ref: "Partner"
+      },
+      staffName: {
+        type: String,
+        default: "",
+      },
+    },
+    products: [
+      {
+        id: {
+          type: mongoose.Schema.ObjectId,
+          default: process.env.NULL_OBJECT_ID,
+          ref: "Product",
+        },
+        name: {
+          type: String,
+          default: "",
+        },
+        cost: {
+          type: Number,
+          default: 0,
+        },
+        discountCost: {
+          type: Number,
+          default: 0,
+        },
+        tax: {
+          type: Number,
+          default: 0,
+        },
+        qty: {
+          type: Number,
+          default: 0,
+        },
+        staffId: {
+          type: mongoose.Schema.ObjectId,
+          default: process.env.NULL_OBJECT_ID,
+          ref: "Partner"
+        },
+        staffName: {
+          type: String,
+          default: "",
+        }
+      }
+    ],
     payments: [
       {
         paymentId: {
