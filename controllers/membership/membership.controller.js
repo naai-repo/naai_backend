@@ -29,13 +29,48 @@ exports.CreateMembership = async (req, res, next) => {
 exports.GetMembershipsForSalons = async (req, res, next) => {
   try {
     const salonId = req.params.salonId;
+    const name = req.query.name;
+    const response_type = req.query.response_type;
+    let page = Number(req.query.page) || 1;
+    let limit = Number(req.query.limit) || 3;
+    let skip = (page - 1) * limit;
     const salon = await CommonUtils.checkIfSalonExists(salonId);
     if (!salon) {
       let err = new Error("Salon Not Found");
       err.code = 404;
       throw err;
     }
-    const memberships = await Memberships.find({ salonId: salonId });
+    let query = { salonId: salonId };
+    let memberships = [];
+    if(name){
+      query.name = new RegExp(name, 'i');
+    }
+    if(response_type === "search"){
+      const aggreagtion = [
+        {
+          $match: {
+            salonId: new mongoose.Types.ObjectId(salonId),
+            name: {
+              $regex: `${name}`,
+              $options: "i"
+            }
+          }
+        },
+        {
+          $project: {
+            membershipId: "$_id",
+            membershipTitle: "$name",
+            membershipDesc: "$description",
+            validity_in_days: "$validity_in_days",
+            validity_unit: "$validity_unit",
+            membershipCost: "$cost"
+          }
+        }
+      ];
+      memberships = await Memberships.aggregate(aggreagtion).skip(skip).limit(limit);
+    }else{
+      memberships = await Memberships.find(query).skip(skip).limit(limit);
+    }
     res.status(200).json(
       wrapperMessage("success", "Memberships Fetched Successfully", {
         count: memberships.length,
@@ -204,7 +239,7 @@ exports.ApplyMembershipDiscount = async (req, res, next) => {
     let data = {services : selectedServices};
     let totalBill = 0;
     selectedServices.forEach(service => {
-      totalBill += service.price + service.tax;
+      totalBill += service.qty*(service.price + service.tax);
     });
     if(totalBill >= user.membership?.min_bill_amount){
       if(user.membership?.discount_type === 0 || user.membership?.discount_type === 1){
@@ -226,8 +261,3 @@ exports.ApplyMembershipDiscount = async (req, res, next) => {
     res.status(err.code || 500).json(wrapperMessage("failed", err.message));
   }
 }
-    console.log(err);
-    res.status(err.code || 500).json(wrapperMessage("failed", err.message));
-  }
-};
-

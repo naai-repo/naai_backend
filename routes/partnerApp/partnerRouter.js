@@ -10,7 +10,8 @@ const Salon = require("../../model/partnerApp/Salon");
 const wrapperMessage = require("../../helper/wrapperMessage");
 const sendOTPVerification = require("../../helper/sendOTPVerification");
 const { isLoggedIn } = require("../../helper/isLoggedIn");
-require('../../helper/googleOAuth');
+const { default: mongoose } = require("mongoose");
+require("../../helper/googleOAuth");
 
 // Login / Signup Routes
 router.post("/login", (req, res) => {
@@ -22,7 +23,7 @@ router.post("/login", (req, res) => {
       if (result.length) {
         // User Already exists
         sendOTPVerification(result[0], res);
-      } else if(!req.body.hasOwnProperty("isForManager")){
+      } else if (!req.body.hasOwnProperty("isForManager")) {
         // try to create new user
         const newPartner = new Partner({
           phoneNumber,
@@ -41,13 +42,8 @@ router.post("/login", (req, res) => {
               )
             );
           });
-      }else{
-        res.json(
-          wrapperMessage(
-            "failed",
-            "Partner Not Found!"
-          )
-        );
+      } else {
+        res.json(wrapperMessage("failed", "Partner Not Found!"));
       }
     })
     .catch((err) => {
@@ -139,7 +135,6 @@ router.post("/login", (req, res) => {
 //   }
 // });
 
-
 // Partner Login
 router.post("/loginViaPassword", (req, res) => {
   let { password, user } = req.body;
@@ -154,7 +149,7 @@ router.post("/loginViaPassword", (req, res) => {
       .then((data) => {
         if (data.length) {
           // User Exists
-          const hashedPassword = data[0].password;  
+          const hashedPassword = data[0].password;
           bcrypt
             .compare(password, hashedPassword)
             .then((result) => {
@@ -178,7 +173,10 @@ router.post("/loginViaPassword", (req, res) => {
                 } else {
                   user = { ...user, newUser: false };
                 }
-                res.cookie('token', accessToken, {httpOnly: true, secure: process.env.COOKIE_SECURE});
+                res.cookie("token", accessToken, {
+                  httpOnly: true,
+                  secure: process.env.COOKIE_SECURE,
+                });
                 res.json(wrapperMessage("success", "", [user]));
               } else {
                 res.json(wrapperMessage("failed", "Invalid password entered!"));
@@ -209,40 +207,39 @@ router.post("/loginViaPassword", (req, res) => {
 });
 
 router.post("/update", async (req, res) => {
-  try{
+  try {
     let userId = req.body.userId;
-    if(!userId){
+    if (!userId) {
       let err = new Error("Please enter valid user id!");
       err.code = 400;
       throw err;
     }
-    if(req.body.email){
-      let userWithEmail = await Partner.find({email: req.body.email});
-      if(userWithEmail.length && userWithEmail[0]._id.toString() !== userId){
+    if (req.body.email) {
+      let userWithEmail = await Partner.find({ email: req.body.email });
+      if (userWithEmail.length && userWithEmail[0]._id.toString() !== userId) {
         let err = new Error("User with this email already exists!");
         err.code = 400;
         throw err;
       }
     }
-    let data = await Partner.find({_id: userId});
-    if(!data.length){
+    let data = await Partner.find({ _id: userId });
+    if (!data.length) {
       let err = new Error("No such user exists!");
       err.code = 404;
       throw err;
     }
 
-    let user = await Partner.findOne({_id: userId});
+    let user = await Partner.findOne({ _id: userId });
     user.name = req.body.name || user.name;
-    if(user.email !== req.body.email){
+    if (user.email !== req.body.email) {
       user.email = req.body.email || user.email;
     }
     user.password = req.body.password || user.password;
     user.admin = req.body.admin || user.admin;
     let newUser = await user.save();
-    
-    res.json(wrapperMessage("success", "User updated successfully!", newUser));
 
-  }catch(err){
+    res.json(wrapperMessage("success", "User updated successfully!", newUser));
+  } catch (err) {
     console.log(err);
     res.status(err.code || 500).json(wrapperMessage("failed", err.message));
   }
@@ -314,89 +311,132 @@ router.get("/:id", async (req, res) => {
   const { id } = req.params;
 
   if (!id) {
-    return res.status(400).json(wrapperMessage("failed", "User ID is required!"));
+    return res
+      .status(400)
+      .json(wrapperMessage("failed", "User ID is required!"));
   }
 
   try {
     const partner = await Partner.findOne({ _id: id });
-    console.log(partner)
+    console.log(partner);
     if (!partner) {
-      return res.status(404).json(wrapperMessage("failed", "Partner not found!"));
+      return res
+        .status(404)
+        .json(wrapperMessage("failed", "Partner not found!"));
     }
 
     const [artist, salon] = await Promise.all([
       Artist.findOne({ phoneNumber: partner.phoneNumber }),
-      Salon.findOne({ phoneNumber: partner.phoneNumber })
+      Salon.findOne({ phoneNumber: partner.phoneNumber }),
     ]);
-console.log(artist, salon)
+    console.log(artist, salon);
     const responsePayload = {
-      partnerData: {...partner._doc},
-      artistData : {...(artist && artist._doc)},
-      salonData : {...(salon && salon._doc)},
+      partnerData: { ...partner._doc },
+      artistData: { ...(artist && artist._doc) },
+      salonData: { ...(salon && salon._doc) },
     };
 
     return res.status(200).json(wrapperMessage("success", "", responsePayload));
   } catch (err) {
     console.error(err);
-    console.log('error for terminal');
-    return res.status(err.code || 500).json(wrapperMessage("failed", err.message));
+    console.log("error for terminal");
+    return res
+      .status(err.code || 500)
+      .json(wrapperMessage("failed", err.message));
   }
 });
 
 //delete Partner
 router.get("/delete/partner/:id", async (req, res) => {
-  try{
+  try {
     let partner = await Partner.findOneAndDelete({ _id: req.params.id });
     console.log(partner);
-    if(!partner){
-      return res.status(404).json(wrapperMessage("failed", "No such Partner exists!"));
+    if (!partner) {
+      return res
+        .status(404)
+        .json(wrapperMessage("failed", "No such Partner exists!"));
     }
-    res.status(200).json(wrapperMessage("success", "Partner deleted successfully!", partner));
-  }catch(err){
+    res
+      .status(200)
+      .json(
+        wrapperMessage("success", "Partner deleted successfully!", partner)
+      );
+  } catch (err) {
     console.log(err);
     res.status(500).json(wrapperMessage("failed", err.message));
   }
-})
+});
 
 // delete Artist
 router.get("/delete/Artist/:id", async (req, res) => {
-  console.log('dfdfdf')
-  try{
+  console.log("dfdfdf");
+  try {
     let artist = await Artist.findOneAndDelete({ _id: req.params.id });
     console.log(artist);
-    if(!artist){
-      return res.status(404).json(wrapperMessage("failed", "Artist don't exist"));
+    if (!artist) {
+      return res
+        .status(404)
+        .json(wrapperMessage("failed", "Artist don't exist"));
     }
-    res.status(200).json(wrapperMessage("success", "Artist deleted successfully!", artist));
-  }catch(err){
+    res
+      .status(200)
+      .json(wrapperMessage("success", "Artist deleted successfully!", artist));
+  } catch (err) {
     console.log(err);
     res.status(500).json(wrapperMessage("failed", err.message));
   }
-})
+});
 
 router.get("/phoneNumber/:phoneNumber", async (req, res) => {
-  try{  
-    let {phoneNumber} = req.params;
-    let partner = await Partner.findOne({phoneNumber});
-    if(!partner){
+  try {
+    let { phoneNumber } = req.params;
+    let partner = await Partner.findOne({ phoneNumber });
+    if (!partner) {
       let err = new Error("No such partner exists!");
       err.code = 200;
       throw err;
     }
     res.status(200).json(wrapperMessage("success", "Partner Found", partner));
-
-  }catch(err){
+  } catch (err) {
     console.log(err);
-    res.status(err.code || 500).json(wrapperMessage(err.status || "failed", err.message));
+    res
+      .status(err.code || 500)
+      .json(wrapperMessage(err.status || "failed", err.message));
   }
 });
 
-router.get("/search/salonId/:salonId", async (req, res) => {  
-  try{
-    let {salonId} = req.params;
-    let partner = await Partner.find({salonId});
+router.get("/search/salonId/:salonId", async (req, res) => {
+  try {
+    let { salonId } = req.params;
+    const aggregation = [
+      {
+        $match: {
+          salonId: new mongoose.Types.ObjectId(salonId),
+        },
+      },
+      {
+        $lookup: {
+          from: "artists",
+          localField: "phoneNumber",
+          foreignField: "phoneNumber",
+          as: "artistData",
+        },
+      },
+      {
+        $addFields: {
+          live: { $arrayElemAt: ["$artistData.live", 0] },
+          artistId: { $arrayElemAt: ["$artistData._id", 0] },
+        },
+      },
+      {
+        $project: {
+          artistData: 0,
+        },
+      },
+    ];
+    let partner = await Partner.aggregate(aggregation);
     res.status(200).json(wrapperMessage("success", "Partners Found", partner));
-  }catch(err){
+  } catch (err) {
     console.log(err);
     res.status(err.code || 500).json(wrapperMessage("failed", err.message));
   }
@@ -404,30 +444,32 @@ router.get("/search/salonId/:salonId", async (req, res) => {
 
 // Google OAuth
 
-router.get('/auth/google',
-  passport.authenticate('google', {
-    scope:
-      ['email', 'profile']
-  }
-  ));
+router.get(
+  "/auth/google",
+  passport.authenticate("google", {
+    scope: ["email", "profile"],
+  })
+);
 
-router.get('/auth/google/callback',
-  passport.authenticate('google', {
-    successRedirect: '/partner/user/auth/google/success',
-    failureRedirect: '/partner/user/auth/google/failure'
-  }));
+router.get(
+  "/auth/google/callback",
+  passport.authenticate("google", {
+    successRedirect: "/partner/user/auth/google/success",
+    failureRedirect: "/partner/user/auth/google/failure",
+  })
+);
 
 router.get("/auth/google/failed", (req, res) => {
-  res.send("Failed")
-})
+  res.send("Failed");
+});
 router.get("/auth/google/success", isLoggedIn, (req, res) => {
   res.json(wrapperMessage("success", "", [req.user]));
-})
+});
 
-router.get('/logout', (req, res) => {
+router.get("/logout", (req, res) => {
   req.session = null;
   req.logout();
   res.json(wrapperMessage("success", "Logged out succesfully!"));
-})
+});
 
 module.exports = router;

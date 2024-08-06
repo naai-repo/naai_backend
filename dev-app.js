@@ -21,7 +21,7 @@ const ServiceRouter = require("./routes/partnerApp/serviceRouter");
 const ArtistRouter = require("./routes/partnerApp/artistRouter");
 const PartnerRouter = require("./routes/partnerApp/partnerRouter");
 const OtpRouter = require("./routes/partnerApp/otpRouter");
-const InventoryRouter = require("./routes/partnerApp/inventoryRouter");
+const InventoryRouter = require('./routes/inventoryRoutes/inventory.routes')
 const PlanRouter = require("./routes/partnerApp/planRouter");
 const SubscriptionRouter =require('./routes/subscriptionRoutes/subscription.routes');
 const salaryRouter = require('./routes/salaryRoutes/salary.routes');
@@ -102,7 +102,7 @@ app.use("/partner/service", ServiceRouter);
 app.use("/partner/artist", ArtistRouter);
 app.use("/partner/user", PartnerRouter);
 app.use("/partner/otp", OtpRouter);
-app.use("/partner/inventory", InventoryRouter);
+app.use("/salon/inventory", InventoryRouter);
 app.use("/partner/walkin", WalkinRouter);
 
 // Customer App Routes

@@ -13,6 +13,7 @@ const Salon = require("../../model/partnerApp/Salon");
 const PromotionImages = require("../../model/promotions/PromotionImages");
 const User = require("../../model/customerApp/User");
 const sendMail = require("../../helper/sendMail");
+const PromotionHistory = require("../../model/promotions/promotionHistory");
 
 const randomImageName = (bytes = 32) =>
   crypto.randomBytes(bytes).toString("hex");
@@ -267,7 +268,52 @@ exports.sendCustomersToQueueForSms = async (req, res) =>{
 }
 
 
+exports.saveSMSHIstory =  async (req, res) => {
+  const { customersCount, salonId, smsCost, smsResponse, message } = req.body;
+  if (!customersCount || !salonId || !smsCost || !smsResponse || !message) {
+    return res.status(400).json({ message: 'Missing required fields' });
+  }
 
+  try {
+    const promotionHistory = new PromotionHistory({
+      salonId,
+      customersCount,
+      smsCost,
+      message,
+      smsResponse, // Save the response here
+    });
+
+    await promotionHistory.save();
+    res.status(201).json({ message: 'Promotion history saved successfully' });
+  } catch (error) {
+    console.error('Error saving promotion history:', error.message);
+    res.status(500).json({ message: 'Failed to save promotion history' });
+  }
+};
+
+exports.getPromotionHistoryBySalonId = async (req, res) => {
+  const { salonId } = req.params;
+
+  try {
+    // Validate salonId
+    if (!salonId) {
+      return res.status(400).json({ message: 'Salon ID is required' });
+    }
+
+    // Fetch promotion history by salonId
+    const promotionHistories = await PromotionHistory.find({ salonId });
+
+    // Check if any records were found
+    if (promotionHistories.length === 0) {
+      return res.status(404).json({ message: 'No promotion history found for this salon' });
+    }
+
+    res.status(200).json(promotionHistories);
+  } catch (error) {
+    console.error('Error fetching promotion history:', error.message);
+    res.status(500).json({ message: 'Failed to fetch promotion history' });
+  }
+};
 
 
 // Send messages to S

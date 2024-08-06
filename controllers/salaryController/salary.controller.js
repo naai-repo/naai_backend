@@ -1,6 +1,4 @@
 
-
-
 const User = require('../../model/customerApp/User');
 const Salary = require('../../model/salary/salary.model');
 const Partner = require('../../model/partnerApp/Partner')
@@ -8,11 +6,12 @@ const Partner = require('../../model/partnerApp/Partner')
 
 exports.createSalaryTemplate = async (req, res) => {
     try {
-      const { earnings, deductions, paymentMethod, salonId, startDate } = req.body;
+      const { earnings,name, deductions, paymentMethod, salonId, startDate } = req.body;
   
       const salaryTemplate = new Salary({
         partnerId: null,
-        startDate, 
+        startDate,
+        name, 
         salonId, salonId,
         earnings,
         deductions,
@@ -60,6 +59,7 @@ exports.createSalaryTemplate = async (req, res) => {
         startDate,
         partnerId,
         salonId,
+        name:template.name,
         earnings: template.earnings,
         deductions: template.deductions,
         paymentMethod: template.paymentMethod,
@@ -142,11 +142,38 @@ exports.calculateSalary = async (req, res) => {
             }
   };
 
-
-
+ exports.getSalonWiseSalary =  async (req, res) => {
+    try {
+        const { salonId } = req.params;
+        const salaries = await Salary.find({ salonId: salonId, partnerId: null })
+        // const commissions = await Commission.find({ salon: salonId }).populate('salon').populate('partnerId');
+        
+        if (!salaries) {
+            return res.status(404).json({ message: 'No salaries found for the given salon ID' });
+        }
+        
+        res.status(200).json(salaries);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error });
+    }
+  };
 // API to Save or Update Salary for a Specific Month
-exports.updateSalary =  async (req, res) => {
-  const { partnerId, salonId, earnings, deductions, paymentMethod, effectiveYear, effectiveMonth } = req.body;
+exports.updateSalary = async (req, res) => {
+  const { partnerId, salonId, earnings, deductions, paymentMethod, name, effectiveYear, effectiveMonth } = req.body;
+
+  // Validate required fields
+  const missingFields = [];
+  if (!partnerId) missingFields.push('partnerId');
+  if (!effectiveYear) missingFields.push('effectiveYear');
+  if (!effectiveMonth) missingFields.push('effectiveMonth');
+  if (earnings === undefined) missingFields.push('earnings');
+  if (deductions === undefined) missingFields.push('deductions');
+  if (!paymentMethod) missingFields.push('paymentMethod');
+  if (!name) missingFields.push('name');
+
+  if (missingFields.length > 0) {
+    return res.status(400).json({ message: `Please send all values: ${missingFields.join(', ')}` });
+  }
 
   try {
     // Find existing salary record for the specific month and year
@@ -161,6 +188,7 @@ exports.updateSalary =  async (req, res) => {
       salary.earnings = earnings;
       salary.deductions = deductions;
       salary.paymentMethod = paymentMethod;
+      salary.name = name; // Ensure name is updated
       await salary.save();
     } else {
       // Create a new salary record for the specific month
@@ -168,6 +196,7 @@ exports.updateSalary =  async (req, res) => {
         partnerId,
         salonId,
         earnings,
+        name,
         deductions,
         paymentMethod,
         effectiveYear,
@@ -181,6 +210,7 @@ exports.updateSalary =  async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
 
 // API to Fetch Monthly Salary for a Partner
 exports.getMonthWiseSalary = async (req, res) => {
@@ -217,26 +247,35 @@ try{
     res.status(500).json({ error: error.message });
   }
 };
-
-
-          
-
   
-  
+//
+exports.updateSalaryTemplate = async (req, res) => {
+  try {
+    const { salaryId } = req.params; // Get salaryId from URL parameters
+    const { earnings, deductions, paymentMethod, salonId, startDate } = req.body;
 
-//   curl -X POST http://localhost:3000/salary-template \
-//   -H "Content-Type: application/json" \
-//   -d '{
-//         "earnings": [
-//           { "type": "Basic", "value": 5000 },
-//           { "type": "House Rent Allowance", "value": 2000 },
-//           { "type": "Bonus", "value": 500 }
-//         ],
-//         "deductions": [
-//           { "type": "Advance", "value": 1000 },
-//           { "type": "Provident Fund", "value": 300 },
-//           { "type": "Income Tax", "value": 200 }
-//         ],
-//         "paymentMethod": "bank transfer"
-//       }'
+    // Find the salary template by ID
+    const salaryTemplate = await Salary.findById(salaryId);
 
+    if (!salaryTemplate) {
+      return res.status(404).json({ message: "Salary template not found." });
+    }
+
+    // Update the fields with new data
+    salaryTemplate.earnings = earnings || salaryTemplate.earnings;
+    salaryTemplate.deductions = deductions || salaryTemplate.deductions;
+    salaryTemplate.paymentMethod = paymentMethod || salaryTemplate.paymentMethod;
+    salaryTemplate.salonId = salonId || salaryTemplate.salonId;
+    salaryTemplate.startDate = startDate || salaryTemplate.startDate;
+
+    // Save the updated salary template
+    await salaryTemplate.save();
+
+    res.status(200).json({
+      message: "Salary template updated successfully.",
+      salaryTemplate,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
