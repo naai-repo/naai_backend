@@ -83,8 +83,8 @@ const PartnerSchema = new mongoose.Schema(
       },
       week_off_day: {
         type: String,
-        enum: ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", null],
-        default: "sunday",
+        enum: ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "none"],
+        default: "none",
       },
     },
     product_commission: {
