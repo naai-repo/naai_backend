@@ -867,4 +867,34 @@ router.get("/bookings/forStats", async (req, res) => {
   }
 });
 
+router.post("/user/bookings/history",async (req,res)=>{
+  try{
+    const salonId=req.body.salonId;
+    const userId=req.body.userId;
+    if(!salonId){
+      let err=new Error("Salon Id is required!");
+      err.code=400;
+      throw err;
+    }
+    if(!userId){
+      let err=new Error("User Id is required!");
+      err.code=400;
+      throw err;
+    }
+
+    const salon = await Salon.findOne({ _id: salonId });
+    if (!salon) {
+      let err = new Error("No such salon exists!");
+      err.code = 404;
+      throw err;
+    }
+    const bookings = await Booking.find({userId:userId})
+    res
+      .status(200)
+      .json(wrapperMessage("success", "Bookings fetched", bookings));
+  }catch(err){
+    res.status(err.code || 500).json(wrapperMessage("failed", err.message));
+  }
+})
+
 module.exports = router;
