@@ -888,7 +888,7 @@ router.post("/user/bookings/history",async (req,res)=>{
       err.code = 404;
       throw err;
     }
-    const bookings = await Booking.find({userId:userId})
+    const bookings = await Booking.find({userId:userId,salonId:salonId})
     res
       .status(200)
       .json(wrapperMessage("success", "Bookings fetched", bookings));
