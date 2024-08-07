@@ -228,16 +228,7 @@ router.post("/update", async (req, res) => {
       err.code = 404;
       throw err;
     }
-
-    let user = await Partner.findOne({ _id: userId });
-    user.name = req.body.name || user.name;
-    if (user.email !== req.body.email) {
-      user.email = req.body.email || user.email;
-    }
-    user.password = req.body.password || user.password;
-    user.admin = req.body.admin || user.admin;
-    let newUser = await user.save();
-
+    let newUser = await Partner.findOneAndUpdate({_id: userId}, req.body, {new: true});
     res.json(wrapperMessage("success", "User updated successfully!", newUser));
   } catch (err) {
     console.log(err);
