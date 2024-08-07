@@ -598,6 +598,61 @@ router.post("/customerList", async (req, res) => {
   }
 });
 
+router.post('/getCustomerByNumber', async (req, res) => {
+  try {
+    let phoneNumber = req.body.phoneNumber;
+    let user = await User.findOne({ phoneNumber: phoneNumber });
+    res.status(200).json(wrapperMessage("success", "Salon users", user));
+  } catch (err) {
+    console.error(err);
+    res.status(err.code || 500).json(wrapperMessage("failed", err.message));
+  }
+})
+
+// router.post("/addCustomer", async (req, res) => {
+//   try {
+//     let salonId = req.body.salonId;
+//     let customer = req.body.customer;
+//     const salonData = await Salon.findOne({ _id: salonId });
+
+//     if (!salonData) {
+//       let err = new Error("No such salon exists!");
+//       err.code = 404;
+//       throw err;
+//     }
+
+//     const foundUser = await User.findOne({
+//       phoneNumber: customer.phoneNumber,
+//     });
+
+//     // const user = new User(customer);
+    
+//     const foundWalkinUser = salonData.WalkinUsers.includes(
+//       user.phoneNumber.toString()
+//     );
+
+//     if (foundWalkinUser) {
+//       let err = new Error("User with this phone number alreay exist in salon");
+//       err.code = 404;
+//       throw err;
+//     }
+
+//     salonData.WalkinUsers.push(user.phoneNumber.toString());
+
+//     if (!foundUser) {
+//       user.walkinSalons.push(new ObjectId(salonId))
+//      await user.save();
+//     }
+//     await salonData.save();
+//     res
+//       .status(200)
+//       .json(wrapperMessage("success", "user created successfully", user));
+//   } catch (err) {
+//     res.status(err.code || 500).json(wrapperMessage("failed", err.message));
+//   }
+// });
+
+
 router.post("/addCustomer", async (req, res) => {
   try {
     let salonId = req.body.salonId;
@@ -613,11 +668,9 @@ router.post("/addCustomer", async (req, res) => {
     const foundUser = await User.findOne({
       phoneNumber: customer.phoneNumber,
     });
-
-    const user = new User(customer);
     
     const foundWalkinUser = salonData.WalkinUsers.includes(
-      user.phoneNumber.toString()
+      customer.phoneNumber.toString()
     );
 
     if (foundWalkinUser) {
@@ -626,11 +679,14 @@ router.post("/addCustomer", async (req, res) => {
       throw err;
     }
 
-    salonData.WalkinUsers.push(user.phoneNumber.toString());
+    salonData.WalkinUsers.push(customer.phoneNumber.toString());
 
+    let user = foundUser;
     if (!foundUser) {
-      user.walkinSalons.push(new ObjectId(salonId))
-     await user.save();
+      const newUser = new User(customer);
+      newUser.walkinSalons.push(new ObjectId(salonId));
+      user = newUser
+      await newUser.save();
     }
     await salonData.save();
     res
