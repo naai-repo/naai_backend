@@ -232,7 +232,7 @@ exports.sendCustomersToQueueForSms = async (req, res) =>{
 
 
     salon.smsCredits -= smsCost;
-
+console.log(phoneNumbers)
 
     await salon.save();
 
@@ -244,6 +244,7 @@ exports.sendCustomersToQueueForSms = async (req, res) =>{
           DRNotifyHttpMethod: "POST",
           Tool: "API",
         }
+        console.log(body)
     
         // Sends SMS OTP to user.
         const data = await axios.post(
@@ -255,7 +256,7 @@ exports.sendCustomersToQueueForSms = async (req, res) =>{
               password: process.env.AUTH_TOKEN,
             },
           })
-          console.log(data)
+          // console.log(data)
           res.status(200).json({ message: 'All sms sent'})
 
     
